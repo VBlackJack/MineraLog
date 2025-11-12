@@ -91,12 +91,41 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
 }
 
 /**
- * Future migrations will be added here as the schema evolves.
- * Example:
+ * Migration from version 2 to version 3.
  *
- * val MIGRATION_2_3 = object : Migration(2, 3) {
- *     override fun migrate(db: SupportSQLiteDatabase) {
- *         // Schema changes for v3
- *     }
- * }
+ * Changes:
+ * - Add filter_presets table for saving filter combinations
+ * - Indices on name and createdAt for query performance
+ *
+ * v1.2.0 feature: Advanced filtering with saved presets
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // Create filter_presets table
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS filter_presets (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                icon TEXT NOT NULL DEFAULT 'filter_list',
+                criteriaJson TEXT NOT NULL,
+                createdAt INTEGER NOT NULL,
+                updatedAt INTEGER NOT NULL
+            )
+        """.trimIndent())
+
+        // Create indices for performance
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_filter_presets_name
+            ON filter_presets(name)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_filter_presets_createdAt
+            ON filter_presets(createdAt)
+        """.trimIndent())
+    }
+}
+
+/**
+ * Future migrations will be added here as the schema evolves.
  */

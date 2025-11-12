@@ -1,6 +1,6 @@
 # MineraLog Roadmap
 
-## Current Version: v1.1.0 (2025-11-12)
+## Current Version: v1.2.0 (2025-11-12)
 
 ---
 
@@ -34,10 +34,57 @@
 
 ---
 
-## 🚀 v1.2.0 - Statistics & Analytics (Q1 2026)
+---
+
+## ✅ Completed in v1.2.0 (2025-11-12)
+
+### Statistics Dashboard ⭐
+- ✅ Comprehensive CollectionStatistics data model
+- ✅ Statistics aggregation queries in MineralDao (13 new queries)
+- ✅ StatisticsRepository with caching support
+- ✅ Statistics screen with multiple sections:
+  - Overview metrics (total, value, completeness)
+  - Recent activity (added this month/year)
+  - Highlights (most common, most valuable)
+  - Distribution charts (group, country, hardness, status)
+- ✅ Compose Canvas chart components (PieChart, BarChart)
+- ✅ Empty state handling
+- ✅ Dark/light theme support
+- ✅ i18n strings (English + French)
+
+### Advanced Filtering Infrastructure
+- ✅ FilterCriteria data model with 9 filter types
+- ✅ FilterPreset entity + DAO for saved presets
+- ✅ Database migration v2→v3 (filter_presets table)
+- ✅ FilterPresetRepository with JSON serialization
+- ✅ Advanced MineralDao.filterAdvanced() query
+- 🔄 UI implementation deferred to v1.2.1 (backend ready)
+
+### Technical Improvements
+- ✅ Database version upgraded to v3
+- ✅ Room migration 2→3 tested and documented
+- ✅ Statistics computation performance optimized
+- ✅ Comprehensive unit tests (StatisticsRepositoryTest)
+- ✅ Version updated to 1.2.0 (versionCode 2)
+
+### Documentation
+- ✅ Sprint plan created (DOCS/sprint_plan.md)
+- ✅ Roadmap updated
+- ✅ i18n strings added
+- ✅ Test coverage increased
+
+### Known Limitations (v1.2.0)
+- ⚠️ Filter preset UI not yet implemented (deferred to v1.2.1)
+- ⚠️ CSV column selection UI not implemented (deferred to v1.2.1)
+- ⚠️ Statistics export to PDF not implemented (future)
+- ⚠️ Dependency injection TODO placeholder in navigation (functional but needs cleanup)
+
+---
+
+## 🔜 v1.2.1 - Filter UI & Export Enhancements (Next Patch)
 
 **Priority:** High
-**Effort:** Medium (3-4 weeks)
+**Effort:** Small (1 week)
 
 ### Features
 - **Statistics Dashboard**
