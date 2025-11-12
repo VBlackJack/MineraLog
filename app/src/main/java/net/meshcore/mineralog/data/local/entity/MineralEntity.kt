@@ -16,7 +16,12 @@ import java.util.UUID
         Index(value = ["name"]),
         Index(value = ["group"]),
         Index(value = ["crystalSystem"]),
-        Index(value = ["status"]),
+        Index(value = ["status"]), // v1.0 compat
+        Index(value = ["statusType"]), // v1.1
+        Index(value = ["completeness"]), // v1.1
+        Index(value = ["qualityRating"]), // v1.1
+        Index(value = ["provenanceId"]), // v1.1 FK
+        Index(value = ["storageId"]), // v1.1 FK
         Index(value = ["createdAt"]),
         Index(value = ["updatedAt"])
     ]
@@ -55,8 +60,18 @@ data class MineralEntity(
     val notes: String? = null,
     val tags: String? = null, // Comma-separated tags
 
-    // Status
+    // Status (v1.0 - deprecated, kept for backward compatibility)
     val status: String = "incomplete", // complete, incomplete
+
+    // v1.1 Status & Lifecycle Management
+    val statusType: String = "in_collection", // MineralStatus enum value
+    val statusDetails: String? = null, // JSON-serialized MineralStatusDetails
+    val qualityRating: Int? = null, // 1-5, specimen quality assessment
+    val completeness: Int = 0, // 0-100, calculated percentage of filled fields
+
+    // Relationships (stored as foreign keys)
+    val provenanceId: String? = null, // UUID reference to ProvenanceEntity
+    val storageId: String? = null, // UUID reference to StorageEntity
 
     // Metadata
     val createdAt: Instant = Instant.now(),

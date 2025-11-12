@@ -1,0 +1,384 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mineralog.net/schemas/export-v1.1.0.json",
+  "title": "MineraLog Export Format v1.1.0",
+  "description": "Schema for MineraLog mineral collection export (ZIP archive containing manifest.json and media files)",
+  "type": "object",
+  "required": ["manifest", "minerals"],
+  "properties": {
+    "manifest": {
+      "type": "object",
+      "required": ["appName", "schemaVersion", "exportedAt", "exportedBy"],
+      "properties": {
+        "appName": {
+          "type": "string",
+          "const": "MineraLog",
+          "description": "Application name identifier"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "pattern": "^1\\.(0|1)\\.0$",
+          "description": "Export schema version (1.0.0 or 1.1.0). v1.1 adds statusType, qualityRating, completeness fields"
+        },
+        "exportedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO-8601 timestamp of export"
+        },
+        "exportedBy": {
+          "type": "string",
+          "description": "User or device identifier (optional, for multi-device sync)"
+        },
+        "mineralCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of minerals in this export"
+        },
+        "encrypted": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the export is encrypted with password"
+        },
+        "encryptionMethod": {
+          "type": "string",
+          "enum": ["argon2id-aes256gcm", "none"],
+          "description": "Encryption method: argon2id KDF + AES-256-GCM, or none"
+        }
+      }
+    },
+    "minerals": {
+      "type": "array",
+      "description": "Array of mineral specimens",
+      "items": {
+        "$ref": "#/$defs/mineral"
+      }
+    },
+    "provenances": {
+      "type": "array",
+      "description": "Array of provenance records (origin information)",
+      "items": {
+        "$ref": "#/$defs/provenance"
+      }
+    },
+    "storageLocations": {
+      "type": "array",
+      "description": "Array of storage location records",
+      "items": {
+        "$ref": "#/$defs/storageLocation"
+      }
+    }
+  },
+  "$defs": {
+    "mineral": {
+      "type": "object",
+      "required": ["uuid", "name", "createdAt", "updatedAt"],
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier (preserved across exports)"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Mineral name (required)"
+        },
+        "group": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Mineral group/class (e.g., Silicates, Oxides)",
+          "examples": ["Silicates", "Oxides", "Sulfides", "Carbonates", "Halides"]
+        },
+        "formula": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Chemical formula (e.g., SiO₂, Fe₃O₄)"
+        },
+        "crystalSystem": {
+          "type": "string",
+          "enum": ["Triclinic", "Monoclinic", "Orthorhombic", "Tetragonal", "Trigonal", "Hexagonal", "Cubic"],
+          "description": "Crystal system classification"
+        },
+        "mohsHardnessMin": {
+          "type": "number",
+          "minimum": 1.0,
+          "maximum": 10.0,
+          "description": "Minimum Mohs hardness (fractional values allowed)"
+        },
+        "mohsHardnessMax": {
+          "type": "number",
+          "minimum": 1.0,
+          "maximum": 10.0,
+          "description": "Maximum Mohs hardness (fractional values allowed)"
+        },
+        "cleavage": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Cleavage description (e.g., Perfect, Good, Poor, None)"
+        },
+        "fracture": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Fracture type (e.g., Conchoidal, Uneven, Splintery)"
+        },
+        "luster": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Luster type (e.g., Metallic, Vitreous, Pearly, Resinous)"
+        },
+        "streak": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Streak color (powder color when scratched)"
+        },
+        "diaphaneity": {
+          "type": "string",
+          "enum": ["Transparent", "Translucent", "Opaque"],
+          "description": "Transparency classification"
+        },
+        "habit": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Crystal habit/form (e.g., Prismatic, Massive, Granular)"
+        },
+        "specificGravity": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 30.0,
+          "description": "Specific gravity (density relative to water)"
+        },
+        "fluorescence": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Fluorescence under UV (e.g., LW:blue,SW:green or none)"
+        },
+        "magnetic": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether mineral exhibits magnetism"
+        },
+        "radioactive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether mineral is radioactive"
+        },
+        "dimensionsMm": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Specimen dimensions in mm (e.g., 45x30x20 or free text)"
+        },
+        "weightGrams": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Specimen weight in grams"
+        },
+        "estimatedValue": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Estimated value in specified currency"
+        },
+        "valueCurrency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "description": "ISO 4217 currency code (e.g., USD, EUR, GBP)",
+          "examples": ["USD", "EUR", "GBP", "CAD"]
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 5000,
+          "description": "Free-form notes and observations"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "description": "User-defined tags for categorization"
+        },
+        "statusType": {
+          "type": "string",
+          "enum": ["in_collection", "on_display", "loaned", "needs_restoration", "for_sale"],
+          "default": "in_collection",
+          "description": "v1.1: Lifecycle status of specimen"
+        },
+        "statusDetails": {
+          "type": "object",
+          "description": "v1.1: Extended status metadata (flexible JSON object)",
+          "properties": {
+            "displayLocation": {"type": "string"},
+            "displaySince": {"type": "string", "format": "date"},
+            "loanedTo": {"type": "string"},
+            "loanedDate": {"type": "string", "format": "date"},
+            "expectedReturn": {"type": "string", "format": "date"},
+            "loanAgreementNotes": {"type": "string"},
+            "restorationNotes": {"type": "string"},
+            "restorationPriority": {"type": "integer", "minimum": 1, "maximum": 5},
+            "askingPrice": {"type": "number"},
+            "currency": {"type": "string"},
+            "listedDate": {"type": "string", "format": "date"},
+            "saleNotes": {"type": "string"}
+          },
+          "additionalProperties": true
+        },
+        "qualityRating": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "v1.1: Specimen quality rating (1=Poor, 5=Exceptional)"
+        },
+        "completeness": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "v1.1: Data entry completeness percentage (calculated)"
+        },
+        "provenanceId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Reference to provenance record"
+        },
+        "storageId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Reference to storage location record"
+        },
+        "photos": {
+          "type": "array",
+          "description": "Associated photos (references to files in media/ folder)",
+          "items": {
+            "$ref": "#/$defs/photo"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO-8601 creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO-8601 last update timestamp"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["uuid", "mineralId"],
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "mineralId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Reference to mineral record"
+        },
+        "locality": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Specific locality/mine/region"
+        },
+        "country": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$",
+          "description": "ISO 3166-1 alpha-2 country code"
+        },
+        "acquisitionDate": {
+          "type": "string",
+          "format": "date",
+          "description": "Date acquired (ISO 8601)"
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Source (dealer, field collection, gift, etc.)"
+        },
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90,
+          "description": "Geographic latitude in decimal degrees"
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "description": "Geographic longitude in decimal degrees"
+        }
+      }
+    },
+    "storageLocation": {
+      "type": "object",
+      "required": ["uuid"],
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "location": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Primary location (room, building, etc.)"
+        },
+        "box": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Box or container identifier"
+        },
+        "drawer": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Drawer identifier"
+        },
+        "slot": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Slot or position within drawer"
+        },
+        "qrCode": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "QR code data for location"
+        },
+        "nfcTag": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "NFC tag identifier"
+        }
+      }
+    },
+    "photo": {
+      "type": "object",
+      "required": ["uuid", "filename", "type"],
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "filename": {
+          "type": "string",
+          "pattern": "^media/[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+\\.(jpg|jpeg|png|webp)$",
+          "description": "Path to photo file within ZIP archive"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["normal", "uv_sw", "uv_lw", "macro", "context"],
+          "description": "Photo type (normal, UV shortwave, UV longwave, macro, context)"
+        },
+        "caption": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "User-provided caption"
+        },
+        "takenAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when photo was taken"
+        }
+      }
+    }
+  }
+}
