@@ -14,10 +14,12 @@ import net.meshcore.mineralog.data.local.entity.MineralEntity
 import net.meshcore.mineralog.data.local.entity.PhotoEntity
 import net.meshcore.mineralog.data.local.entity.ProvenanceEntity
 import net.meshcore.mineralog.data.local.entity.StorageEntity
+import net.meshcore.mineralog.data.local.migration.MIGRATION_1_2
 
 /**
  * Main Room database for MineraLog application.
  * Version 1: Initial schema with minerals, provenances, storage, and photos tables.
+ * Version 2: Added lifecycle status, quality rating, completeness, and FK fields to minerals.
  */
 @Database(
     entities = [
@@ -26,7 +28,7 @@ import net.meshcore.mineralog.data.local.entity.StorageEntity
         StorageEntity::class,
         PhotoEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -48,7 +50,8 @@ abstract class MineraLogDatabase : RoomDatabase() {
                     MineraLogDatabase::class.java,
                     "mineralog_database"
                 )
-                    .fallbackToDestructiveMigration() // For v1.0, accept data loss on schema change
+                    .addMigrations(MIGRATION_1_2) // v1.1: Proper migration with data preservation
+                    .fallbackToDestructiveMigration() // Fallback for unhandled migrations
                     .build()
                 INSTANCE = instance
                 instance

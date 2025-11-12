@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">MineraLog</string>
+    <string name="app_version">MineraLog v%s</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_add">Ajouter</string>
+    <string name="nav_detail">Détails</string>
+    <string name="nav_settings">Paramètres</string>
+    <string name="nav_statistics">Statistiques</string>
+    <string name="nav_compare">Comparer</string>
+    <string name="nav_bulk_edit">Édition groupée</string>
+    <string name="nav_import_export">Import/Export</string>
+    <string name="nav_map">Carte</string>
+    <string name="nav_gallery">Galerie</string>
+
+    <!-- Common Actions -->
+    <string name="action_save">ENREGISTRER</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_delete">Supprimer</string>
+    <string name="action_edit">Modifier</string>
+    <string name="action_share">Partager</string>
+    <string name="action_add">Ajouter</string>
+    <string name="action_search">Rechercher</string>
+    <string name="action_filter">Filtrer</string>
+    <string name="action_sort">Trier</string>
+    <string name="action_export">Exporter</string>
+    <string name="action_import">Importer</string>
+    <string name="action_backup">Sauvegarder</string>
+    <string name="action_restore">Restaurer</string>
+    <string name="action_select_all">Tout sélectionner</string>
+    <string name="action_deselect_all">Tout désélectionner</string>
+    <string name="action_apply">Appliquer</string>
+    <string name="action_close">Fermer</string>
+    <string name="action_confirm">Confirmer</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_settings">Paramètres</string>
+    <string name="cd_add_mineral">Ajouter un minéral</string>
+    <string name="cd_back">Retour</string>
+    <string name="cd_search">Rechercher</string>
+    <string name="cd_filter">Filtrer</string>
+    <string name="cd_delete">Supprimer</string>
+    <string name="cd_edit">Modifier</string>
+    <string name="cd_share">Partager</string>
+    <string name="cd_more_options">Plus d\'options</string>
+    <string name="cd_photo">Photo</string>
+    <string name="cd_take_photo">Prendre une photo</string>
+    <string name="cd_select_photo">Sélectionner une photo</string>
+    <string name="cd_delete_photo">Supprimer la photo</string>
+    <string name="cd_mineral_image">Image du minéral</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">MineraLog</string>
+    <string name="home_search_placeholder">Rechercher des minéraux…</string>
+    <string name="home_empty_state">Aucun minéral pour le moment. Ajoutez le premier !</string>
+    <string name="home_empty_search">Aucun minéral trouvé</string>
+    <string name="home_mineral_count">%d minéral</string>
+    <string name="home_mineral_count_plural">%d minéraux</string>
+
+    <!-- Add/Edit Mineral Screen -->
+    <string name="add_mineral_title">Ajouter un minéral</string>
+    <string name="edit_mineral_title">Modifier le minéral</string>
+    <string name="field_name">Nom *</string>
+    <string name="field_name_hint">Entrez le nom du minéral</string>
+    <string name="field_group">Groupe</string>
+    <string name="field_group_hint">ex : Silicates, Oxydes</string>
+    <string name="field_formula">Formule chimique</string>
+    <string name="field_formula_hint">ex : SiO₂</string>
+    <string name="field_color">Couleur</string>
+    <string name="field_streak">Trait</string>
+    <string name="field_luster">Éclat</string>
+    <string name="field_hardness">Dureté (Mohs)</string>
+    <string name="field_crystal_system">Système cristallin</string>
+    <string name="field_specific_gravity">Densité</string>
+    <string name="field_cleavage">Clivage</string>
+    <string name="field_fracture">Fracture</string>
+    <string name="field_tenacity">Ténacité</string>
+    <string name="field_diaphaneity">Diaphanéité</string>
+    <string name="field_habitus">Habitus</string>
+    <string name="field_fluorescence">Fluorescence</string>
+    <string name="field_radioactivity">Radioactivité</string>
+    <string name="field_magnetism">Magnétisme</string>
+    <string name="field_dimensions">Dimensions (mm)</string>
+    <string name="field_weight">Poids (g)</string>
+    <string name="field_value">Valeur estimée</string>
+    <string name="field_value_currency">Devise</string>
+    <string name="field_notes">Notes</string>
+    <string name="field_notes_hint">Observations additionnelles, histoire de la collection…</string>
+    <string name="field_tags">Étiquettes</string>
+    <string name="field_tags_hint">séparées, par, des, virgules</string>
+
+    <!-- Mineral Detail Screen -->
+    <string name="detail_loading">Chargement…</string>
+    <string name="detail_section_basic">Informations de base</string>
+    <string name="detail_section_physical">Propriétés physiques</string>
+    <string name="detail_section_special">Propriétés spéciales</string>
+    <string name="detail_section_measurements">Mesures</string>
+    <string name="detail_section_provenance">Provenance</string>
+    <string name="detail_section_storage">Emplacement de stockage</string>
+    <string name="detail_section_photos">Photos</string>
+    <string name="detail_section_notes">Notes</string>
+    <string name="detail_section_metadata">Métadonnées</string>
+    <string name="detail_label_name">Nom</string>
+    <string name="detail_label_group">Groupe</string>
+    <string name="detail_label_formula">Formule</string>
+    <string name="detail_label_color">Couleur</string>
+    <string name="detail_label_streak">Trait</string>
+    <string name="detail_label_luster">Éclat</string>
+    <string name="detail_label_hardness">Dureté</string>
+    <string name="detail_label_crystal_system">Système cristallin</string>
+    <string name="detail_label_specific_gravity">Densité</string>
+    <string name="detail_label_cleavage">Clivage</string>
+    <string name="detail_label_fracture">Fracture</string>
+    <string name="detail_label_dimensions">Dimensions</string>
+    <string name="detail_label_weight">Poids</string>
+    <string name="detail_label_value">Valeur</string>
+    <string name="detail_label_created">Créé</string>
+    <string name="detail_label_updated">Modifié</string>
+    <string name="detail_label_uuid">UUID</string>
+    <string name="detail_no_provenance">Aucune information de provenance</string>
+    <string name="detail_no_storage">Aucun emplacement de stockage</string>
+    <string name="detail_no_photos">Aucune photo</string>
+    <string name="detail_no_notes">Aucune note</string>
+
+    <!-- Provenance -->
+    <string name="provenance_title">Provenance</string>
+    <string name="provenance_add">Ajouter la provenance</string>
+    <string name="provenance_locality">Localité</string>
+    <string name="provenance_country">Pays</string>
+    <string name="provenance_acquisition_date">Date d\'acquisition</string>
+    <string name="provenance_source">Source</string>
+    <string name="provenance_source_hint">Marchand, collecte terrain, cadeau…</string>
+    <string name="provenance_coordinates">Coordonnées</string>
+    <string name="provenance_latitude">Latitude</string>
+    <string name="provenance_longitude">Longitude</string>
+
+    <!-- Storage -->
+    <string name="storage_title">Stockage</string>
+    <string name="storage_add">Ajouter un emplacement</string>
+    <string name="storage_location">Emplacement</string>
+    <string name="storage_location_hint">Pièce, étagère…</string>
+    <string name="storage_box">Boîte</string>
+    <string name="storage_drawer">Tiroir</string>
+    <string name="storage_slot">Emplacement/Position</string>
+    <string name="storage_qr_code">Code QR</string>
+    <string name="storage_nfc_tag">Tag NFC</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_section_general">Général</string>
+    <string name="settings_section_data">Données &amp; Confidentialité</string>
+    <string name="settings_section_display">Affichage</string>
+    <string name="settings_section_backup">Sauvegarde &amp; Export</string>
+    <string name="settings_section_about">À propos</string>
+    <string name="settings_language">Langue</string>
+    <string name="settings_theme">Thème</string>
+    <string name="settings_theme_light">Clair</string>
+    <string name="settings_theme_dark">Sombre</string>
+    <string name="settings_theme_system">Système</string>
+    <string name="settings_copy_photos">Copier les photos en stockage interne</string>
+    <string name="settings_copy_photos_desc">Recommandé pour la sécurité des données</string>
+    <string name="settings_encrypt_backups">Chiffrer les sauvegardes</string>
+    <string name="settings_encrypt_backups_desc">Protéger les exports par mot de passe</string>
+    <string name="settings_encrypt_media">Chiffrer les fichiers média</string>
+    <string name="settings_encrypt_media_desc">Sécurité accrue, taille de fichier plus importante</string>
+    <string name="settings_auto_backup">Sauvegarde automatique</string>
+    <string name="settings_auto_backup_desc">Sauvegarde hebdomadaire sur le stockage</string>
+    <string name="settings_about">À propos</string>
+    <string name="settings_diagnostics">Diagnostics</string>
+    <string name="settings_licenses">Licences Open Source</string>
+    <string name="settings_version">Version</string>
+
+    <!-- Statistics Screen -->
+    <string name="stats_title">Statistiques</string>
+    <string name="stats_total_minerals">Total de minéraux</string>
+    <string name="stats_by_group">Par groupe minéral</string>
+    <string name="stats_by_country">Par pays</string>
+    <string name="stats_by_hardness">Par dureté (Mohs)</string>
+    <string name="stats_total_value">Valeur totale estimée</string>
+    <string name="stats_average_value">Valeur moyenne</string>
+    <string name="stats_most_common">Plus commun</string>
+    <string name="stats_empty">Aucune donnée pour le moment</string>
+
+    <!-- Comparator Screen -->
+    <string name="compare_title">Comparer les minéraux</string>
+    <string name="compare_select">Sélectionnez les minéraux à comparer</string>
+    <string name="compare_max_reached">Maximum 3 minéraux</string>
+    <string name="compare_min_required">Sélectionnez au moins 2 minéraux</string>
+    <string name="compare_clear">Effacer la sélection</string>
+    <string name="compare_differences">Différences surlignées</string>
+
+    <!-- Bulk Edit Screen -->
+    <string name="bulk_title">Édition groupée</string>
+    <string name="bulk_selected">%d sélectionné(s)</string>
+    <string name="bulk_action_move">Déplacer vers stockage</string>
+    <string name="bulk_action_tag">Ajouter des étiquettes</string>
+    <string name="bulk_action_delete">Supprimer</string>
+    <string name="bulk_action_export">Exporter</string>
+    <string name="bulk_confirm_delete">Supprimer %d minéraux ?</string>
+    <string name="bulk_confirm_delete_message">Cette action est irréversible.</string>
+
+    <!-- Import/Export -->
+    <string name="import_title">Importer</string>
+    <string name="export_title">Exporter</string>
+    <string name="import_select_file">Sélectionner le fichier ZIP</string>
+    <string name="export_select_destination">Sélectionner la destination</string>
+    <string name="export_format">Format</string>
+    <string name="export_format_zip">ZIP (avec médias)</string>
+    <string name="export_format_csv">CSV (données uniquement)</string>
+    <string name="export_format_json">JSON (données uniquement)</string>
+    <string name="export_include_photos">Inclure les photos</string>
+    <string name="export_encrypt">Chiffrer l\'export</string>
+    <string name="export_password">Mot de passe</string>
+    <string name="export_password_confirm">Confirmer le mot de passe</string>
+    <string name="export_progress">Export en cours… %d%%</string>
+    <string name="import_progress">Import en cours… %d%%</string>
+    <string name="export_success">%d minéraux exportés</string>
+    <string name="import_success">%d minéraux importés</string>
+    <string name="export_error">Échec de l\'export</string>
+    <string name="import_error">Échec de l\'import</string>
+    <string name="import_error_invalid_format">Format de fichier invalide</string>
+    <string name="import_error_version_mismatch">Version de schéma incompatible</string>
+    <string name="import_error_decryption_failed">Échec du déchiffrement. Vérifiez le mot de passe.</string>
+
+    <!-- QR Labels -->
+    <string name="qr_title">Étiquettes QR</string>
+    <string name="qr_generate">Générer une étiquette</string>
+    <string name="qr_template">Modèle</string>
+    <string name="qr_template_basic">Basique (Nom + QR)</string>
+    <string name="qr_template_detailed">Détaillé (Propriétés)</string>
+    <string name="qr_template_compact">Compact (Petit)</string>
+    <string name="qr_size">Taille de l\'étiquette</string>
+    <string name="qr_export_pdf">Exporter en PDF</string>
+    <string name="qr_export_png">Exporter en PNG</string>
+    <string name="qr_scan">Scanner le code QR</string>
+
+    <!-- Map -->
+    <string name="map_title">Carte de provenance</string>
+    <string name="map_cluster">%d minéraux</string>
+    <string name="map_view_mode">Mode d\'affichage</string>
+    <string name="map_view_markers">Marqueurs</string>
+    <string name="map_view_heatmap">Carte de chaleur</string>
+    <string name="map_zoom_to_fit">Ajuster le zoom</string>
+    <string name="map_no_locations">Aucun minéral avec coordonnées</string>
+
+    <!-- Photo Gallery -->
+    <string name="gallery_title">Galerie photo</string>
+    <string name="gallery_add">Ajouter une photo</string>
+    <string name="gallery_type">Type de photo</string>
+    <string name="gallery_type_normal">Normale</string>
+    <string name="gallery_type_uv">Lumière UV</string>
+    <string name="gallery_type_macro">Macro</string>
+    <string name="gallery_type_context">Contexte</string>
+    <string name="gallery_caption">Légende</string>
+    <string name="gallery_delete_confirm">Supprimer cette photo ?</string>
+    <string name="gallery_empty">Aucune photo pour le moment</string>
+
+    <!-- Diagnostics -->
+    <string name="diag_title">Diagnostics</string>
+    <string name="diag_app_version">Version de l\'app</string>
+    <string name="diag_database_version">Version de la base</string>
+    <string name="diag_storage_used">Stockage utilisé</string>
+    <string name="diag_storage_available">Stockage disponible</string>
+    <string name="diag_mineral_count">Nombre de minéraux</string>
+    <string name="diag_photo_count">Nombre de photos</string>
+    <string name="diag_last_backup">Dernière sauvegarde</string>
+    <string name="diag_encryption_key">État de la clé de chiffrement</string>
+    <string name="diag_api_keys">Clés API</string>
+    <string name="diag_maps_api">API Maps</string>
+    <string name="diag_status_ok">OK</string>
+    <string name="diag_status_missing">Manquant</string>
+    <string name="diag_status_error">Erreur</string>
+
+    <!-- Status/Lifecycle -->
+    <string name="status_title">Statut</string>
+    <string name="status_collection">Dans la collection</string>
+    <string name="status_display">En vitrine</string>
+    <string name="status_loaned">Prêté</string>
+    <string name="status_restore">À restaurer</string>
+    <string name="status_for_sale">À vendre</string>
+    <string name="status_loaned_to">Prêté à</string>
+    <string name="status_loaned_date">Date de prêt</string>
+    <string name="status_return_date">Retour prévu</string>
+    <string name="status_display_location">Lieu d\'exposition</string>
+
+    <!-- Errors -->
+    <string name="error_generic">Une erreur s\'est produite</string>
+    <string name="error_network">Erreur réseau</string>
+    <string name="error_permission_denied">Permission refusée</string>
+    <string name="error_file_not_found">Fichier introuvable</string>
+    <string name="error_invalid_input">Entrée invalide</string>
+    <string name="error_required_field">Ce champ est requis</string>
+    <string name="error_database">Erreur de base de données</string>
+    <string name="error_encryption">Erreur de chiffrement</string>
+
+    <!-- Validation -->
+    <string name="validation_name_required">Le nom est requis</string>
+    <string name="validation_name_too_long">Nom trop long (max 200 caractères)</string>
+    <string name="validation_invalid_number">Nombre invalide</string>
+    <string name="validation_invalid_coordinates">Coordonnées invalides</string>
+    <string name="validation_passwords_dont_match">Les mots de passe ne correspondent pas</string>
+    <string name="validation_password_too_weak">Mot de passe trop faible (min 8 caractères)</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_delete_title">Supprimer le minéral ?</string>
+    <string name="dialog_delete_message">Cela supprimera définitivement ce minéral et toutes les photos associées.</string>
+    <string name="dialog_unsaved_changes_title">Modifications non enregistrées</string>
+    <string name="dialog_unsaved_changes_message">Vous avez des modifications non enregistrées. Les abandonner ?</string>
+    <string name="dialog_discard">Abandonner</string>
+    <string name="dialog_keep_editing">Continuer la modification</string>
+
+    <!-- Date/Time -->
+    <string name="date_today">Aujourd\'hui</string>
+    <string name="date_yesterday">Hier</string>
+    <string name="date_format_short">d MMM yyyy</string>
+    <string name="date_format_long">d MMMM yyyy</string>
+    <string name="time_format">HH:mm</string>
+
+    <!-- Units -->
+    <string name="unit_mm">mm</string>
+    <string name="unit_cm">cm</string>
+    <string name="unit_grams">g</string>
+    <string name="unit_kg">kg</string>
+    <string name="unit_mohs">Mohs</string>
+
+    <!-- Accessibility -->
+    <string name="acc_mineral_card">Fiche minéral : %s</string>
+    <string name="acc_photo_thumbnail">Miniature photo %d sur %d</string>
+    <string name="acc_loading">Chargement du contenu</string>
+    <string name="acc_empty_list">Liste vide</string>
+</resources>

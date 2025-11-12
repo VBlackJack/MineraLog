@@ -1,4 +1,334 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App -->
     <string name="app_name">MineraLog</string>
+    <string name="app_version">MineraLog v%s</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_add">Add</string>
+    <string name="nav_detail">Details</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_statistics">Statistics</string>
+    <string name="nav_compare">Compare</string>
+    <string name="nav_bulk_edit">Bulk Edit</string>
+    <string name="nav_import_export">Import/Export</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_gallery">Gallery</string>
+
+    <!-- Common Actions -->
+    <string name="action_save">SAVE</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_share">Share</string>
+    <string name="action_add">Add</string>
+    <string name="action_search">Search</string>
+    <string name="action_filter">Filter</string>
+    <string name="action_sort">Sort</string>
+    <string name="action_export">Export</string>
+    <string name="action_import">Import</string>
+    <string name="action_backup">Backup</string>
+    <string name="action_restore">Restore</string>
+    <string name="action_select_all">Select All</string>
+    <string name="action_deselect_all">Deselect All</string>
+    <string name="action_apply">Apply</string>
+    <string name="action_close">Close</string>
+    <string name="action_confirm">Confirm</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_settings">Settings</string>
+    <string name="cd_add_mineral">Add mineral</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_search">Search</string>
+    <string name="cd_filter">Filter</string>
+    <string name="cd_delete">Delete</string>
+    <string name="cd_edit">Edit</string>
+    <string name="cd_share">Share</string>
+    <string name="cd_more_options">More options</string>
+    <string name="cd_photo">Photo</string>
+    <string name="cd_take_photo">Take photo</string>
+    <string name="cd_select_photo">Select photo</string>
+    <string name="cd_delete_photo">Delete photo</string>
+    <string name="cd_mineral_image">Mineral image</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">MineraLog</string>
+    <string name="home_search_placeholder">Search minerals…</string>
+    <string name="home_empty_state">No minerals yet. Add your first one!</string>
+    <string name="home_empty_search">No minerals found</string>
+    <string name="home_mineral_count">%d mineral</string>
+    <string name="home_mineral_count_plural">%d minerals</string>
+
+    <!-- Add/Edit Mineral Screen -->
+    <string name="add_mineral_title">Add Mineral</string>
+    <string name="edit_mineral_title">Edit Mineral</string>
+    <string name="field_name">Name *</string>
+    <string name="field_name_hint">Enter mineral name</string>
+    <string name="field_group">Group</string>
+    <string name="field_group_hint">e.g., Silicates, Oxides</string>
+    <string name="field_formula">Chemical Formula</string>
+    <string name="field_formula_hint">e.g., SiO₂</string>
+    <string name="field_color">Color</string>
+    <string name="field_streak">Streak</string>
+    <string name="field_luster">Luster</string>
+    <string name="field_hardness">Hardness (Mohs)</string>
+    <string name="field_crystal_system">Crystal System</string>
+    <string name="field_specific_gravity">Specific Gravity</string>
+    <string name="field_cleavage">Cleavage</string>
+    <string name="field_fracture">Fracture</string>
+    <string name="field_tenacity">Tenacity</string>
+    <string name="field_diaphaneity">Diaphaneity</string>
+    <string name="field_habitus">Habitus</string>
+    <string name="field_fluorescence">Fluorescence</string>
+    <string name="field_radioactivity">Radioactivity</string>
+    <string name="field_magnetism">Magnetism</string>
+    <string name="field_dimensions">Dimensions (mm)</string>
+    <string name="field_weight">Weight (g)</string>
+    <string name="field_value">Estimated Value</string>
+    <string name="field_value_currency">Currency</string>
+    <string name="field_notes">Notes</string>
+    <string name="field_notes_hint">Additional observations, collection story…</string>
+    <string name="field_tags">Tags</string>
+    <string name="field_tags_hint">separate, with, commas</string>
+
+    <!-- Mineral Detail Screen -->
+    <string name="detail_loading">Loading…</string>
+    <string name="detail_section_basic">Basic Information</string>
+    <string name="detail_section_physical">Physical Properties</string>
+    <string name="detail_section_special">Special Properties</string>
+    <string name="detail_section_measurements">Measurements</string>
+    <string name="detail_section_provenance">Provenance</string>
+    <string name="detail_section_storage">Storage Location</string>
+    <string name="detail_section_photos">Photos</string>
+    <string name="detail_section_notes">Notes</string>
+    <string name="detail_section_metadata">Metadata</string>
+    <string name="detail_label_name">Name</string>
+    <string name="detail_label_group">Group</string>
+    <string name="detail_label_formula">Formula</string>
+    <string name="detail_label_color">Color</string>
+    <string name="detail_label_streak">Streak</string>
+    <string name="detail_label_luster">Luster</string>
+    <string name="detail_label_hardness">Hardness</string>
+    <string name="detail_label_crystal_system">Crystal System</string>
+    <string name="detail_label_specific_gravity">Specific Gravity</string>
+    <string name="detail_label_cleavage">Cleavage</string>
+    <string name="detail_label_fracture">Fracture</string>
+    <string name="detail_label_dimensions">Dimensions</string>
+    <string name="detail_label_weight">Weight</string>
+    <string name="detail_label_value">Value</string>
+    <string name="detail_label_created">Created</string>
+    <string name="detail_label_updated">Updated</string>
+    <string name="detail_label_uuid">UUID</string>
+    <string name="detail_no_provenance">No provenance information</string>
+    <string name="detail_no_storage">No storage location</string>
+    <string name="detail_no_photos">No photos</string>
+    <string name="detail_no_notes">No notes</string>
+
+    <!-- Provenance -->
+    <string name="provenance_title">Provenance</string>
+    <string name="provenance_add">Add Provenance</string>
+    <string name="provenance_locality">Locality</string>
+    <string name="provenance_country">Country</string>
+    <string name="provenance_acquisition_date">Acquisition Date</string>
+    <string name="provenance_source">Source</string>
+    <string name="provenance_source_hint">Dealer, field collecting, gift…</string>
+    <string name="provenance_coordinates">Coordinates</string>
+    <string name="provenance_latitude">Latitude</string>
+    <string name="provenance_longitude">Longitude</string>
+
+    <!-- Storage -->
+    <string name="storage_title">Storage</string>
+    <string name="storage_add">Add Storage Location</string>
+    <string name="storage_location">Location</string>
+    <string name="storage_location_hint">Room, shelf…</string>
+    <string name="storage_box">Box</string>
+    <string name="storage_drawer">Drawer</string>
+    <string name="storage_slot">Slot/Position</string>
+    <string name="storage_qr_code">QR Code</string>
+    <string name="storage_nfc_tag">NFC Tag</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_data">Data &amp; Privacy</string>
+    <string name="settings_section_display">Display</string>
+    <string name="settings_section_backup">Backup &amp; Export</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_copy_photos">Copy photos to internal storage</string>
+    <string name="settings_copy_photos_desc">Recommended for data safety</string>
+    <string name="settings_encrypt_backups">Encrypt backups</string>
+    <string name="settings_encrypt_backups_desc">Protect exports with password</string>
+    <string name="settings_encrypt_media">Encrypt media files</string>
+    <string name="settings_encrypt_media_desc">Higher security, larger file size</string>
+    <string name="settings_auto_backup">Automatic backup</string>
+    <string name="settings_auto_backup_desc">Weekly backup to storage</string>
+    <string name="settings_about">About</string>
+    <string name="settings_diagnostics">Diagnostics</string>
+    <string name="settings_licenses">Open Source Licenses</string>
+    <string name="settings_version">Version</string>
+
+    <!-- Statistics Screen -->
+    <string name="stats_title">Statistics</string>
+    <string name="stats_total_minerals">Total Minerals</string>
+    <string name="stats_by_group">By Mineral Group</string>
+    <string name="stats_by_country">By Country</string>
+    <string name="stats_by_hardness">By Hardness (Mohs)</string>
+    <string name="stats_total_value">Total Estimated Value</string>
+    <string name="stats_average_value">Average Value</string>
+    <string name="stats_most_common">Most Common</string>
+    <string name="stats_empty">No data yet</string>
+
+    <!-- Comparator Screen -->
+    <string name="compare_title">Compare Minerals</string>
+    <string name="compare_select">Select minerals to compare</string>
+    <string name="compare_max_reached">Maximum 3 minerals</string>
+    <string name="compare_min_required">Select at least 2 minerals</string>
+    <string name="compare_clear">Clear selection</string>
+    <string name="compare_differences">Differences highlighted</string>
+
+    <!-- Bulk Edit Screen -->
+    <string name="bulk_title">Bulk Edit</string>
+    <string name="bulk_selected">%d selected</string>
+    <string name="bulk_action_move">Move to Storage</string>
+    <string name="bulk_action_tag">Add Tags</string>
+    <string name="bulk_action_delete">Delete</string>
+    <string name="bulk_action_export">Export</string>
+    <string name="bulk_confirm_delete">Delete %d minerals?</string>
+    <string name="bulk_confirm_delete_message">This action cannot be undone.</string>
+
+    <!-- Import/Export -->
+    <string name="import_title">Import</string>
+    <string name="export_title">Export</string>
+    <string name="import_select_file">Select ZIP file</string>
+    <string name="export_select_destination">Select destination</string>
+    <string name="export_format">Format</string>
+    <string name="export_format_zip">ZIP (with media)</string>
+    <string name="export_format_csv">CSV (data only)</string>
+    <string name="export_format_json">JSON (data only)</string>
+    <string name="export_include_photos">Include photos</string>
+    <string name="export_encrypt">Encrypt export</string>
+    <string name="export_password">Password</string>
+    <string name="export_password_confirm">Confirm password</string>
+    <string name="export_progress">Exporting… %d%%</string>
+    <string name="import_progress">Importing… %d%%</string>
+    <string name="export_success">Exported %d minerals</string>
+    <string name="import_success">Imported %d minerals</string>
+    <string name="export_error">Export failed</string>
+    <string name="import_error">Import failed</string>
+    <string name="import_error_invalid_format">Invalid file format</string>
+    <string name="import_error_version_mismatch">Incompatible schema version</string>
+    <string name="import_error_decryption_failed">Decryption failed. Check password.</string>
+
+    <!-- QR Labels -->
+    <string name="qr_title">QR Labels</string>
+    <string name="qr_generate">Generate Label</string>
+    <string name="qr_template">Template</string>
+    <string name="qr_template_basic">Basic (Name + QR)</string>
+    <string name="qr_template_detailed">Detailed (Properties)</string>
+    <string name="qr_template_compact">Compact (Small)</string>
+    <string name="qr_size">Label Size</string>
+    <string name="qr_export_pdf">Export as PDF</string>
+    <string name="qr_export_png">Export as PNG</string>
+    <string name="qr_scan">Scan QR Code</string>
+
+    <!-- Map -->
+    <string name="map_title">Provenance Map</string>
+    <string name="map_cluster">%d minerals</string>
+    <string name="map_view_mode">View Mode</string>
+    <string name="map_view_markers">Markers</string>
+    <string name="map_view_heatmap">Heatmap</string>
+    <string name="map_zoom_to_fit">Zoom to fit</string>
+    <string name="map_no_locations">No minerals with coordinates</string>
+
+    <!-- Photo Gallery -->
+    <string name="gallery_title">Photo Gallery</string>
+    <string name="gallery_add">Add Photo</string>
+    <string name="gallery_type">Photo Type</string>
+    <string name="gallery_type_normal">Normal</string>
+    <string name="gallery_type_uv">UV Light</string>
+    <string name="gallery_type_macro">Macro</string>
+    <string name="gallery_type_context">Context</string>
+    <string name="gallery_caption">Caption</string>
+    <string name="gallery_delete_confirm">Delete this photo?</string>
+    <string name="gallery_empty">No photos yet</string>
+
+    <!-- Diagnostics -->
+    <string name="diag_title">Diagnostics</string>
+    <string name="diag_app_version">App Version</string>
+    <string name="diag_database_version">Database Version</string>
+    <string name="diag_storage_used">Storage Used</string>
+    <string name="diag_storage_available">Storage Available</string>
+    <string name="diag_mineral_count">Mineral Count</string>
+    <string name="diag_photo_count">Photo Count</string>
+    <string name="diag_last_backup">Last Backup</string>
+    <string name="diag_encryption_key">Encryption Key Status</string>
+    <string name="diag_api_keys">API Keys</string>
+    <string name="diag_maps_api">Maps API</string>
+    <string name="diag_status_ok">OK</string>
+    <string name="diag_status_missing">Missing</string>
+    <string name="diag_status_error">Error</string>
+
+    <!-- Status/Lifecycle -->
+    <string name="status_title">Status</string>
+    <string name="status_collection">In Collection</string>
+    <string name="status_display">On Display</string>
+    <string name="status_loaned">Loaned</string>
+    <string name="status_restore">Needs Restoration</string>
+    <string name="status_for_sale">For Sale</string>
+    <string name="status_loaned_to">Loaned to</string>
+    <string name="status_loaned_date">Loan Date</string>
+    <string name="status_return_date">Expected Return</string>
+    <string name="status_display_location">Display Location</string>
+
+    <!-- Errors -->
+    <string name="error_generic">An error occurred</string>
+    <string name="error_network">Network error</string>
+    <string name="error_permission_denied">Permission denied</string>
+    <string name="error_file_not_found">File not found</string>
+    <string name="error_invalid_input">Invalid input</string>
+    <string name="error_required_field">This field is required</string>
+    <string name="error_database">Database error</string>
+    <string name="error_encryption">Encryption error</string>
+
+    <!-- Validation -->
+    <string name="validation_name_required">Name is required</string>
+    <string name="validation_name_too_long">Name is too long (max 200 characters)</string>
+    <string name="validation_invalid_number">Invalid number</string>
+    <string name="validation_invalid_coordinates">Invalid coordinates</string>
+    <string name="validation_passwords_dont_match">Passwords don\'t match</string>
+    <string name="validation_password_too_weak">Password is too weak (min 8 characters)</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_delete_title">Delete Mineral?</string>
+    <string name="dialog_delete_message">This will permanently delete this mineral and all associated photos.</string>
+    <string name="dialog_unsaved_changes_title">Unsaved Changes</string>
+    <string name="dialog_unsaved_changes_message">You have unsaved changes. Discard them?</string>
+    <string name="dialog_discard">Discard</string>
+    <string name="dialog_keep_editing">Keep Editing</string>
+
+    <!-- Date/Time -->
+    <string name="date_today">Today</string>
+    <string name="date_yesterday">Yesterday</string>
+    <string name="date_format_short">MMM d, yyyy</string>
+    <string name="date_format_long">MMMM d, yyyy</string>
+    <string name="time_format">HH:mm</string>
+
+    <!-- Units -->
+    <string name="unit_mm">mm</string>
+    <string name="unit_cm">cm</string>
+    <string name="unit_grams">g</string>
+    <string name="unit_kg">kg</string>
+    <string name="unit_mohs">Mohs</string>
+
+    <!-- Accessibility -->
+    <string name="acc_mineral_card">Mineral card: %s</string>
+    <string name="acc_photo_thumbnail">Photo thumbnail %d of %d</string>
+    <string name="acc_loading">Loading content</string>
+    <string name="acc_empty_list">Empty list</string>
 </resources>
