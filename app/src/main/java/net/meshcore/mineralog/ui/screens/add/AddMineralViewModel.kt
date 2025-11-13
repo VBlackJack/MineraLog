@@ -63,6 +63,16 @@ class AddMineralViewModel(
     private val _crystalSystem = MutableStateFlow("")
     val crystalSystem: StateFlow<String> = _crystalSystem.asStateFlow()
 
+    // Quick Win #8: Tags with autocomplete (v1.7.0)
+    private val _tags = MutableStateFlow("")
+    val tags: StateFlow<String> = _tags.asStateFlow()
+
+    private val _availableTags = MutableStateFlow<List<String>>(emptyList())
+    val availableTags: StateFlow<List<String>> = _availableTags.asStateFlow()
+
+    private val _tagSuggestions = MutableStateFlow<List<String>>(emptyList())
+    val tagSuggestions: StateFlow<List<String>> = _tagSuggestions.asStateFlow()
+
     private val _saveState = MutableStateFlow<SaveMineralState>(SaveMineralState.Idle)
     val saveState: StateFlow<SaveMineralState> = _saveState.asStateFlow()
 
@@ -72,6 +82,18 @@ class AddMineralViewModel(
     init {
         // Load draft on initialization
         loadDraft()
+
+        // Quick Win #8: Load available tags for autocomplete
+        viewModelScope.launch {
+            _availableTags.value = mineralRepository.getAllUniqueTags()
+        }
+
+        // Quick Win #8: Update tag suggestions based on input
+        viewModelScope.launch {
+            _tags.debounce(300).collect { input ->
+                updateTagSuggestions(input)
+            }
+        }
 
         // Auto-save with debounce (500ms)
         viewModelScope.launch {
@@ -86,7 +108,8 @@ class AddMineralViewModel(
                 _luster,
                 _streak,
                 _habit,
-                _crystalSystem
+                _crystalSystem,
+                _tags
             ) { fields -> fields }
                 .debounce(500) // Wait 500ms after last change
                 .collect {
@@ -211,6 +234,31 @@ class AddMineralViewModel(
         _crystalSystem.value = value
     }
 
+    // Quick Win #8: Tag management
+    fun onTagsChange(value: String) {
+        _tags.value = value
+    }
+
+    private fun updateTagSuggestions(input: String) {
+        if (input.isBlank()) {
+            _tagSuggestions.value = emptyList()
+            return
+        }
+
+        // Get the last tag being typed (after the last comma)
+        val lastTag = input.split(",").lastOrNull()?.trim() ?: ""
+
+        if (lastTag.length < 2) {
+            _tagSuggestions.value = emptyList()
+            return
+        }
+
+        // Filter available tags and return top 5 matches
+        _tagSuggestions.value = _availableTags.value
+            .filter { it.contains(lastTag, ignoreCase = true) }
+            .take(5)
+    }
+
     fun saveMineral(onSuccess: (String) -> Unit) {
         viewModelScope.launch {
             // Validation
@@ -228,6 +276,11 @@ class AddMineralViewModel(
 
             try {
                 val mineralId = UUID.randomUUID().toString()
+                // Quick Win #8: Parse tags from comma-separated string
+                val tagsList = _tags.value.split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotBlank() }
+
                 val mineral = Mineral(
                     id = mineralId,
                     name = _name.value.trim(),
@@ -241,6 +294,7 @@ class AddMineralViewModel(
                     streak = _streak.value.trim().takeIf { it.isNotBlank() },
                     habit = _habit.value.trim().takeIf { it.isNotBlank() },
                     crystalSystem = _crystalSystem.value.trim().takeIf { it.isNotBlank() },
+                    tags = tagsList,
                     status = "incomplete",
                     createdAt = Instant.now(),
                     updatedAt = Instant.now()

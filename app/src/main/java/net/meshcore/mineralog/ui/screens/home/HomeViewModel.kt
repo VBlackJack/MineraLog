@@ -39,6 +39,10 @@ class HomeViewModel(
     private val _labelGenerationState = MutableStateFlow<LabelGenerationState>(LabelGenerationState.Idle)
     val labelGenerationState: StateFlow<LabelGenerationState> = _labelGenerationState.asStateFlow()
 
+    // Bulk operation progress state (v1.7.0 - Quick Win #6)
+    private val _bulkOperationProgress = MutableStateFlow<BulkOperationProgress>(BulkOperationProgress.Idle)
+    val bulkOperationProgress: StateFlow<BulkOperationProgress> = _bulkOperationProgress.asStateFlow()
+
     // CSV export warning state
     val csvExportWarningShown: StateFlow<Boolean> = settingsRepository.getCsvExportWarningShown()
         .stateIn(
@@ -183,9 +187,41 @@ class HomeViewModel(
             // Store minerals for undo functionality
             deletedMinerals = getSelectedMinerals()
 
-            // Batch delete all selected minerals efficiently
             val idsToDelete = _selectedIds.value.toList()
-            mineralRepository.deleteByIds(idsToDelete)
+            val total = idsToDelete.size
+
+            // Quick Win #6: Track progress for bulk delete operations
+            if (total > 10) {
+                // Show progress for larger operations
+                try {
+                    _bulkOperationProgress.value = BulkOperationProgress.InProgress(0, total, "delete")
+
+                    // Delete in batches to allow progress updates
+                    val batchSize = 10
+                    idsToDelete.chunked(batchSize).forEachIndexed { index, batch ->
+                        mineralRepository.deleteByIds(batch)
+                        val current = minOf((index + 1) * batchSize, total)
+                        _bulkOperationProgress.value = BulkOperationProgress.InProgress(current, total, "delete")
+
+                        // Small delay to prevent UI blocking
+                        if (current < total) {
+                            kotlinx.coroutines.delay(50)
+                        }
+                    }
+
+                    _bulkOperationProgress.value = BulkOperationProgress.Complete(total, "delete")
+                    kotlinx.coroutines.delay(2000) // Show completion for 2s
+                    _bulkOperationProgress.value = BulkOperationProgress.Idle
+                } catch (e: Exception) {
+                    _bulkOperationProgress.value = BulkOperationProgress.Error(e.message ?: "Delete failed")
+                    kotlinx.coroutines.delay(3000)
+                    _bulkOperationProgress.value = BulkOperationProgress.Idle
+                }
+            } else {
+                // Small operations - no progress tracking needed
+                mineralRepository.deleteByIds(idsToDelete)
+            }
+
             exitSelectionMode()
         }
     }
@@ -304,6 +340,10 @@ class HomeViewModel(
     fun resetLabelGenerationState() {
         _labelGenerationState.value = LabelGenerationState.Idle
     }
+
+    fun resetBulkOperationProgress() {
+        _bulkOperationProgress.value = BulkOperationProgress.Idle
+    }
 }
 
 sealed class ExportState {
@@ -325,6 +365,14 @@ sealed class LabelGenerationState {
     data object Generating : LabelGenerationState()
     data class Success(val count: Int) : LabelGenerationState()
     data class Error(val message: String) : LabelGenerationState()
+}
+
+// Quick Win #6: Bulk operations progress tracking (v1.7.0)
+sealed class BulkOperationProgress {
+    data object Idle : BulkOperationProgress()
+    data class InProgress(val current: Int, val total: Int, val operation: String) : BulkOperationProgress()
+    data class Complete(val count: Int, val operation: String) : BulkOperationProgress()
+    data class Error(val message: String) : BulkOperationProgress()
 }
 
 class HomeViewModelFactory(

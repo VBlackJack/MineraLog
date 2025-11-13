@@ -1,9 +1,11 @@
 package net.meshcore.mineralog.ui.screens.home
 
 import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +55,10 @@ fun ImportCsvDialog(
     var isLoading by remember { mutableStateOf(true) }
     var parseError by remember { mutableStateOf<String?>(null) }
 
+    // Quick Win #4: Cell value dialog for truncated content
+    var selectedCellValue by remember { mutableStateOf<String?>(null) }
+    var selectedCellHeader by remember { mutableStateOf<String?>(null) }
+
     // Parse CSV on dialog open
     LaunchedEffect(csvUri) {
         isLoading = true
@@ -75,6 +82,43 @@ fun ImportCsvDialog(
         } finally {
             isLoading = false
         }
+    }
+
+    // Quick Win #4: Full-value dialog for truncated cells
+    if (selectedCellValue != null && selectedCellHeader != null) {
+        AlertDialog(
+            onDismissRequest = {
+                selectedCellValue = null
+                selectedCellHeader = null
+            },
+            title = {
+                Text(
+                    text = selectedCellHeader ?: "",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            },
+            text = {
+                SelectionContainer {
+                    Text(
+                        text = selectedCellValue ?: "",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Full cell value. Text is selectable for copying."
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        selectedCellValue = null
+                        selectedCellHeader = null
+                    }
+                ) {
+                    Text("Close")
+                }
+            }
+        )
     }
 
     AlertDialog(
@@ -270,14 +314,43 @@ fun ImportCsvDialog(
                                         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                                     }
 
-                                    // Data rows
+                                    // Data rows - Quick Win #4: Clickable cells for truncated content
                                     items(result.rows) { row ->
-                                        Text(
-                                            text = result.headers.joinToString(" | ") { header ->
-                                                row[header]?.take(20) ?: ""
-                                            },
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            result.headers.forEachIndexed { index, header ->
+                                                val cellValue = row[header] ?: ""
+                                                val isTruncated = cellValue.length > 20
+                                                val displayValue = if (isTruncated) cellValue.take(20) + "…" else cellValue
+
+                                                Text(
+                                                    text = displayValue,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .then(
+                                                            if (isTruncated) {
+                                                                Modifier
+                                                                    .clickable {
+                                                                        selectedCellValue = cellValue
+                                                                        selectedCellHeader = header
+                                                                    }
+                                                                    .semantics {
+                                                                        contentDescription = "$header: $displayValue Truncated. Tap to expand"
+                                                                    }
+                                                            } else {
+                                                                Modifier
+                                                            }
+                                                        )
+                                                )
+
+                                                if (index < result.headers.size - 1) {
+                                                    Text(" | ", style = MaterialTheme.typography.bodySmall)
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
