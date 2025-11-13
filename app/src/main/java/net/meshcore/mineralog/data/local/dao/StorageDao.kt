@@ -34,6 +34,9 @@ interface StorageDao {
     @Query("SELECT * FROM storage WHERE mineralId = :mineralId")
     suspend fun getByMineralId(mineralId: String): StorageEntity?
 
+    @Query("SELECT * FROM storage WHERE mineralId IN (:mineralIds)")
+    suspend fun getByMineralIds(mineralIds: List<String>): List<StorageEntity>
+
     @Query("SELECT * FROM storage WHERE mineralId = :mineralId")
     fun getByMineralIdFlow(mineralId: String): Flow<StorageEntity?>
 

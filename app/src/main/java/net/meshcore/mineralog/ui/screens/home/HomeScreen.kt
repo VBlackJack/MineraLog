@@ -57,8 +57,8 @@ fun HomeScreen(
         contract = ActivityResultContracts.CreateDocument("text/csv")
     ) { uri: Uri? ->
         uri?.let { selectedUri ->
-            // Start export with empty column selection for now (will be customizable in dialog)
-            viewModel.exportSelectedToCsv(selectedUri, emptySet())
+            // Start export
+            viewModel.exportSelectedToCsv(selectedUri)
         }
     }
 

@@ -1,6 +1,7 @@
 package net.meshcore.mineralog.data.repository
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import net.meshcore.mineralog.data.local.dao.MineralDao
 import net.meshcore.mineralog.data.model.CollectionStatistics
@@ -22,6 +23,7 @@ class StatisticsRepositoryImpl(
     /**
      * Compute collection statistics from current database state.
      * This is a potentially expensive operation; cache results in ViewModel.
+     * All queries are executed in parallel for maximum performance.
      */
     override suspend fun getStatistics(): CollectionStatistics =
         withContext(Dispatchers.IO) {
@@ -32,16 +34,31 @@ class StatisticsRepositoryImpl(
                 return@withContext CollectionStatistics()
             }
 
-            // Compute all aggregations in parallel for performance
-            val totalValue = mineralDao.getTotalValue()
-            val averageValue = mineralDao.getAverageValue()
-            val byGroup = mineralDao.getGroupDistribution()
-            val byCountry = mineralDao.getCountryDistribution()
-            val byHardness = convertHardnessDistribution(mineralDao.getHardnessDistribution())
-            val byStatus = mineralDao.getStatusDistribution()
-            val mostCommonGroup = mineralDao.getMostCommonGroup()
-            val mostCommonCountry = mineralDao.getMostCommonCountry()
-            val mostValuable = mineralDao.getMostValuableSpecimen()?.let {
+            // Execute all queries in parallel for performance
+            val totalValueDeferred = async { mineralDao.getTotalValue() }
+            val averageValueDeferred = async { mineralDao.getAverageValue() }
+            val byGroupDeferred = async { mineralDao.getGroupDistribution() }
+            val byCountryDeferred = async { mineralDao.getCountryDistribution() }
+            val byHardnessDeferred = async { mineralDao.getHardnessDistribution() }
+            val byStatusDeferred = async { mineralDao.getStatusDistribution() }
+            val mostCommonGroupDeferred = async { mineralDao.getMostCommonGroup() }
+            val mostCommonCountryDeferred = async { mineralDao.getMostCommonCountry() }
+            val mostValuableDeferred = async { mineralDao.getMostValuableSpecimen() }
+            val averageCompletenessDeferred = async { mineralDao.getAverageCompleteness() }
+            val fullyDocumentedCountDeferred = async { mineralDao.getFullyDocumentedCount() }
+            val addedThisMonthDeferred = async { mineralDao.getAddedThisMonth() }
+            val addedThisYearDeferred = async { mineralDao.getAddedThisYear() }
+
+            // Await all results
+            val totalValue = totalValueDeferred.await()
+            val averageValue = averageValueDeferred.await()
+            val byGroup = byGroupDeferred.await()
+            val byCountry = byCountryDeferred.await()
+            val byHardness = convertHardnessDistribution(byHardnessDeferred.await())
+            val byStatus = byStatusDeferred.await()
+            val mostCommonGroup = mostCommonGroupDeferred.await()
+            val mostCommonCountry = mostCommonCountryDeferred.await()
+            val mostValuable = mostValuableDeferred.await()?.let {
                 MineralSummary(
                     id = it.id,
                     name = it.name,
@@ -49,10 +66,10 @@ class StatisticsRepositoryImpl(
                     currency = it.currency
                 )
             }
-            val averageCompleteness = mineralDao.getAverageCompleteness()
-            val fullyDocumentedCount = mineralDao.getFullyDocumentedCount()
-            val addedThisMonth = mineralDao.getAddedThisMonth()
-            val addedThisYear = mineralDao.getAddedThisYear()
+            val averageCompleteness = averageCompletenessDeferred.await()
+            val fullyDocumentedCount = fullyDocumentedCountDeferred.await()
+            val addedThisMonth = addedThisMonthDeferred.await()
+            val addedThisYear = addedThisYearDeferred.await()
 
             CollectionStatistics(
                 totalMinerals = totalMinerals,

@@ -12,6 +12,13 @@ import net.meshcore.mineralog.domain.model.Mineral
 import java.time.Instant
 import java.util.UUID
 
+sealed class SaveMineralState {
+    data object Idle : SaveMineralState()
+    data object Saving : SaveMineralState()
+    data class Success(val mineralId: String) : SaveMineralState()
+    data class Error(val message: String) : SaveMineralState()
+}
+
 class AddMineralViewModel(
     private val mineralRepository: MineralRepository
 ) : ViewModel() {
@@ -28,8 +35,12 @@ class AddMineralViewModel(
     private val _notes = MutableStateFlow("")
     val notes: StateFlow<String> = _notes.asStateFlow()
 
+    private val _saveState = MutableStateFlow<SaveMineralState>(SaveMineralState.Idle)
+    val saveState: StateFlow<SaveMineralState> = _saveState.asStateFlow()
+
     fun onNameChange(value: String) {
         _name.value = value
+        _saveState.value = SaveMineralState.Idle // Reset error state on input change
     }
 
     fun onGroupChange(value: String) {
@@ -46,20 +57,42 @@ class AddMineralViewModel(
 
     fun saveMineral(onSuccess: (String) -> Unit) {
         viewModelScope.launch {
-            val mineralId = UUID.randomUUID().toString()
-            val mineral = Mineral(
-                id = mineralId,
-                name = _name.value,
-                group = _group.value.takeIf { it.isNotBlank() },
-                formula = _formula.value.takeIf { it.isNotBlank() },
-                notes = _notes.value.takeIf { it.isNotBlank() },
-                status = "incomplete",
-                createdAt = Instant.now(),
-                updatedAt = Instant.now()
-            )
-            mineralRepository.insert(mineral)
-            onSuccess(mineralId)
+            // Validation
+            if (_name.value.isBlank()) {
+                _saveState.value = SaveMineralState.Error("Mineral name is required")
+                return@launch
+            }
+
+            if (_name.value.length < 2) {
+                _saveState.value = SaveMineralState.Error("Mineral name must be at least 2 characters")
+                return@launch
+            }
+
+            _saveState.value = SaveMineralState.Saving
+
+            try {
+                val mineralId = UUID.randomUUID().toString()
+                val mineral = Mineral(
+                    id = mineralId,
+                    name = _name.value.trim(),
+                    group = _group.value.trim().takeIf { it.isNotBlank() },
+                    formula = _formula.value.trim().takeIf { it.isNotBlank() },
+                    notes = _notes.value.trim().takeIf { it.isNotBlank() },
+                    status = "incomplete",
+                    createdAt = Instant.now(),
+                    updatedAt = Instant.now()
+                )
+                mineralRepository.insert(mineral)
+                _saveState.value = SaveMineralState.Success(mineralId)
+                onSuccess(mineralId)
+            } catch (e: Exception) {
+                _saveState.value = SaveMineralState.Error(e.message ?: "Failed to save mineral")
+            }
         }
+    }
+
+    fun resetSaveState() {
+        _saveState.value = SaveMineralState.Idle
     }
 }
 

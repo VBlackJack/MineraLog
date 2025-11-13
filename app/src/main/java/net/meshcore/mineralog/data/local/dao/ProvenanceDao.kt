@@ -34,6 +34,9 @@ interface ProvenanceDao {
     @Query("SELECT * FROM provenances WHERE mineralId = :mineralId")
     suspend fun getByMineralId(mineralId: String): ProvenanceEntity?
 
+    @Query("SELECT * FROM provenances WHERE mineralId IN (:mineralIds)")
+    suspend fun getByMineralIds(mineralIds: List<String>): List<ProvenanceEntity>
+
     @Query("SELECT * FROM provenances WHERE mineralId = :mineralId")
     fun getByMineralIdFlow(mineralId: String): Flow<ProvenanceEntity?>
 

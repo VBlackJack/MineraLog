@@ -50,12 +50,23 @@ class BackupRepositoryImpl(
 
     override suspend fun exportZip(uri: Uri, password: String?): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            // Get all data
-            val minerals = database.mineralDao().getAll().map { mineralEntity ->
-                val provenance = database.provenanceDao().getByMineralId(mineralEntity.id)
-                val storage = database.storageDao().getByMineralId(mineralEntity.id)
-                val photos = database.photoDao().getByMineralId(mineralEntity.id)
-                mineralEntity.toDomain(provenance, storage, photos)
+            // Get all data with batch queries to avoid N+1 problem
+            val mineralEntities = database.mineralDao().getAll()
+            if (mineralEntities.isEmpty()) {
+                return@withContext Result.failure(Exception("No minerals to export"))
+            }
+
+            val mineralIds = mineralEntities.map { it.id }
+            val provenances = database.provenanceDao().getByMineralIds(mineralIds).associateBy { it.mineralId }
+            val storages = database.storageDao().getByMineralIds(mineralIds).associateBy { it.mineralId }
+            val photos = database.photoDao().getByMineralIds(mineralIds).groupBy { it.mineralId }
+
+            val minerals = mineralEntities.map { mineralEntity ->
+                mineralEntity.toDomain(
+                    provenances[mineralEntity.id],
+                    storages[mineralEntity.id],
+                    photos[mineralEntity.id] ?: emptyList()
+                )
             }
 
             // Create ZIP
@@ -127,24 +138,30 @@ class BackupRepositoryImpl(
                         entry = zip.nextEntry
                     }
 
-                    // Import minerals
+                    // Import minerals with transaction for data integrity
                     mineralsJson?.let { jsonStr ->
                         val minerals = json.decodeFromString<List<Mineral>>(jsonStr)
 
-                        if (mode == ImportMode.REPLACE) {
-                            database.mineralDao().deleteAll()
-                        }
+                        // Use transaction to ensure atomicity
+                        database.runInTransaction {
+                            if (mode == ImportMode.REPLACE) {
+                                database.mineralDao().deleteAll()
+                                database.provenanceDao().deleteAll()
+                                database.storageDao().deleteAll()
+                                database.photoDao().deleteAll()
+                            }
 
-                        minerals.forEach { mineral ->
-                            try {
-                                database.mineralDao().insert(mineral.toEntity())
-                                mineral.provenance?.let { database.provenanceDao().insert(it.toEntity()) }
-                                mineral.storage?.let { database.storageDao().insert(it.toEntity()) }
-                                mineral.photos.forEach { database.photoDao().insert(it.toEntity()) }
-                                imported++
-                            } catch (e: Exception) {
-                                errors.add("Failed to import ${mineral.name}: ${e.message}")
-                                skipped++
+                            minerals.forEach { mineral ->
+                                try {
+                                    database.mineralDao().insert(mineral.toEntity())
+                                    mineral.provenance?.let { database.provenanceDao().insert(it.toEntity()) }
+                                    mineral.storage?.let { database.storageDao().insert(it.toEntity()) }
+                                    mineral.photos.forEach { database.photoDao().insert(it.toEntity()) }
+                                    imported++
+                                } catch (e: Exception) {
+                                    errors.add("Failed to import ${mineral.name}: ${e.message}")
+                                    skipped++
+                                }
                             }
                         }
                     }
@@ -162,12 +179,12 @@ class BackupRepositoryImpl(
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
                 outputStream.bufferedWriter().use { writer ->
                     // Write CSV header
-                    writer.write("Name,Group,Formula,Color,Streak,Luster,Mohs Min,Mohs Max,")
-                    writer.write("Crystal System,Specific Gravity,Cleavage,Fracture,Tenacity,")
-                    writer.write("Diaphaneity,Habitus,Fluorescence,Radioactivity,Magnetism,")
-                    writer.write("Dimensions,Weight,Status Type,Status Date,Quality,Completeness,")
-                    writer.write("Provenance Country,Provenance Locality,Provenance Date,Estimated Value,Currency,")
-                    writer.write("Storage Location,Storage Box,Storage Position,Notes,Tags\n")
+                    writer.write("Name,Group,Formula,Streak,Luster,Mohs Min,Mohs Max,")
+                    writer.write("Crystal System,Specific Gravity,Cleavage,Fracture,")
+                    writer.write("Diaphaneity,Habit,Fluorescence,Radioactive,Magnetic,")
+                    writer.write("Dimensions (mm),Weight (g),Status,Status Type,Quality Rating,Completeness,")
+                    writer.write("Provenance Country,Provenance Locality,Provenance Site,Provenance Acquired At,Provenance Source,Price,Estimated Value,Currency,")
+                    writer.write("Storage Place,Storage Container,Storage Box,Storage Slot,Notes,Tags\n")
 
                     // Write data rows
                     minerals.forEach { mineral ->
@@ -176,8 +193,6 @@ class BackupRepositoryImpl(
                         writer.write(escapeCSV(mineral.group ?: ""))
                         writer.write(",")
                         writer.write(escapeCSV(mineral.formula ?: ""))
-                        writer.write(",")
-                        writer.write(escapeCSV(mineral.color ?: ""))
                         writer.write(",")
                         writer.write(escapeCSV(mineral.streak ?: ""))
                         writer.write(",")
@@ -195,25 +210,23 @@ class BackupRepositoryImpl(
                         writer.write(",")
                         writer.write(escapeCSV(mineral.fracture ?: ""))
                         writer.write(",")
-                        writer.write(escapeCSV(mineral.tenacity ?: ""))
-                        writer.write(",")
                         writer.write(escapeCSV(mineral.diaphaneity ?: ""))
                         writer.write(",")
-                        writer.write(escapeCSV(mineral.habitus ?: ""))
+                        writer.write(escapeCSV(mineral.habit ?: ""))
                         writer.write(",")
                         writer.write(escapeCSV(mineral.fluorescence ?: ""))
                         writer.write(",")
-                        writer.write(escapeCSV(mineral.radioactivity ?: ""))
+                        writer.write(mineral.radioactive.toString())
                         writer.write(",")
-                        writer.write(escapeCSV(mineral.magnetism ?: ""))
+                        writer.write(mineral.magnetic.toString())
                         writer.write(",")
-                        writer.write(escapeCSV(mineral.dimensions ?: ""))
+                        writer.write(escapeCSV(mineral.dimensionsMm ?: ""))
                         writer.write(",")
-                        writer.write(mineral.weight?.toString() ?: "")
+                        writer.write(mineral.weightGr?.toString() ?: "")
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.status))
                         writer.write(",")
                         writer.write(escapeCSV(mineral.statusType))
-                        writer.write(",")
-                        writer.write(mineral.statusDate?.toString() ?: "")
                         writer.write(",")
                         writer.write(mineral.qualityRating?.toString() ?: "")
                         writer.write(",")
@@ -223,17 +236,25 @@ class BackupRepositoryImpl(
                         writer.write(",")
                         writer.write(escapeCSV(mineral.provenance?.locality ?: ""))
                         writer.write(",")
-                        writer.write(mineral.provenance?.acquisitionDate?.toString() ?: "")
+                        writer.write(escapeCSV(mineral.provenance?.site ?: ""))
+                        writer.write(",")
+                        writer.write(mineral.provenance?.acquiredAt?.toString() ?: "")
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.provenance?.source ?: ""))
+                        writer.write(",")
+                        writer.write(mineral.provenance?.price?.toString() ?: "")
                         writer.write(",")
                         writer.write(mineral.provenance?.estimatedValue?.toString() ?: "")
                         writer.write(",")
                         writer.write(escapeCSV(mineral.provenance?.currency ?: ""))
                         writer.write(",")
-                        writer.write(escapeCSV(mineral.storage?.location ?: ""))
+                        writer.write(escapeCSV(mineral.storage?.place ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.storage?.container ?: ""))
                         writer.write(",")
                         writer.write(escapeCSV(mineral.storage?.box ?: ""))
                         writer.write(",")
-                        writer.write(escapeCSV(mineral.storage?.position ?: ""))
+                        writer.write(escapeCSV(mineral.storage?.slot ?: ""))
                         writer.write(",")
                         writer.write(escapeCSV(mineral.notes ?: ""))
                         writer.write(",")

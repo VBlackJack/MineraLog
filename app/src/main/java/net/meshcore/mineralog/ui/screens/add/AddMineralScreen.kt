@@ -43,7 +43,7 @@ fun AddMineralScreen(
                 actions = {
                     TextButton(
                         onClick = {
-                            viewModel.saveMine ral { mineralId ->
+                            viewModel.saveMineral { mineralId ->
                                 onMineralAdded(mineralId)
                             }
                         },
