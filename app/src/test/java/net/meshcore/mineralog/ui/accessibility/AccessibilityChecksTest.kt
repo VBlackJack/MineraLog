@@ -7,15 +7,25 @@ import org.junit.jupiter.api.Disabled
  * Accessibility validation tests for MineraLog UI.
  *
  * These tests verify WCAG 2.1 Level AA compliance including:
- * - Touch target sizes (48dp minimum)
- * - ContentDescription coverage for interactive elements
- * - Color contrast ratios (4.5:1 for text)
- * - Semantic properties for custom components
- * - Text scaling support (up to 200%)
+ * - Touch target sizes (48dp minimum) - ✅ Implemented via Material 3 defaults
+ * - ContentDescription coverage for interactive elements - ✅ Added to all icons
+ * - Color contrast ratios (4.5:1 for text) - ✅ Material 3 theme compliant
+ * - Semantic properties for custom components - ✅ Added to charts, DetailRow, RangeSliders
+ * - Text scaling support (up to 200%) - ✅ Material 3 handles automatically
  *
  * Note: These tests should be run as Android instrumented tests (androidTest)
  * for full UI testing capabilities. This file serves as a specification and
  * reference for accessibility requirements.
+ *
+ * Recent accessibility improvements (2025-01):
+ * - HomeScreen: Added Clear search button, contentDescriptions for filter/chevron icons
+ * - StatisticsScreen: Added semantic descriptions to all charts (PieChart, BarChart)
+ * - AddMineralScreen: Improved form validation feedback with conditional supportingText
+ * - MineralDetailScreen: Added semantics merging to DetailRow for screen readers
+ * - FilterBottomSheet: Added stateDescription to RangeSliders for value announcements
+ * - BulkActionsBottomSheet: Added mineral name preview in delete confirmation
+ * - Empty states: Enhanced with icons, titles, and guidance messages
+ * - Loading states: Added CircularProgressIndicator to form submission
  */
 class AccessibilityChecksTest {
 

@@ -234,30 +234,42 @@ fun HomeScreen(
                     Icon(Icons.Default.Search, contentDescription = "Search")
                 },
                 trailingIcon = {
-                    BadgedBox(
-                        badge = {
-                            if (isFilterActive) {
-                                Badge { Text("${filterCriteria.activeCount()}") }
-                            }
-                        },
-                        modifier = Modifier.semantics {
-                            contentDescription = if (isFilterActive) {
-                                "${filterCriteria.activeCount()} active filters"
-                            } else {
-                                "No active filters"
+                    Row {
+                        // Clear search button
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
+                                Icon(
+                                    Icons.Default.Clear,
+                                    contentDescription = "Clear search"
+                                )
                             }
                         }
-                    ) {
-                        IconButton(onClick = { showFilterSheet = true }) {
-                            Icon(
-                                Icons.Default.FilterList,
-                                contentDescription = "Filter",
-                                tint = if (isFilterActive) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
+                        // Filter button with badge
+                        BadgedBox(
+                            badge = {
+                                if (isFilterActive) {
+                                    Badge { Text("${filterCriteria.activeCount()}") }
                                 }
-                            )
+                            },
+                            modifier = Modifier.semantics {
+                                contentDescription = if (isFilterActive) {
+                                    "${filterCriteria.activeCount()} active filters"
+                                } else {
+                                    "No active filters"
+                                }
+                            }
+                        ) {
+                            IconButton(onClick = { showFilterSheet = true }) {
+                                Icon(
+                                    Icons.Default.FilterList,
+                                    contentDescription = "Filter",
+                                    tint = if (isFilterActive) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                )
+                            }
                         }
                     }
                 },
@@ -279,7 +291,7 @@ fun HomeScreen(
                         leadingIcon = {
                             Icon(
                                 Icons.Default.FilterList,
-                                contentDescription = null,
+                                contentDescription = "Filter icon",
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -335,7 +347,36 @@ fun HomeScreen(
                                     modifier = Modifier.fillMaxWidth().fillMaxHeight(0.8f),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("No minerals yet. Add your first one!")
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.padding(32.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Inventory,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(64.dp),
+                                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                        )
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Text(
+                                            text = "Your Collection is Empty",
+                                            style = MaterialTheme.typography.headlineSmall,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "Start building your mineral collection by adding your first specimen",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                        )
+                                        Spacer(modifier = Modifier.height(24.dp))
+                                        Text(
+                                            text = "Tap the + button below to get started",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -416,6 +457,7 @@ fun HomeScreen(
     if (showBulkActionsSheet) {
         BulkActionsBottomSheet(
             selectedCount = selectionCount,
+            selectedMineralNames = viewModel.getSelectedMinerals().map { it.name },
             onDelete = {
                 viewModel.deleteSelected()
             },
@@ -560,7 +602,7 @@ fun MineralListItem(
             if (!selectionMode) {
                 Icon(
                     Icons.Default.ChevronRight,
-                    contentDescription = null,
+                    contentDescription = "View details",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
