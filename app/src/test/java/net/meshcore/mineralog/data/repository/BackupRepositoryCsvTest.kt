@@ -163,14 +163,13 @@ class BackupRepositoryCsvTest {
         assertTrue(result.isSuccess)
         val importResult = result.getOrThrow()
 
-        // Note: Current implementation doesn't validate coordinate ranges
-        // This test documents current behavior - validation should be added
-        assertEquals(2, importResult.imported, "Current implementation accepts invalid coordinates")
-
-        // TODO: Add coordinate validation in BackupRepository.parseMineralFromCsvRow()
-        // Expected behavior after fix:
-        // assertEquals(1, importResult.imported)
-        // assertTrue(importResult.errors.any { it.contains("coordinate") || it.contains("latitude") || it.contains("longitude") })
+        // Validation is now active: invalid coordinates are rejected
+        assertEquals(1, importResult.imported, "Should import only valid coordinates")
+        assertEquals(1, importResult.skipped, "Should skip mineral with invalid coordinates")
+        assertTrue(
+            importResult.errors.any { it.contains("latitude", ignoreCase = true) || it.contains("longitude", ignoreCase = true) },
+            "Should have error about invalid coordinates"
+        )
     }
 
     // ===== CSV Export Tests (P1) =====

@@ -551,6 +551,10 @@ class BackupRepositoryImpl(
             return getMapped(domainField)?.toIntOrNull()
         }
 
+        fun getDouble(domainField: String): Double? {
+            return getMapped(domainField)?.toDoubleOrNull()
+        }
+
         fun getBoolean(domainField: String): Boolean {
             val value = getMapped(domainField)?.lowercase() ?: return false
             return value in listOf("true", "yes", "1", "y", "oui")
@@ -577,12 +581,28 @@ class BackupRepositoryImpl(
         // Parse provenance fields
         val hasProvenance = listOf("prov_country", "prov_locality", "prov_site", "prov_source").any { getMapped(it) != null }
         val provenance = if (hasProvenance) {
+            // Parse and validate coordinates
+            val latitude = getDouble("prov_latitude")
+            val longitude = getDouble("prov_longitude")
+
+            // Validate latitude range (-90.0 to 90.0)
+            if (latitude != null && (latitude < -90.0 || latitude > 90.0)) {
+                throw IllegalArgumentException("Latitude must be between -90.0 and 90.0 (got: $latitude)")
+            }
+
+            // Validate longitude range (-180.0 to 180.0)
+            if (longitude != null && (longitude < -180.0 || longitude > 180.0)) {
+                throw IllegalArgumentException("Longitude must be between -180.0 and 180.0 (got: $longitude)")
+            }
+
             net.meshcore.mineralog.domain.model.Provenance(
                 id = java.util.UUID.randomUUID().toString(),
                 mineralId = mineralId,
                 country = getMapped("prov_country"),
                 locality = getMapped("prov_locality"),
                 site = getMapped("prov_site"),
+                latitude = latitude,
+                longitude = longitude,
                 source = getMapped("prov_source"),
                 price = getFloat("prov_price"),
                 estimatedValue = getFloat("prov_estimatedValue"),

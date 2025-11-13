@@ -279,6 +279,8 @@ object CsvColumnMapper {
         "prov_country" to listOf("country", "provenance_country", "prov_country", "pays"),
         "prov_locality" to listOf("locality", "provenance_locality", "prov_locality", "localité"),
         "prov_site" to listOf("site", "provenance_site", "prov_site", "mine"),
+        "prov_latitude" to listOf("latitude", "prov_latitude", "prov latitude", "lat"),
+        "prov_longitude" to listOf("longitude", "prov_longitude", "prov longitude", "lon", "long"),
         "prov_acquiredAt" to listOf("acquired_at", "acquisition_date", "prov_date", "date"),
         "prov_source" to listOf("source", "provenance_source", "prov_source", "dealer"),
         "prov_price" to listOf("price", "prov_price", "prix", "cost"),
