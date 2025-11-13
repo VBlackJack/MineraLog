@@ -144,6 +144,10 @@ interface MineralDao {
     @Query("SELECT DISTINCT crystalSystem FROM minerals WHERE crystalSystem IS NOT NULL ORDER BY crystalSystem")
     fun getDistinctCrystalSystemsFlow(): Flow<List<String>>
 
+    // Quick Win #8: Get all unique tags for autocomplete (v1.7.0)
+    @Query("SELECT tags FROM minerals WHERE tags IS NOT NULL AND tags != ''")
+    suspend fun getAllTags(): List<String>
+
     // ========== Statistics & Aggregations (v1.2.0) ==========
 
     /**

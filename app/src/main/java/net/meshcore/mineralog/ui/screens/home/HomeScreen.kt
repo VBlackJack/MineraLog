@@ -59,6 +59,7 @@ fun HomeScreen(
     val exportState by viewModel.exportState.collectAsState()
     val importState by viewModel.importState.collectAsState()
     val labelGenerationState by viewModel.labelGenerationState.collectAsState()
+    val bulkOperationProgress by viewModel.bulkOperationProgress.collectAsState() // Quick Win #6
     val csvExportWarningShown by viewModel.csvExportWarningShown.collectAsState()
 
     var showFilterSheet by remember { mutableStateOf(false) }
@@ -160,6 +161,26 @@ fun HomeScreen(
                     duration = SnackbarDuration.Long
                 )
                 viewModel.resetLabelGenerationState()
+            }
+            else -> {}
+        }
+    }
+
+    // Quick Win #6: Handle bulk operation progress announcements
+    LaunchedEffect(bulkOperationProgress) {
+        when (bulkOperationProgress) {
+            is BulkOperationProgress.Complete -> {
+                val state = bulkOperationProgress as BulkOperationProgress.Complete
+                snackbarHostState.showSnackbar(
+                    message = "${state.operation.capitalize()} completed: ${state.count} items",
+                    duration = SnackbarDuration.Short
+                )
+            }
+            is BulkOperationProgress.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = "Operation failed: ${(bulkOperationProgress as BulkOperationProgress.Error).message}",
+                    duration = SnackbarDuration.Long
+                )
             }
             else -> {}
         }
@@ -305,6 +326,56 @@ fun HomeScreen(
                             Icons.Default.Close,
                             contentDescription = "Clear filter",
                             modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+
+            // Quick Win #6: Bulk operation progress indicator
+            if (bulkOperationProgress is BulkOperationProgress.InProgress) {
+                val progress = bulkOperationProgress as BulkOperationProgress.InProgress
+                val percentage = (progress.current.toFloat() / progress.total.toFloat())
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .semantics {
+                            liveRegion = LiveRegionMode.Polite
+                            contentDescription = "${progress.operation} in progress: ${progress.current} of ${progress.total} items"
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "${progress.operation.capitalize()} in progress...",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            Text(
+                                text = "${progress.current}/${progress.total}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                        LinearProgressIndicator(
+                            progress = percentage,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     }
                 }

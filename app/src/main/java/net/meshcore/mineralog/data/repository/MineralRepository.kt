@@ -39,6 +39,9 @@ interface MineralRepository {
     fun searchPaged(query: String): Flow<PagingData<Mineral>>
     fun filterAdvancedPaged(criteria: FilterCriteria): Flow<PagingData<Mineral>>
 
+    // Quick Win #8: Tag autocomplete support (v1.7.0)
+    suspend fun getAllUniqueTags(): List<String>
+
     // Provenance
     suspend fun insertProvenance(provenance: Provenance)
     suspend fun updateProvenance(provenance: Provenance)
@@ -341,5 +344,19 @@ class MineralRepositoryImpl(
                 entity.toDomain(provenance, storage, photos)
             }
         }
+    }
+
+    // Quick Win #8: Get all unique tags for autocomplete (v1.7.0)
+    override suspend fun getAllUniqueTags(): List<String> {
+        val allTagStrings = mineralDao.getAllTags()
+        // Tags are stored as comma-separated strings in the DB
+        // Parse them and return unique sorted list
+        return allTagStrings
+            .flatMap { tagString ->
+                tagString.split(",").map { it.trim() }
+            }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
     }
 }

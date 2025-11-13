@@ -49,6 +49,8 @@ fun AddMineralScreen(
     val streak by viewModel.streak.collectAsState()
     val habit by viewModel.habit.collectAsState()
     val crystalSystem by viewModel.crystalSystem.collectAsState()
+    val tags by viewModel.tags.collectAsState() // Quick Win #8
+    val tagSuggestions by viewModel.tagSuggestions.collectAsState() // Quick Win #8
     val saveState by viewModel.saveState.collectAsState()
     val draftSavedIndicator by viewModel.draftSavedIndicator.collectAsState()
 
@@ -56,7 +58,7 @@ fun AddMineralScreen(
     val hasUnsavedChanges = name.isNotBlank() || group.isNotBlank() || formula.isNotBlank() ||
             notes.isNotBlank() || diaphaneity.isNotBlank() || cleavage.isNotBlank() ||
             fracture.isNotBlank() || luster.isNotBlank() || streak.isNotBlank() ||
-            habit.isNotBlank() || crystalSystem.isNotBlank()
+            habit.isNotBlank() || crystalSystem.isNotBlank() || tags.isNotBlank()
     var showDiscardDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
@@ -287,9 +289,92 @@ fun AddMineralScreen(
                 label = "Crystal System",
                 tooltipText = MineralFieldTooltips.CRYSTAL_SYSTEM,
                 placeholder = "e.g., cubic, hexagonal, monoclinic",
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { saveAction() })
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
+
+            // Quick Win #8: Tags with autocomplete
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            Text(
+                text = "Tags & Organization",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Text(
+                text = "Add tags separated by commas. Autocomplete suggestions will appear as you type.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            // Tags input with autocomplete dropdown
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    OutlinedTextField(
+                        value = tags,
+                        onValueChange = { viewModel.onTagsChange(it) },
+                        label = { Text("Tags") },
+                        placeholder = { Text("e.g., collection, rare, beautiful") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics {
+                                contentDescription = "Tags field. Enter comma-separated tags. " +
+                                        "Autocomplete suggestions available."
+                            },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { saveAction() }),
+                        supportingText = {
+                            Text("Separate multiple tags with commas")
+                        }
+                    )
+
+                    // Autocomplete suggestions dropdown
+                    if (tagSuggestions.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp)
+                                .semantics {
+                                    contentDescription = "${tagSuggestions.size} tag suggestions available"
+                                    liveRegion = LiveRegionMode.Polite
+                                },
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Column {
+                                tagSuggestions.forEach { suggestion ->
+                                    Surface(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                // Replace the last partial tag with the suggestion
+                                                val currentTags = tags.split(",").dropLast(1)
+                                                val newTagsText = if (currentTags.isEmpty()) {
+                                                    suggestion
+                                                } else {
+                                                    currentTags.joinToString(", ") + ", " + suggestion
+                                                }
+                                                viewModel.onTagsChange(newTagsText + ", ")
+                                            }
+                                            .semantics {
+                                                contentDescription = "Select tag: $suggestion"
+                                            },
+                                        color = MaterialTheme.colorScheme.surface
+                                    ) {
+                                        Text(
+                                            text = suggestion,
+                                            modifier = Modifier.padding(16.dp),
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                    if (suggestion != tagSuggestions.last()) {
+                                        HorizontalDivider()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
