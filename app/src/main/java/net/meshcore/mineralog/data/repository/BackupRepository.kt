@@ -145,13 +145,18 @@ class BackupRepositoryImpl(
     }
 
     override suspend fun importZip(uri: Uri, password: CharArray?, mode: ImportMode): Result<ImportResult> = withContext(Dispatchers.IO) {
+        // Security constants
+        val MAX_FILE_SIZE = 100 * 1024 * 1024L // 100 MB compressed
+        val MAX_DECOMPRESSED_SIZE = 500 * 1024 * 1024L // 500 MB decompressed
+        val MAX_DECOMPRESSION_RATIO = 100 // Prevent ZIP bombs
+
+        var totalCompressedBytes = 0L
+        var totalDecompressedBytes = 0L
+
         try {
             val errors = mutableListOf<String>()
             var imported = 0
             var skipped = 0
-
-            // Validate file size to prevent DoS attacks (max 100 MB)
-            val MAX_FILE_SIZE = 100 * 1024 * 1024L // 100 MB
 
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 val fileSize = context.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.SIZE), null, null, null)?.use { cursor ->
@@ -162,6 +167,36 @@ class BackupRepositoryImpl(
                     return@withContext Result.failure(Exception("File too large. Maximum size is 100 MB."))
                 }
 
+                // Helper to sanitize ZIP entry paths (prevent path traversal)
+                fun sanitizeZipEntryPath(entryName: String): String? {
+                    // Reject absolute paths
+                    if (entryName.startsWith("/") || entryName.contains(":")) {
+                        return null
+                    }
+
+                    // Reject path traversal attempts
+                    if (entryName.contains("..")) {
+                        return null
+                    }
+
+                    // Normalize and validate
+                    val normalized = entryName.replace("\\", "/")
+                    val parts = normalized.split("/")
+
+                    // Check each part for dangerous characters
+                    if (parts.any { it.isEmpty() || it == "." || it == ".." }) {
+                        return null
+                    }
+
+                    return normalized
+                }
+
+                // Helper to validate schema version
+                fun validateSchemaVersion(version: String?): Boolean {
+                    // Currently only support v1.0.0
+                    return version == "1.0.0"
+                }
+
                 ZipInputStream(inputStream).use { zip ->
                     var entry: ZipEntry? = zip.nextEntry
                     var mineralsBytes: ByteArray? = null
@@ -169,17 +204,57 @@ class BackupRepositoryImpl(
 
                     // First pass: read manifest and minerals.json
                     while (entry != null) {
+                        // Security: Sanitize entry path
+                        val sanitizedPath = sanitizeZipEntryPath(entry.name)
+                        if (sanitizedPath == null) {
+                            errors.add("Skipped malicious ZIP entry: ${entry.name}")
+                            zip.closeEntry()
+                            entry = zip.nextEntry
+                            continue
+                        }
+
+                        // Security: Track decompression ratio (ZIP bomb protection)
+                        val entryCompressedSize = entry.compressedSize
+                        val entryUncompressedSize = entry.size
+
+                        if (entryUncompressedSize > 0) {
+                            totalCompressedBytes += if (entryCompressedSize > 0) entryCompressedSize else entryUncompressedSize
+                            totalDecompressedBytes += entryUncompressedSize
+
+                            // Check decompression ratio
+                            if (totalCompressedBytes > 0) {
+                                val ratio = totalDecompressedBytes / totalCompressedBytes
+                                if (ratio > MAX_DECOMPRESSION_RATIO) {
+                                    return@withContext Result.failure(
+                                        Exception("Potential ZIP bomb detected: decompression ratio $ratio:1 exceeds limit of $MAX_DECOMPRESSION_RATIO:1")
+                                    )
+                                }
+                            }
+
+                            // Check total decompressed size
+                            if (totalDecompressedBytes > MAX_DECOMPRESSED_SIZE) {
+                                return@withContext Result.failure(
+                                    Exception("Decompressed size ${totalDecompressedBytes / 1024 / 1024}MB exceeds maximum ${MAX_DECOMPRESSED_SIZE / 1024 / 1024}MB")
+                                )
+                            }
+                        }
+
                         when {
-                            entry.name == "manifest.json" -> {
+                            sanitizedPath == "manifest.json" -> {
                                 manifestJson = zip.readBytes().toString(Charsets.UTF_8)
                             }
-                            entry.name == "minerals.json" -> {
+                            sanitizedPath == "minerals.json" -> {
                                 mineralsBytes = zip.readBytes()
                             }
-                            entry.name.startsWith("media/") -> {
-                                val file = File(context.filesDir, entry.name)
-                                file.parentFile?.mkdirs()
-                                file.outputStream().use { zip.copyTo(it) }
+                            sanitizedPath.startsWith("media/") -> {
+                                val file = File(context.filesDir, sanitizedPath)
+                                // Additional safety: ensure file is within filesDir
+                                if (file.canonicalPath.startsWith(context.filesDir.canonicalPath)) {
+                                    file.parentFile?.mkdirs()
+                                    file.outputStream().use { zip.copyTo(it) }
+                                } else {
+                                    errors.add("Skipped file outside allowed directory: $sanitizedPath")
+                                }
                             }
                         }
                         zip.closeEntry()
@@ -188,6 +263,12 @@ class BackupRepositoryImpl(
 
                     // Parse manifest to check for encryption
                     val manifest = manifestJson?.let { json.decodeFromString<Map<String, Any>>(it) }
+
+                    // Security: Validate schema version
+                    val schemaVersion = manifest?.get("schemaVersion") as? String
+                    if (!validateSchemaVersion(schemaVersion)) {
+                        return@withContext Result.failure(Exception("Incompatible backup schema version: $schemaVersion. Only version 1.0.0 is supported."))
+                    }
                     val isEncrypted = manifest?.get("encrypted") as? Boolean ?: false
 
                     // Decrypt minerals.json if necessary
