@@ -25,6 +25,9 @@ interface StorageDao {
     @Query("DELETE FROM storage WHERE mineralId = :mineralId")
     suspend fun deleteByMineralId(mineralId: String)
 
+    @Query("DELETE FROM storage WHERE mineralId IN (:mineralIds)")
+    suspend fun deleteByMineralIds(mineralIds: List<String>)
+
     @Query("DELETE FROM storage")
     suspend fun deleteAll()
 

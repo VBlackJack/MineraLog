@@ -29,6 +29,9 @@ interface PhotoDao {
     @Query("DELETE FROM photos WHERE mineralId = :mineralId")
     suspend fun deleteByMineralId(mineralId: String)
 
+    @Query("DELETE FROM photos WHERE mineralId IN (:mineralIds)")
+    suspend fun deleteByMineralIds(mineralIds: List<String>)
+
     @Query("DELETE FROM photos")
     suspend fun deleteAll()
 

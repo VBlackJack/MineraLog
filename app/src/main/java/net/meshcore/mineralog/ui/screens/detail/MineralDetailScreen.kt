@@ -37,14 +37,6 @@ fun MineralDetailScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
-                },
-                actions = {
-                    IconButton(onClick = { /* TODO: Edit */ }) {
-                        Icon(Icons.Default.Edit, "Edit")
-                    }
-                    IconButton(onClick = { /* TODO: Share */ }) {
-                        Icon(Icons.Default.Share, "Share")
-                    }
                 }
             )
         }

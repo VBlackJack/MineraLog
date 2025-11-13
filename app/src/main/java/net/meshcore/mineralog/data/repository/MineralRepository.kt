@@ -18,6 +18,7 @@ interface MineralRepository {
     suspend fun insert(mineral: Mineral): String
     suspend fun update(mineral: Mineral)
     suspend fun delete(id: String)
+    suspend fun deleteByIds(ids: List<String>)
     suspend fun deleteAll()
     suspend fun getById(id: String): Mineral?
     suspend fun getByIds(ids: List<String>): List<Mineral>
@@ -70,6 +71,16 @@ class MineralRepositoryImpl(
         storageDao.deleteByMineralId(id)
         photoDao.deleteByMineralId(id)
         mineralDao.deleteById(id)
+    }
+
+    override suspend fun deleteByIds(ids: List<String>) {
+        if (ids.isEmpty()) return
+
+        // Batch delete related entities first to maintain referential integrity
+        provenanceDao.deleteByMineralIds(ids)
+        storageDao.deleteByMineralIds(ids)
+        photoDao.deleteByMineralIds(ids)
+        mineralDao.deleteByIds(ids)
     }
 
     override suspend fun deleteAll() {
