@@ -9,6 +9,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -40,10 +42,16 @@ fun EncryptPasswordDialog(
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmVisible by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
 
     val passwordStrength = calculatePasswordStrength(password)
     val passwordsMatch = password == confirmPassword && password.isNotEmpty()
     val isValid = password.length >= 8 && passwordsMatch
+
+    // Auto-focus password field when dialog opens
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -78,7 +86,9 @@ fun EncryptPasswordDialog(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text(stringResource(R.string.export_password)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
                     singleLine = true,
                     visualTransformation = if (passwordVisible) {
                         VisualTransformation.None

@@ -7,6 +7,7 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.0-blue.svg)](https://kotlinlang.org)
 [![Version](https://img.shields.io/badge/Version-1.4.1-brightgreen.svg)](CHANGELOG.md)
 [![Min SDK](https://img.shields.io/badge/Min%20SDK-27-green.svg)](https://developer.android.com/about/versions/oreo)
+[![WCAG 2.1 AA](https://img.shields.io/badge/WCAG%202.1-AA%20Compliant-brightgreen.svg)](ACCESSIBILITY.md)
 
 ## Features
 
@@ -65,11 +66,19 @@
 - **Bilingual**: English, Français
 - **Material 3 Theming**: Light/Dark modes
 
-### ♿ Accessibility
-- **TalkBack Support**: Complete screen reader compatibility
-- **WCAG AA Compliant**: 4.5:1 contrast ratios
-- **Dynamic Type**: Supports up to 200% font scaling
-- **Touch Targets**: Minimum 48×48dp
+### ♿ Accessibility (WCAG 2.1 AA Certified)
+- **TalkBack Support**: Complete screen reader compatibility with live regions
+- **Focus Management**: Auto-focus in dialogs, keyboard navigation (Tab/Enter/Escape)
+- **Technical Field Tooltips**: Inline help for complex mineral properties
+- **Auto-Save Drafts**: Never lose work with 500ms debounced auto-save
+- **Reduced Motion**: Respects prefers-reduced-motion for animations
+- **Haptic Feedback**: Tactile confirmation for critical actions
+- **Color Contrast**: Verified 4.5:1 minimum ratios throughout
+- **Dynamic Type**: Supports up to 200% font scaling without truncation
+- **Touch Targets**: Minimum 48×48dp on all interactive elements
+- **Automated Testing**: CI-integrated accessibility test suite
+
+See [ACCESSIBILITY.md](ACCESSIBILITY.md) for implementation guide.
 
 ## Quick Start
 
@@ -132,6 +141,7 @@ Get your Maps API key: [Google Cloud Console](https://console.cloud.google.com/g
 ## Documentation
 
 - **[CHANGELOG](CHANGELOG.md)**: Version history and release notes
+- **[ACCESSIBILITY](ACCESSIBILITY.md)**: WCAG 2.1 AA compliance guide for contributors
 - **[User Guide](DOCS/user_guide.md)**: Complete app usage documentation
 - **[Import/Export Spec](DOCS/import_export_spec.md)**: File format specifications
 - **[Assumptions Log](DOCS/assumptions.md)**: Implementation decisions and rationale
