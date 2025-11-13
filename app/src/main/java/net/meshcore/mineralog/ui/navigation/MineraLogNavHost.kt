@@ -13,6 +13,8 @@ import net.meshcore.mineralog.ui.screens.home.HomeScreen
 import net.meshcore.mineralog.ui.screens.detail.MineralDetailScreen
 import net.meshcore.mineralog.ui.screens.add.AddMineralScreen
 import net.meshcore.mineralog.ui.screens.settings.SettingsScreen
+import net.meshcore.mineralog.ui.screens.statistics.StatisticsScreen
+import net.meshcore.mineralog.ui.screens.statistics.StatisticsViewModel
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -21,6 +23,7 @@ sealed class Screen(val route: String) {
         fun createRoute(mineralId: String) = "detail/$mineralId"
     }
     data object Settings : Screen("settings")
+    data object Statistics : Screen("statistics")
 }
 
 @Composable
@@ -81,6 +84,17 @@ fun MineraLogNavHost(
 
         composable(Screen.Settings.route) {
             SettingsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Statistics.route) {
+            // TODO: Replace with proper DI injection
+            val viewModel = StatisticsViewModel(
+                statisticsRepository = TODO("Inject repository")
+            )
+            StatisticsScreen(
+                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
