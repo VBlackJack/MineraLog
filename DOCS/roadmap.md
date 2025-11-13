@@ -1,6 +1,6 @@
 # MineraLog Roadmap
 
-## Current Version: v1.3.0 (2025-11-13)
+## Current Version: v1.3.1 (2025-11-13)
 
 ---
 
@@ -183,87 +183,96 @@
 ### Known Limitations (Deferred to v1.3.1)
 - ⏸️ CSV export UI (file picker integration) - backend ready
 - ⏸️ CSV column selection dialog - backend supports all columns
-- ⏸️ Mineral Comparator - high priority for v1.3.1
 - ⏸️ Batch CSV import with column mapping - future enhancement
 - ⏸️ Bulk tag addition/removal - future enhancement
 - ⏸️ Bulk storage location assignment - future enhancement
 
 ---
 
-## 🎯 v1.3.1 - Comparator & Export UI (Q1 2026)
+## ✅ Completed in v1.3.1 (2025-11-13)
+
+### Mineral Comparator ⭐
+- ✅ **ComparatorScreen Component**
+  - Side-by-side comparison UI for 2-3 minerals
+  - Scrollable sections (Basic, Physical, Special Properties, Status, Provenance)
+  - Diff highlighting with secondaryContainer background (30% alpha)
+  - Sticky header row with mineral names
+  - ComparisonRow component with bold text for differences
+
+- ✅ **ComparatorViewModel**
+  - Loads 2-3 minerals by ID from MineralRepository
+  - Input validation (min 2, max 3 minerals)
+  - Sealed class UI states (Loading/Success/Error)
+  - Factory pattern for mineralIds parameter injection
+
+- ✅ **Navigation Integration**
+  - Screen.Compare route with comma-separated mineralIds
+  - Navigation from BulkActionsBottomSheet
+  - HomeScreen integration with onCompareClick callback
+  - MineraLogNavHost composable route with argument parsing
+
+- ✅ **BulkActions Integration**
+  - Compare action in BulkActionsBottomSheet (conditional: 2-3 minerals)
+  - Icons.Default.Compare icon
+  - Description text for user guidance
+  - Automatic sheet dismiss after action
+
+### Internationalization
+- ✅ 8 new English strings for Comparator
+- ✅ 8 new French strings for Comparator
+- ✅ Complete bilingual support maintained (EN/FR)
+
+### Technical Improvements
+- ✅ Manual DI via Application-scoped repositories
+- ✅ Material 3 compliant comparison UI
+- ✅ Comma-separated ID routing for multi-parameter navigation
+- ✅ Conditional UI rendering based on selection count
+- ✅ Version updated to 1.3.1 (versionCode 5)
+
+### Documentation
+- ✅ Roadmap updated with v1.3.1 completion details
+- ✅ i18n strings added for all Comparator features
+
+### Known Limitations (Deferred to Future Releases)
+- ⏸️ CSV export UI (file picker integration) - backend ready
+- ⏸️ CSV column selection dialog - backend supports all columns
+- ⏸️ Export comparison as PDF - future enhancement
+- ⏸️ Batch CSV import with column mapping - future enhancement
+- ⏸️ Bulk tag addition/removal - future enhancement
+- ⏸️ Bulk storage location assignment - future enhancement
+
+---
+
+## 🎯 v1.4.0 - Export UI & Photo Gallery (Q1 2026)
 
 **Priority:** High
-**Effort:** Medium (3-4 weeks)
+**Effort:** Small (1-2 weeks)
 
 ### Features
-- **Mineral Comparator**
-  - Select 2-3 minerals for side-by-side comparison
-  - Diff highlighting for different values
-  - Sticky headers for scrolling long comparisons
-  - Export comparison as PDF
-
-- **Bulk Editor**
-  - Multi-select mode in home screen
-  - Bulk actions: move to storage, add tags, delete, export
-  - Confirmation dialogs with counts
-  - Progress indicators for long operations
-  - Undo support (where applicable)
-
-- **Batch Import Improvements**
-  - CSV import with column mapping UI
-  - Preview before import (first 10 rows)
-  - Conflict resolution options (skip, overwrite, create new)
-
-- **Filter Preset UI** (from v1.2.0 backend)
-  - FilterBottomSheet with multi-criteria selection
-  - Save/load/delete filter presets
-  - Integration with HomeScreen
-
-- **CSV Column Selection UI** (from v1.2.0 backend)
-  - ExportConfigDialog with column checkboxes
+- **CSV Export UI**
+  - File picker integration for export destination
+  - Column selection dialog with checkboxes
   - Preview CSV header before export
   - Save preferences for future exports
 
-### Technical
-- Selection state management in ViewModel
-- Optimistic UI updates with rollback
-- Background WorkManager for bulk operations
-- Indexed queries for performance (<300ms)
-
----
-
-## 🎯 v1.3.0 - Comparator & Bulk Operations (Q2 2026)
-
-**Priority:** High
-**Effort:** Medium (3-4 weeks)
-
-### Features
-- **Mineral Comparator**
-  - Select 2-3 minerals for side-by-side comparison
-  - Diff highlighting for different values
-  - Sticky headers for scrolling long comparisons
-  - Export comparison as PDF
-
-- **Bulk Editor**
-  - Multi-select mode in home screen
-  - Bulk actions: move to storage, add tags, delete, export
-  - Confirmation dialogs with counts
-  - Progress indicators for long operations
-  - Undo support (where applicable)
-
 - **Batch Import Improvements**
   - CSV import with column mapping UI
   - Preview before import (first 10 rows)
   - Conflict resolution options (skip, overwrite, create new)
 
+- **Bulk Operations Enhancements**
+  - Bulk tag addition/removal
+  - Bulk storage location assignment
+  - Progress indicators for long operations
+
 ### Technical
-- Selection state management in ViewModel
-- Optimistic UI updates with rollback
+- File picker integration (SAF - Storage Access Framework)
 - Background WorkManager for bulk operations
+- Optimistic UI updates with rollback
 
 ---
 
-## 📷 v1.4.0 - Photo Gallery & Camera (Q3 2026)
+## 📷 v1.5.0 - Photo Gallery & Camera (Q2 2026)
 
 **Priority:** High
 **Effort:** Large (5-6 weeks)
@@ -297,7 +306,7 @@
 
 ---
 
-## 🗺️ v1.5.0 - Map View & Geolocation (Q4 2026)
+## 🗺️ v1.6.0 - Map View & Geolocation (Q3 2026)
 
 **Priority:** Medium
 **Effort:** Medium (3-4 weeks)
@@ -324,7 +333,7 @@
 
 ---
 
-## 📋 v1.6.0 - QR Labels & Barcode Scanning (Q1 2027)
+## 📋 v1.7.0 - QR Labels & Barcode Scanning (Q4 2026)
 
 **Priority:** Medium
 **Effort:** Medium (3-4 weeks)
@@ -353,7 +362,7 @@
 
 ---
 
-## 🔐 v1.7.0 - Enhanced Security & Backup (Q2 2027)
+## 🔐 v1.8.0 - Enhanced Security & Backup (Q1 2027)
 
 **Priority:** Medium
 **Effort:** Medium (3-4 weeks)
@@ -385,7 +394,7 @@
 
 ---
 
-## 🏥 v1.8.0 - Diagnostics & Health Panel (Q3 2027)
+## 🏥 v1.9.0 - Diagnostics & Health Panel (Q2 2027)
 
 **Priority:** Low
 **Effort:** Small (1-2 weeks)
@@ -488,13 +497,15 @@
 
 | Feature | Priority | Effort | Impact | Target |
 |---------|----------|--------|--------|--------|
-| Statistics Dashboard | High | Medium | High | v1.2 |
-| Comparator & Bulk Ops | High | Medium | High | v1.3 |
-| Photo Gallery | High | Large | High | v1.4 |
-| Map View | Medium | Medium | Medium | v1.5 |
-| QR Labels | Medium | Medium | High | v1.6 |
-| Enhanced Security | Medium | Medium | Medium | v1.7 |
-| Diagnostics | Low | Small | Low | v1.8 |
+| Statistics Dashboard | High | Medium | High | ✅ v1.2 |
+| Advanced Filtering & Bulk Ops | High | Medium | High | ✅ v1.3 |
+| Mineral Comparator | High | Small | High | ✅ v1.3.1 |
+| Export UI & Bulk Enhancements | High | Small | Medium | v1.4 |
+| Photo Gallery | High | Large | High | v1.5 |
+| Map View | Medium | Medium | Medium | v1.6 |
+| QR Labels | Medium | Medium | High | v1.7 |
+| Enhanced Security | Medium | Medium | Medium | v1.8 |
+| Diagnostics | Low | Small | Low | v1.9 |
 | Cloud Sync | Low | Very Large | High | v2.0 |
 
 ---
@@ -515,4 +526,4 @@ Users can request features or report bugs at:
 
 ---
 
-*Last Updated: 2025-11-12*
+*Last Updated: 2025-11-13*

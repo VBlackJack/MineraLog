@@ -22,6 +22,7 @@ fun BulkActionsBottomSheet(
     selectedCount: Int,
     onDelete: () -> Unit,
     onExportCsv: () -> Unit,
+    onCompare: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -61,6 +62,30 @@ fun BulkActionsBottomSheet(
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            // Compare action (only for 2-3 minerals)
+            if (onCompare != null && selectedCount in 2..3) {
+                ListItem(
+                    headlineContent = {
+                        Text(stringResource(R.string.bulk_action_compare))
+                    },
+                    supportingContent = {
+                        Text(stringResource(R.string.bulk_action_compare_desc))
+                    },
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.Compare,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onCompare()
+                            onDismiss()
+                        }
+                )
+            }
 
             // Delete action
             ListItem(
