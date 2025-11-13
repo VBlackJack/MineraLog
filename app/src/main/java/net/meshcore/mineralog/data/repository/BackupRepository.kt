@@ -20,6 +20,7 @@ import java.util.zip.ZipOutputStream
 
 interface BackupRepository {
     suspend fun exportZip(uri: Uri, password: String? = null): Result<Unit>
+    suspend fun exportCsv(uri: Uri, minerals: List<Mineral>): Result<Unit>
     suspend fun importZip(uri: Uri, password: String? = null, mode: ImportMode = ImportMode.MERGE): Result<ImportResult>
     suspend fun createBackup(password: String? = null): Result<File>
     suspend fun restoreBackup(file: File, password: String? = null): Result<Unit>
@@ -153,6 +154,105 @@ class BackupRepositoryImpl(
             Result.success(ImportResult(imported, skipped, errors))
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    override suspend fun exportCsv(uri: Uri, minerals: List<Mineral>): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                outputStream.bufferedWriter().use { writer ->
+                    // Write CSV header
+                    writer.write("Name,Group,Formula,Color,Streak,Luster,Mohs Min,Mohs Max,")
+                    writer.write("Crystal System,Specific Gravity,Cleavage,Fracture,Tenacity,")
+                    writer.write("Diaphaneity,Habitus,Fluorescence,Radioactivity,Magnetism,")
+                    writer.write("Dimensions,Weight,Status Type,Status Date,Quality,Completeness,")
+                    writer.write("Provenance Country,Provenance Locality,Provenance Date,Estimated Value,Currency,")
+                    writer.write("Storage Location,Storage Box,Storage Position,Notes,Tags\n")
+
+                    // Write data rows
+                    minerals.forEach { mineral ->
+                        writer.write(escapeCSV(mineral.name))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.group ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.formula ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.color ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.streak ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.luster ?: ""))
+                        writer.write(",")
+                        writer.write(mineral.mohsMin?.toString() ?: "")
+                        writer.write(",")
+                        writer.write(mineral.mohsMax?.toString() ?: "")
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.crystalSystem ?: ""))
+                        writer.write(",")
+                        writer.write(mineral.specificGravity?.toString() ?: "")
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.cleavage ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.fracture ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.tenacity ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.diaphaneity ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.habitus ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.fluorescence ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.radioactivity ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.magnetism ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.dimensions ?: ""))
+                        writer.write(",")
+                        writer.write(mineral.weight?.toString() ?: "")
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.statusType))
+                        writer.write(",")
+                        writer.write(mineral.statusDate?.toString() ?: "")
+                        writer.write(",")
+                        writer.write(mineral.qualityRating?.toString() ?: "")
+                        writer.write(",")
+                        writer.write(mineral.completeness.toString())
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.provenance?.country ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.provenance?.locality ?: ""))
+                        writer.write(",")
+                        writer.write(mineral.provenance?.acquisitionDate?.toString() ?: "")
+                        writer.write(",")
+                        writer.write(mineral.provenance?.estimatedValue?.toString() ?: "")
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.provenance?.currency ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.storage?.location ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.storage?.box ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.storage?.position ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.notes ?: ""))
+                        writer.write(",")
+                        writer.write(escapeCSV(mineral.tags.joinToString("; ")))
+                        writer.write("\n")
+                    }
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private fun escapeCSV(value: String): String {
+        return if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            "\"${value.replace("\"", "\"\"")}\""
+        } else {
+            value
         }
     }
 

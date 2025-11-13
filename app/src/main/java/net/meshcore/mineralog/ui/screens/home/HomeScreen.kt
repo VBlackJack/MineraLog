@@ -22,25 +22,68 @@ fun HomeScreen(
     onMineralClick: (String) -> Unit,
     onAddClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onStatisticsClick: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
-            (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository
+            mineralRepository = (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
+            filterPresetRepository = (LocalContext.current.applicationContext as MineraLogApplication).filterPresetRepository
         )
     )
 ) {
     val minerals by viewModel.minerals.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val filterCriteria by viewModel.filterCriteria.collectAsState()
+    val isFilterActive by viewModel.isFilterActive.collectAsState()
+    val filterPresets by viewModel.filterPresets.collectAsState()
+    val selectionMode by viewModel.selectionMode.collectAsState()
+    val selectedIds by viewModel.selectedIds.collectAsState()
+    val selectionCount by viewModel.selectionCount.collectAsState()
+
+    var showFilterSheet by remember { mutableStateOf(false) }
+    var showBulkActionsSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("MineraLog") },
-                actions = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+            if (selectionMode) {
+                // Selection mode top bar
+                TopAppBar(
+                    title = { Text("$selectionCount selected") },
+                    navigationIcon = {
+                        IconButton(onClick = { viewModel.exitSelectionMode() }) {
+                            Icon(Icons.Default.Close, contentDescription = "Exit selection")
+                        }
+                    },
+                    actions = {
+                        if (selectionCount < minerals.size) {
+                            IconButton(onClick = { viewModel.selectAll() }) {
+                                Icon(Icons.Default.SelectAll, contentDescription = "Select all")
+                            }
+                        }
+                        if (selectionCount > 0) {
+                            IconButton(onClick = { showBulkActionsSheet = true }) {
+                                Icon(Icons.Default.MoreVert, contentDescription = "Actions")
+                            }
+                        }
                     }
-                }
-            )
+                )
+            } else {
+                // Normal top bar
+                TopAppBar(
+                    title = { Text("MineraLog") },
+                    actions = {
+                        // Bulk edit button
+                        IconButton(onClick = { viewModel.enterSelectionMode() }) {
+                            Icon(Icons.Default.Checklist, contentDescription = "Bulk edit")
+                        }
+                        IconButton(onClick = onStatisticsClick) {
+                            Icon(Icons.Default.BarChart, contentDescription = "Statistics")
+                        }
+                        IconButton(onClick = onSettingsClick) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        }
+                    }
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddClick) {
@@ -64,8 +107,62 @@ fun HomeScreen(
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null)
                 },
+                trailingIcon = {
+                    BadgedBox(
+                        badge = {
+                            if (isFilterActive) {
+                                Badge { Text("${filterCriteria.activeCount()}") }
+                            }
+                        }
+                    ) {
+                        IconButton(onClick = { showFilterSheet = true }) {
+                            Icon(
+                                Icons.Default.FilterList,
+                                contentDescription = "Filter",
+                                tint = if (isFilterActive) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+                        }
+                    }
+                },
                 singleLine = true
             )
+
+            // Active filter chip
+            if (isFilterActive) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AssistChip(
+                        onClick = { showFilterSheet = true },
+                        label = { Text(filterCriteria.toSummary()) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.FilterList,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    )
+                    IconButton(
+                        onClick = { viewModel.clearFilter() },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Clear filter",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
 
             // Mineral list
             if (minerals.isEmpty()) {
@@ -84,24 +181,71 @@ fun HomeScreen(
                     items(minerals, key = { it.id }) { mineral ->
                         MineralListItem(
                             mineral = mineral,
-                            onClick = { onMineralClick(mineral.id) }
+                            selectionMode = selectionMode,
+                            isSelected = mineral.id in selectedIds,
+                            onClick = {
+                                if (selectionMode) {
+                                    viewModel.toggleSelection(mineral.id)
+                                } else {
+                                    onMineralClick(mineral.id)
+                                }
+                            }
                         )
                     }
                 }
             }
         }
     }
+
+    // Filter bottom sheet
+    if (showFilterSheet) {
+        FilterBottomSheet(
+            criteria = filterCriteria,
+            presets = filterPresets,
+            onCriteriaChange = { viewModel.onFilterCriteriaChange(it) },
+            onApply = { },
+            onClear = { viewModel.clearFilter() },
+            onSavePreset = { viewModel.savePreset(it) },
+            onLoadPreset = { viewModel.applyPreset(it) },
+            onDeletePreset = { viewModel.deletePreset(it) },
+            onDismiss = { showFilterSheet = false }
+        )
+    }
+
+    // Bulk actions bottom sheet
+    if (showBulkActionsSheet) {
+        BulkActionsBottomSheet(
+            selectedCount = selectionCount,
+            onDelete = {
+                viewModel.deleteSelected()
+            },
+            onExportCsv = {
+                // TODO: Implement CSV export with column selection
+                // This will be implemented in the next step
+            },
+            onDismiss = { showBulkActionsSheet = false }
+        )
+    }
 }
 
 @Composable
 fun MineralListItem(
     mineral: Mineral,
+    selectionMode: Boolean = false,
+    isSelected: Boolean = false,
     onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        colors = if (isSelected) {
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        } else {
+            CardDefaults.cardColors()
+        }
     ) {
         Row(
             modifier = Modifier
@@ -109,6 +253,15 @@ fun MineralListItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Checkbox in selection mode
+            if (selectionMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = null, // Handled by card click
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = mineral.name,
@@ -129,11 +282,14 @@ fun MineralListItem(
                     )
                 }
             }
-            Icon(
-                Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+
+            if (!selectionMode) {
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

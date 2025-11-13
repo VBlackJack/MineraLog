@@ -9,6 +9,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.ui.platform.LocalContext
+import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.ui.screens.home.HomeScreen
 import net.meshcore.mineralog.ui.screens.detail.MineralDetailScreen
 import net.meshcore.mineralog.ui.screens.add.AddMineralScreen
@@ -55,6 +57,9 @@ fun MineraLogNavHost(
                 },
                 onSettingsClick = {
                     navController.navigate(Screen.Settings.route)
+                },
+                onStatisticsClick = {
+                    navController.navigate(Screen.Statistics.route)
                 }
             )
         }
@@ -89,9 +94,9 @@ fun MineraLogNavHost(
         }
 
         composable(Screen.Statistics.route) {
-            // TODO: Replace with proper DI injection
+            val application = LocalContext.current.applicationContext as MineraLogApplication
             val viewModel = StatisticsViewModel(
-                statisticsRepository = TODO("Inject repository")
+                statisticsRepository = application.statisticsRepository
             )
             StatisticsScreen(
                 viewModel = viewModel,

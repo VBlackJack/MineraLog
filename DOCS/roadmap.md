@@ -1,6 +1,6 @@
 # MineraLog Roadmap
 
-## Current Version: v1.2.0 (2025-11-12)
+## Current Version: v1.3.0 (2025-11-13)
 
 ---
 
@@ -81,32 +81,153 @@
 
 ---
 
-## 🔜 v1.2.1 - Filter UI & Export Enhancements (Next Patch)
+## ✅ Completed in v1.2.1 (2025-11-12)
+
+### Critical Fixes ⚡
+- ✅ **DI Container Implementation**
+  - Application-scoped repositories (statisticsRepository, filterPresetRepository)
+  - Manual DI pattern in MineraLogApplication
+  - Removed TODO placeholder in NavHost
+  - Statistics feature now fully functional
+
+- ✅ **HomeScreen Statistics Integration**
+  - Added BarChart icon button in TopAppBar
+  - onStatisticsClick parameter in HomeScreen signature
+  - Direct navigation to Statistics screen
+  - Material 3 compliant UI/UX
+
+- ✅ **French i18n Completion**
+  - 10 new statistics strings translated (FR)
+  - statistics_title, statistics_overview, statistics_time_based, etc.
+  - Complete bilingual support (EN/FR)
+
+### Technical Improvements
+- ✅ Version bumped to 1.2.1 (versionCode 3)
+- ✅ No breaking changes
+- ✅ Full backward compatibility
+
+### Known Limitations (Deferred to v1.3.0)
+- ⏸️ Filter preset UI not implemented (backend ready)
+- ⏸️ CSV column selection UI not implemented (backend ready)
+- ⏸️ Statistics export to PDF (future enhancement)
+
+---
+
+## ✅ Completed in v1.3.0 (2025-11-13)
+
+### Advanced Filtering UI ⭐
+- ✅ **FilterBottomSheet Component**
+  - Multi-criteria filter UI (groups, countries, hardness, status, quality, photos, fluorescence)
+  - Collapsible sections for better UX
+  - Range sliders for Mohs hardness and quality ratings
+  - Multi-select chips for groups, countries, and status types
+  - Boolean toggles for photos and fluorescence
+  - Real-time filter preview with active count badge
+
+- ✅ **Filter Preset Management**
+  - Save custom filter combinations as presets
+  - Load saved presets with one tap
+  - Delete unwanted presets
+  - Preset name customization
+  - Persistent storage in Room database
+
+- ✅ **HomeScreen Filter Integration**
+  - Filter icon with badge showing active filter count
+  - Filter summary chip when filters are active
+  - Quick clear filter button
+  - Seamless integration with search functionality
+  - Filter takes precedence over default "show all" mode
+
+### Bulk Operations ⭐
+- ✅ **Multi-Select Mode**
+  - Enter selection mode from HomeScreen TopAppBar
+  - Visual selection with checkboxes and highlighted cards
+  - Selection counter in TopAppBar
+  - Select All / Deselect All actions
+  - Exit selection mode with close button
+
+- ✅ **Bulk Actions Bottom Sheet**
+  - Delete selected minerals (with confirmation dialog)
+  - Export to CSV (backend ready, full UI integration in v1.3.1)
+  - Mineral count display
+  - Warning indicators for destructive actions
+
+- ✅ **Selection State Management**
+  - ViewModel-based selection tracking
+  - Persistent selection across configuration changes
+  - Safe deletion with confirmation
+  - Automatic exit after bulk operations
+
+### Export Infrastructure
+- ✅ **CSV Export Backend**
+  - BackupRepository.exportCsv() method
+  - Comprehensive 35-column CSV format
+  - Proper CSV escaping for special characters
+  - Includes all mineral properties (basic, physical, provenance, storage)
+  - Ready for UI integration in future releases
+
+### Technical Improvements
+- ✅ MineralRepository.filterAdvancedFlow() implementation
+- ✅ HomeViewModel extended with filter and selection state
+- ✅ Compose BadgedBox for filter count indicators
+- ✅ Material 3 selection styling (primaryContainer background)
+- ✅ Version updated to 1.3.0 (versionCode 4)
+
+### Internationalization
+- ✅ 22 new English strings for filters
+- ✅ 22 new French strings for filters
+- ✅ 8 new English strings for bulk operations
+- ✅ 8 new French strings for bulk operations
+- ✅ Complete bilingual support maintained
+
+### Known Limitations (Deferred to v1.3.1)
+- ⏸️ CSV export UI (file picker integration) - backend ready
+- ⏸️ CSV column selection dialog - backend supports all columns
+- ⏸️ Mineral Comparator - high priority for v1.3.1
+- ⏸️ Batch CSV import with column mapping - future enhancement
+- ⏸️ Bulk tag addition/removal - future enhancement
+- ⏸️ Bulk storage location assignment - future enhancement
+
+---
+
+## 🎯 v1.3.1 - Comparator & Export UI (Q1 2026)
 
 **Priority:** High
-**Effort:** Small (1 week)
+**Effort:** Medium (3-4 weeks)
 
 ### Features
-- **Statistics Dashboard**
-  - Total minerals, total value, average value
-  - Distribution charts: by group (pie), by country (bar), by hardness (bar)
-  - Most common group, most valuable specimen
-  - Completeness metrics: % fully documented
-  - Time-based stats: added this month/year
+- **Mineral Comparator**
+  - Select 2-3 minerals for side-by-side comparison
+  - Diff highlighting for different values
+  - Sticky headers for scrolling long comparisons
+  - Export comparison as PDF
 
-- **Advanced Filtering**
-  - Multi-criteria filters (group + country + hardness range)
-  - Saved filter presets
-  - Filter export/sharing
+- **Bulk Editor**
+  - Multi-select mode in home screen
+  - Bulk actions: move to storage, add tags, delete, export
+  - Confirmation dialogs with counts
+  - Progress indicators for long operations
+  - Undo support (where applicable)
 
-- **Export Enhancements**
-  - Statistics export to PDF
-  - Custom CSV column selection
-  - Batch photo export (ZIP of just photos)
+- **Batch Import Improvements**
+  - CSV import with column mapping UI
+  - Preview before import (first 10 rows)
+  - Conflict resolution options (skip, overwrite, create new)
+
+- **Filter Preset UI** (from v1.2.0 backend)
+  - FilterBottomSheet with multi-criteria selection
+  - Save/load/delete filter presets
+  - Integration with HomeScreen
+
+- **CSV Column Selection UI** (from v1.2.0 backend)
+  - ExportConfigDialog with column checkboxes
+  - Preview CSV header before export
+  - Save preferences for future exports
 
 ### Technical
-- Compose Canvas charts (no heavy dependencies)
-- Lazy computation with ViewModel caching
+- Selection state management in ViewModel
+- Optimistic UI updates with rollback
+- Background WorkManager for bulk operations
 - Indexed queries for performance (<300ms)
 
 ---

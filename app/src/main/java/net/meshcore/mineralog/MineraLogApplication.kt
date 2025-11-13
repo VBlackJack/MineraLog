@@ -42,6 +42,20 @@ class MineraLogApplication : Application(), Configuration.Provider {
         SettingsRepositoryImpl(this)
     }
 
+    // v1.2.0 Statistics Repository
+    val statisticsRepository: StatisticsRepository by lazy {
+        StatisticsRepositoryImpl(
+            mineralDao = database.mineralDao()
+        )
+    }
+
+    // v1.2.0 Filter Preset Repository
+    val filterPresetRepository: FilterPresetRepository by lazy {
+        FilterPresetRepositoryImpl(
+            filterPresetDao = database.filterPresetDao()
+        )
+    }
+
     // Tink AEAD for local encryption (app-level key)
     private val aead: Aead by lazy {
         AeadConfig.register()

@@ -341,4 +341,38 @@
     <string name="acc_photo_thumbnail">Photo thumbnail %d of %d</string>
     <string name="acc_loading">Loading content</string>
     <string name="acc_empty_list">Empty list</string>
+
+    <!-- Filters (v1.3.0) -->
+    <string name="filter_title">Filter Minerals</string>
+    <string name="filter_active_count">filters active</string>
+    <string name="filter_presets">Saved Presets</string>
+    <string name="filter_by_group">Filter by Group</string>
+    <string name="filter_by_country">Filter by Country</string>
+    <string name="filter_by_hardness">Filter by Hardness</string>
+    <string name="filter_hardness_range">Hardness: %.1f - %.1f</string>
+    <string name="filter_by_status">Filter by Status</string>
+    <string name="filter_by_quality">Filter by Quality</string>
+    <string name="filter_quality_range">Quality: %d - %d stars</string>
+    <string name="filter_by_photos">Filter by Photos</string>
+    <string name="filter_has_photos">Has photos</string>
+    <string name="filter_no_photos">No photos</string>
+    <string name="filter_by_fluorescence">Filter by Fluorescence</string>
+    <string name="filter_fluorescent">Fluorescent</string>
+    <string name="filter_not_fluorescent">Not fluorescent</string>
+    <string name="filter_clear">Clear</string>
+    <string name="filter_save_preset">Save Preset</string>
+    <string name="filter_apply">Apply</string>
+    <string name="filter_preset_name">Preset Name</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Bulk Actions (v1.3.0) -->
+    <string name="bulk_actions_title">Bulk Actions</string>
+    <string name="bulk_selected_count">%d minerals selected</string>
+    <string name="bulk_action_delete">Delete Selected</string>
+    <string name="bulk_action_export_csv">Export to CSV</string>
+    <string name="bulk_action_export_csv_desc">Export selected minerals with customizable columns</string>
+    <string name="bulk_delete_confirm_title">Delete Minerals?</string>
+    <string name="bulk_delete_confirm_message">This will permanently delete %d minerals and all associated photos.</string>
+    <string name="delete">Delete</string>
 </resources>
