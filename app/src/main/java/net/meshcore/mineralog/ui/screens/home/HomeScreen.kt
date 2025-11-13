@@ -177,7 +177,7 @@ fun HomeScreen(
             is BulkOperationProgress.Complete -> {
                 val state = bulkOperationProgress as BulkOperationProgress.Complete
                 snackbarHostState.showSnackbar(
-                    message = "${state.operation.capitalize()} completed: ${state.count} items",
+                    message = "${state.operation.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }} completed: ${state.count} items",
                     duration = SnackbarDuration.Short
                 )
             }
@@ -368,7 +368,7 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "${progress.operation.capitalize()} in progress...",
+                                text = "${progress.operation.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }} in progress...",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )

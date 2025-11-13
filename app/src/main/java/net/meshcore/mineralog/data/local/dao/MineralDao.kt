@@ -59,14 +59,16 @@ interface MineralDao {
 
     /**
      * Search minerals with pagination support.
+     * Note: Query parameter should be pre-formatted with wildcards (e.g., "%search%")
+     * to prevent SQL injection via LIKE operator concatenation.
      */
     @Query("""
         SELECT * FROM minerals
-        WHERE name LIKE '%' || :query || '%'
-           OR group LIKE '%' || :query || '%'
-           OR formula LIKE '%' || :query || '%'
-           OR notes LIKE '%' || :query || '%'
-           OR tags LIKE '%' || :query || '%'
+        WHERE name LIKE :query
+           OR group LIKE :query
+           OR formula LIKE :query
+           OR notes LIKE :query
+           OR tags LIKE :query
         ORDER BY updatedAt DESC
     """)
     fun searchPaged(query: String): PagingSource<Int, MineralEntity>
@@ -104,13 +106,17 @@ interface MineralDao {
         fluorescent: Boolean? = null
     ): PagingSource<Int, MineralEntity>
 
+    /**
+     * Search minerals with Flow.
+     * Note: Query parameter should be pre-formatted with wildcards (e.g., "%search%")
+     */
     @Query("""
         SELECT * FROM minerals
-        WHERE name LIKE '%' || :query || '%'
-           OR group LIKE '%' || :query || '%'
-           OR formula LIKE '%' || :query || '%'
-           OR notes LIKE '%' || :query || '%'
-           OR tags LIKE '%' || :query || '%'
+        WHERE name LIKE :query
+           OR group LIKE :query
+           OR formula LIKE :query
+           OR notes LIKE :query
+           OR tags LIKE :query
         ORDER BY updatedAt DESC
     """)
     fun searchFlow(query: String): Flow<List<MineralEntity>>

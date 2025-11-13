@@ -161,7 +161,9 @@ fun Photo.toEntity(): PhotoEntity {
     return PhotoEntity(
         id = id,
         mineralId = mineralId,
-        type = net.meshcore.mineralog.data.local.entity.PhotoType.valueOf(type),
+        type = runCatching {
+            net.meshcore.mineralog.data.local.entity.PhotoType.valueOf(type)
+        }.getOrDefault(net.meshcore.mineralog.data.local.entity.PhotoType.GENERAL),
         caption = caption,
         takenAt = takenAt,
         fileName = fileName

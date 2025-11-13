@@ -59,39 +59,45 @@ object PasswordBasedCrypto {
      * 4. Return ciphertext + salt + IV (all needed for decryption)
      *
      * @param plaintext Data to encrypt
-     * @param password User password
+     * @param password User password (CharArray for security - will be cleared after use)
      * @return [PasswordEncryptionResult] containing all necessary decryption parameters
      * @throws Exception if encryption fails
      */
-    fun encrypt(plaintext: ByteArray, password: String): PasswordEncryptionResult {
+    fun encrypt(plaintext: ByteArray, password: CharArray): PasswordEncryptionResult {
         // Generate random salt for Argon2
         val salt = ByteArray(SALT_LENGTH_BYTES)
         SecureRandom().nextBytes(salt)
 
         // Derive encryption key from password using Argon2id
         val argon2Helper = Argon2Helper()
-        val keyResult = argon2Helper.deriveKey(password.toCharArray(), salt)
+        val keyResult = argon2Helper.deriveKey(password, salt)
         val key = keyResult.key
 
-        // Encrypt with AES-GCM
-        val cryptoHelper = CryptoHelper()
-        val encryptionResult = cryptoHelper.encrypt(plaintext, key)
+        return try {
+            // Encrypt with AES-GCM
+            val cryptoHelper = CryptoHelper()
+            val encryptionResult = cryptoHelper.encrypt(plaintext, key)
 
-        return PasswordEncryptionResult(
-            ciphertext = encryptionResult.ciphertext,
-            salt = salt,
-            iv = encryptionResult.iv
-        )
+            PasswordEncryptionResult(
+                ciphertext = encryptionResult.ciphertext,
+                salt = salt,
+                iv = encryptionResult.iv
+            )
+        } finally {
+            // Clear sensitive data from memory
+            keyResult.clear()
+            key.fill(0)
+        }
     }
 
     /**
      * Encrypts a string using a password.
      *
      * @param plaintext String to encrypt
-     * @param password User password
+     * @param password User password (CharArray for security)
      * @return [PasswordEncryptionResult]
      */
-    fun encryptString(plaintext: String, password: String): PasswordEncryptionResult {
+    fun encryptString(plaintext: String, password: CharArray): PasswordEncryptionResult {
         return encrypt(plaintext.toByteArray(Charsets.UTF_8), password)
     }
 
@@ -103,7 +109,7 @@ object PasswordBasedCrypto {
      * 2. Decrypt ciphertext with AES-256-GCM
      *
      * @param ciphertext Encrypted data (from [PasswordEncryptionResult.ciphertext])
-     * @param password User password (must match encryption password)
+     * @param password User password (CharArray for security - must match encryption password)
      * @param salt Salt used during encryption (from [PasswordEncryptionResult.salt])
      * @param iv IV used during encryption (from [PasswordEncryptionResult.iv])
      * @return Decrypted plaintext
@@ -111,33 +117,38 @@ object PasswordBasedCrypto {
      */
     fun decrypt(
         ciphertext: ByteArray,
-        password: String,
+        password: CharArray,
         salt: ByteArray,
         iv: ByteArray
     ): ByteArray {
-        try {
-            // Derive same key from password using same salt
-            val argon2Helper = Argon2Helper()
-            val keyResult = argon2Helper.deriveKey(password.toCharArray(), salt)
-            val key = keyResult.key
+        // Derive same key from password using same salt
+        val argon2Helper = Argon2Helper()
+        val keyResult = argon2Helper.deriveKey(password, salt)
+        val key = keyResult.key
 
+        return try {
             // Decrypt with AES-GCM
             val cryptoHelper = CryptoHelper()
-            return cryptoHelper.decrypt(ciphertext, key, iv)
+            cryptoHelper.decrypt(ciphertext, key, iv)
         } catch (e: Exception) {
             throw DecryptionException("Decryption failed. Wrong password or corrupted data.", e)
+        } finally {
+            // Clear sensitive data from memory
+            keyResult.clear()
+            key.fill(0)
         }
     }
 
     /**
      * Decrypts data and returns a string.
      *
+     * @param password User password (CharArray for security)
      * @return Decrypted string
      * @throws DecryptionException if decryption fails
      */
     fun decryptString(
         ciphertext: ByteArray,
-        password: String,
+        password: CharArray,
         salt: ByteArray,
         iv: ByteArray
     ): String {
@@ -149,10 +160,11 @@ object PasswordBasedCrypto {
      * Decrypt using Base64-encoded parameters.
      *
      * Convenience method when ciphertext/salt/IV are stored as Base64 strings.
+     * @param password User password (CharArray for security)
      */
     fun decryptFromBase64(
         encodedCiphertext: String,
-        password: String,
+        password: CharArray,
         encodedSalt: String,
         encodedIv: String
     ): ByteArray {

@@ -22,12 +22,12 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 interface BackupRepository {
-    suspend fun exportZip(uri: Uri, password: String? = null): Result<Unit>
+    suspend fun exportZip(uri: Uri, password: CharArray? = null): Result<Unit>
     suspend fun exportCsv(uri: Uri, minerals: List<Mineral>): Result<Unit>
-    suspend fun importZip(uri: Uri, password: String? = null, mode: ImportMode = ImportMode.MERGE): Result<ImportResult>
+    suspend fun importZip(uri: Uri, password: CharArray? = null, mode: ImportMode = ImportMode.MERGE): Result<ImportResult>
     suspend fun importCsv(uri: Uri, mode: CsvImportMode = CsvImportMode.MERGE): Result<ImportResult>
-    suspend fun createBackup(password: String? = null): Result<File>
-    suspend fun restoreBackup(file: File, password: String? = null): Result<Unit>
+    suspend fun createBackup(password: CharArray? = null): Result<File>
+    suspend fun restoreBackup(file: File, password: CharArray? = null): Result<Unit>
 }
 
 enum class ImportMode {
@@ -58,7 +58,7 @@ class BackupRepositoryImpl(
         ignoreUnknownKeys = true
     }
 
-    override suspend fun exportZip(uri: Uri, password: String?): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun exportZip(uri: Uri, password: CharArray?): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             // Get all data with batch queries to avoid N+1 problem
             val mineralEntities = database.mineralDao().getAll()
@@ -144,13 +144,24 @@ class BackupRepositoryImpl(
         }
     }
 
-    override suspend fun importZip(uri: Uri, password: String?, mode: ImportMode): Result<ImportResult> = withContext(Dispatchers.IO) {
+    override suspend fun importZip(uri: Uri, password: CharArray?, mode: ImportMode): Result<ImportResult> = withContext(Dispatchers.IO) {
         try {
             val errors = mutableListOf<String>()
             var imported = 0
             var skipped = 0
 
+            // Validate file size to prevent DoS attacks (max 100 MB)
+            val MAX_FILE_SIZE = 100 * 1024 * 1024L // 100 MB
+
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val fileSize = context.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.SIZE), null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) cursor.getLong(0) else 0L
+                } ?: 0L
+
+                if (fileSize > MAX_FILE_SIZE) {
+                    return@withContext Result.failure(Exception("File too large. Maximum size is 100 MB."))
+                }
+
                 ZipInputStream(inputStream).use { zip ->
                     var entry: ZipEntry? = zip.nextEntry
                     var mineralsBytes: ByteArray? = null
@@ -194,10 +205,11 @@ class BackupRepositoryImpl(
                         val encodedIv = encryptionMap["iv"] as? String
                             ?: return@withContext Result.failure(Exception("Missing encryption IV"))
 
-                        // Decrypt
+                        // Decrypt - FIXED: Removed double Base64 encoding bug
                         try {
+                            val encodedCiphertext = Base64.encodeToString(mineralsBytes, Base64.NO_WRAP)
                             val decryptedBytes = PasswordBasedCrypto.decryptFromBase64(
-                                encodedCiphertext = Base64.encodeToString(mineralsBytes, Base64.NO_WRAP),
+                                encodedCiphertext = encodedCiphertext,
                                 password = password,
                                 encodedSalt = encodedSalt,
                                 encodedIv = encodedIv
@@ -542,7 +554,7 @@ class BackupRepositoryImpl(
         }
     }
 
-    override suspend fun createBackup(password: String?): Result<File> = withContext(Dispatchers.IO) {
+    override suspend fun createBackup(password: CharArray?): Result<File> = withContext(Dispatchers.IO) {
         try {
             val backupDir = File(context.filesDir, "backups")
             backupDir.mkdirs()
@@ -557,7 +569,7 @@ class BackupRepositoryImpl(
         }
     }
 
-    override suspend fun restoreBackup(file: File, password: String?): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun restoreBackup(file: File, password: CharArray?): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val uri = Uri.fromFile(file)
             importZip(uri, password, ImportMode.REPLACE).getOrThrow()

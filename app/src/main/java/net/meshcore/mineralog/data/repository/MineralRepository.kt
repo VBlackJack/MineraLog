@@ -182,7 +182,9 @@ class MineralRepositoryImpl(
     }
 
     override fun searchFlow(query: String): Flow<List<Mineral>> {
-        return mineralDao.searchFlow(query).map { entities ->
+        // Pre-format query with wildcards to prevent SQL injection
+        val formattedQuery = "%$query%"
+        return mineralDao.searchFlow(formattedQuery).map { entities ->
             if (entities.isEmpty()) return@map emptyList()
 
             // Batch load all related entities to avoid N+1 problem
@@ -292,13 +294,15 @@ class MineralRepositoryImpl(
     }
 
     override fun searchPaged(query: String): Flow<PagingData<Mineral>> {
+        // Pre-format query with wildcards to prevent SQL injection
+        val formattedQuery = "%$query%"
         return Pager(
             config = PagingConfig(
                 pageSize = 20,
                 enablePlaceholders = true,
                 prefetchDistance = 5
             ),
-            pagingSourceFactory = { mineralDao.searchPaged(query) }
+            pagingSourceFactory = { mineralDao.searchPaged(formattedQuery) }
         ).flow.map { pagingData ->
             pagingData.map { entity ->
                 // Load related entities individually for each paged item

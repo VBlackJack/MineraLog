@@ -39,11 +39,36 @@ android {
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
+    signingConfigs {
+        // Debug signing (default Android debug keystore)
+        getByName("debug") {
+            // Uses default debug keystore
+        }
+
+        // Release signing - requires keystore configuration
+        // TODO: Configure release signing with proper keystore before production release
+        // See: https://developer.android.com/studio/publish/app-signing
+        create("release") {
+            // For now, use debug signing. Replace with production keystore before release:
+            // storeFile = file(System.getenv("RELEASE_KEYSTORE_PATH") ?: "release.keystore")
+            // storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+            // keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+            // keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+
+            // Temporarily use debug signing (NOT FOR PRODUCTION!)
+            storeFile = signingConfigs.getByName("debug").storeFile
+            storePassword = signingConfigs.getByName("debug").storePassword
+            keyAlias = signingConfigs.getByName("debug").keyAlias
+            keyPassword = signingConfigs.getByName("debug").keyPassword
+        }
+    }
+
     buildTypes {
         debug {
             isMinifyEnabled = false
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
+            signingConfig = signingConfigs.getByName("debug")
         }
         release {
             isMinifyEnabled = true
@@ -52,7 +77,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug") // Use debug for now
+            // Use release signing configuration
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

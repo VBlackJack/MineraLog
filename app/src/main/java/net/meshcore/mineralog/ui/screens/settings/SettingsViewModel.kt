@@ -68,42 +68,58 @@ class SettingsViewModel(
 
     /**
      * Export full backup to ZIP with optional encryption.
+     * FIXME: UI should use CharArray for password to improve security
      */
     fun exportBackup(uri: Uri, password: String?) {
         viewModelScope.launch {
             _exportState.value = BackupExportState.Exporting
 
-            val result = backupRepository.exportZip(uri, password)
+            // Convert String to CharArray for secure password handling
+            val passwordChars = password?.toCharArray()
+            try {
+                val result = backupRepository.exportZip(uri, passwordChars)
 
-            _exportState.value = result.fold(
-                onSuccess = { BackupExportState.Success },
-                onFailure = { BackupExportState.Error(it.message ?: "Export failed") }
-            )
+                _exportState.value = result.fold(
+                    onSuccess = { BackupExportState.Success },
+                    onFailure = { BackupExportState.Error(it.message ?: "Export failed") }
+                )
+            } finally {
+                // Clear password from memory
+                passwordChars?.fill('\u0000')
+            }
         }
     }
 
     /**
      * Import full backup from ZIP. If encrypted, caller must provide password.
+     * FIXME: UI should use CharArray for password to improve security
      */
     fun importBackup(uri: Uri, password: String? = null) {
         viewModelScope.launch {
             _importState.value = BackupImportState.Importing
 
-            val result = backupRepository.importZip(uri, password, ImportMode.REPLACE)
+            // Convert String to CharArray for secure password handling
+            val passwordChars = password?.toCharArray()
+            try {
+                val result = backupRepository.importZip(uri, passwordChars, ImportMode.REPLACE)
 
-            _importState.value = result.fold(
-                onSuccess = { importResult ->
-                    BackupImportState.Success(importResult.imported)
-                },
-                onFailure = { error ->
-                    // Check if this is an encrypted backup that needs a password
-                    if (error.message?.contains("encrypted", ignoreCase = true) == true && password == null) {
-                        BackupImportState.PasswordRequired(uri)
-                    } else {
-                        BackupImportState.Error(error.message ?: "Import failed")
+                _importState.value = result.fold(
+                    onSuccess = { importResult ->
+                        BackupImportState.Success(importResult.imported)
+                    },
+                    onFailure = { error ->
+                        // Check if this is an encrypted backup that needs a password
+                        if (error.message?.contains("encrypted", ignoreCase = true) == true && password == null) {
+                            BackupImportState.PasswordRequired(uri)
+                        } else {
+                            BackupImportState.Error(error.message ?: "Import failed")
+                        }
                     }
-                }
-            )
+                )
+            } finally {
+                // Clear password from memory
+                passwordChars?.fill('\u0000')
+            }
         }
     }
 
