@@ -10,6 +10,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -109,10 +112,22 @@ fun EncryptPasswordDialog(
                         PasswordStrength.MEDIUM -> "Medium"
                         PasswordStrength.STRONG -> "Strong"
                     }
+
+                    // Track strength changes for announcements
+                    var lastStrength by remember { mutableStateOf<PasswordStrength?>(null) }
+                    LaunchedEffect(passwordStrength) {
+                        if (lastStrength != null && lastStrength != passwordStrength) {
+                            // Strength has changed - will be announced via liveRegion
+                        }
+                        lastStrength = passwordStrength
+                    }
+
                     Column(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                         modifier = Modifier.semantics {
-                            stateDescription = "Password strength: $strengthText"
+                            contentDescription = "Password strength indicator"
+                            stateDescription = "Current strength: $strengthText"
+                            liveRegion = LiveRegionMode.Polite
                         }
                     ) {
                         Row(

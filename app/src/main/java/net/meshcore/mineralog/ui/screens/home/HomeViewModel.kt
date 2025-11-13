@@ -63,6 +63,9 @@ class HomeViewModel(
     private val _selectedIds = MutableStateFlow<Set<String>>(emptySet())
     val selectedIds: StateFlow<Set<String>> = _selectedIds.asStateFlow()
 
+    // Undo delete state
+    private var deletedMinerals: List<Mineral> = emptyList()
+
     val selectionCount: StateFlow<Int> = _selectedIds.map { it.size }
         .stateIn(
             scope = viewModelScope,
@@ -177,10 +180,23 @@ class HomeViewModel(
 
     fun deleteSelected() {
         viewModelScope.launch {
+            // Store minerals for undo functionality
+            deletedMinerals = getSelectedMinerals()
+
             // Batch delete all selected minerals efficiently
             val idsToDelete = _selectedIds.value.toList()
             mineralRepository.deleteByIds(idsToDelete)
             exitSelectionMode()
+        }
+    }
+
+    fun undoDelete() {
+        viewModelScope.launch {
+            // Restore previously deleted minerals
+            deletedMinerals.forEach { mineral ->
+                mineralRepository.insert(mineral)
+            }
+            deletedMinerals = emptyList()
         }
     }
 

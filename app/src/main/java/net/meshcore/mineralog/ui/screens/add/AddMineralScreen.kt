@@ -1,5 +1,6 @@
 package net.meshcore.mineralog.ui.screens.add
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -10,7 +11,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -35,13 +38,50 @@ fun AddMineralScreen(
     val saveState by viewModel.saveState.collectAsState()
 
     val isSaving = saveState is SaveMineralState.Saving
+    val hasUnsavedChanges = name.isNotBlank() || group.isNotBlank() || formula.isNotBlank() || notes.isNotBlank()
+    var showDiscardDialog by remember { mutableStateOf(false) }
+
+    // Handle back button with unsaved changes warning
+    BackHandler(enabled = hasUnsavedChanges && !isSaving) {
+        showDiscardDialog = true
+    }
+
+    // Discard changes confirmation dialog
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text("Discard changes?") },
+            text = { Text("You have unsaved changes. Are you sure you want to discard them?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDiscardDialog = false
+                        onNavigateBack()
+                    }
+                ) {
+                    Text("Discard")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Add Mineral") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = {
+                        if (hasUnsavedChanges && !isSaving) {
+                            showDiscardDialog = true
+                        } else {
+                            onNavigateBack()
+                        }
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
                 },
@@ -79,16 +119,18 @@ fun AddMineralScreen(
                 value = name,
                 onValueChange = { viewModel.onNameChange(it) },
                 label = { Text("Name *") },
+                isError = name.isBlank(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .semantics {
                         if (name.isBlank()) {
-                            error("Required field")
+                            error("Name is required. This field cannot be empty.")
+                            liveRegion = LiveRegionMode.Polite
                         }
                     },
                 singleLine = true,
                 supportingText = if (name.isBlank()) {
-                    { Text("Required field", color = MaterialTheme.colorScheme.error) }
+                    { Text("Name is required", color = MaterialTheme.colorScheme.error) }
                 } else null
             )
 
