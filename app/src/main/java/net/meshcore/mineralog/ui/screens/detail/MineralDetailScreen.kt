@@ -1,7 +1,10 @@
 package net.meshcore.mineralog.ui.screens.detail
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -9,6 +12,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -16,8 +21,10 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.domain.model.Mineral
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,12 +107,101 @@ fun MineralDetailContent(
     mineral: Mineral,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val photosDir = remember {
+        File(context.filesDir, "photos")
+    }
+
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Photos gallery
+        if (mineral.photos.isNotEmpty()) {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        "Photos (${mineral.photos.size})",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(mineral.photos, key = { it.id }) { photo ->
+                            Card(
+                                modifier = Modifier
+                                    .width(180.dp)
+                                    .height(200.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Column {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(140.dp)
+                                            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                                    ) {
+                                        AsyncImage(
+                                            model = File(photosDir, photo.fileName),
+                                            contentDescription = photo.caption ?: "Mineral photo",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+
+                                        // Type badge
+                                        Surface(
+                                            modifier = Modifier
+                                                .align(androidx.compose.ui.Alignment.TopStart)
+                                                .padding(8.dp),
+                                            color = when (photo.type) {
+                                                "UV_SW" -> MaterialTheme.colorScheme.secondary
+                                                "UV_LW" -> MaterialTheme.colorScheme.tertiary
+                                                "MACRO" -> MaterialTheme.colorScheme.primary
+                                                else -> MaterialTheme.colorScheme.surfaceVariant
+                                            },
+                                            shape = RoundedCornerShape(4.dp)
+                                        ) {
+                                            Text(
+                                                text = when (photo.type) {
+                                                    "UV_SW" -> "UV-SW"
+                                                    "UV_LW" -> "UV-LW"
+                                                    "MACRO" -> "MACRO"
+                                                    else -> "NORMAL"
+                                                },
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = when (photo.type) {
+                                                    "UV_SW" -> MaterialTheme.colorScheme.onSecondary
+                                                    "UV_LW" -> MaterialTheme.colorScheme.onTertiary
+                                                    "MACRO" -> MaterialTheme.colorScheme.onPrimary
+                                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                                }
+                                            )
+                                        }
+                                    }
+
+                                    // Caption
+                                    if (photo.caption != null) {
+                                        Text(
+                                            text = photo.caption,
+                                            modifier = Modifier.padding(8.dp),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            maxLines = 2,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Basic info
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
