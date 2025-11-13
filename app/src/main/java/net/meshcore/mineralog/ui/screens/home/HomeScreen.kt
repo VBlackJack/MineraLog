@@ -6,7 +6,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -17,6 +16,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.R
 import net.meshcore.mineralog.domain.model.Mineral
@@ -31,12 +33,17 @@ fun HomeScreen(
     onCompareClick: (List<String>) -> Unit = {},
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
+            context = LocalContext.current.applicationContext,
             mineralRepository = (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
             filterPresetRepository = (LocalContext.current.applicationContext as MineraLogApplication).filterPresetRepository,
-            backupRepository = (LocalContext.current.applicationContext as MineraLogApplication).backupRepository
+            backupRepository = (LocalContext.current.applicationContext as MineraLogApplication).backupRepository,
+            settingsRepository = (LocalContext.current.applicationContext as MineraLogApplication).settingsRepository
         )
     )
 ) {
+    // Use paged minerals for efficient loading of large datasets (v1.5.0)
+    val mineralsPaged = viewModel.mineralsPaged.collectAsLazyPagingItems()
+    // Keep non-paged minerals for bulk operations
     val minerals by viewModel.minerals.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val filterCriteria by viewModel.filterCriteria.collectAsState()
@@ -46,10 +53,16 @@ fun HomeScreen(
     val selectedIds by viewModel.selectedIds.collectAsState()
     val selectionCount by viewModel.selectionCount.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
+    val importState by viewModel.importState.collectAsState()
+    val labelGenerationState by viewModel.labelGenerationState.collectAsState()
+    val csvExportWarningShown by viewModel.csvExportWarningShown.collectAsState()
 
     var showFilterSheet by remember { mutableStateOf(false) }
     var showBulkActionsSheet by remember { mutableStateOf(false) }
+    var showCsvExportWarningDialog by remember { mutableStateOf(false) }
     var showExportCsvDialog by remember { mutableStateOf(false) }
+    var showImportCsvDialog by remember { mutableStateOf(false) }
+    var selectedCsvUri by remember { mutableStateOf<Uri?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     // File picker for CSV export
@@ -59,6 +72,25 @@ fun HomeScreen(
         uri?.let { selectedUri ->
             // Start export
             viewModel.exportSelectedToCsv(selectedUri)
+        }
+    }
+
+    // File picker for CSV import
+    val csvImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            selectedCsvUri = selectedUri
+            showImportCsvDialog = true
+        }
+    }
+
+    // File picker for PDF label generation (v1.5.0)
+    val pdfLabelLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            viewModel.generateLabelsForSelected(selectedUri)
         }
     }
 
@@ -79,6 +111,51 @@ fun HomeScreen(
                     duration = SnackbarDuration.Long
                 )
                 viewModel.resetExportState()
+            }
+            else -> {}
+        }
+    }
+
+    // Handle import state changes
+    LaunchedEffect(importState) {
+        when (importState) {
+            is ImportState.Success -> {
+                val success = importState as ImportState.Success
+                snackbarHostState.showSnackbar(
+                    message = "Imported ${success.imported} minerals. Skipped: ${success.skipped}",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetImportState()
+            }
+            is ImportState.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = "Import failed: ${(importState as ImportState.Error).message}",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetImportState()
+            }
+            else -> {}
+        }
+    }
+
+    // Handle label generation state changes (v1.5.0)
+    LaunchedEffect(labelGenerationState) {
+        when (labelGenerationState) {
+            is LabelGenerationState.Success -> {
+                val count = (labelGenerationState as LabelGenerationState.Success).count
+                snackbarHostState.showSnackbar(
+                    message = "Generated $count QR labels successfully",
+                    duration = SnackbarDuration.Short
+                )
+                viewModel.resetLabelGenerationState()
+                viewModel.exitSelectionMode()
+            }
+            is LabelGenerationState.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = "Label generation failed: ${(labelGenerationState as LabelGenerationState.Error).message}",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetLabelGenerationState()
             }
             else -> {}
         }
@@ -114,6 +191,10 @@ fun HomeScreen(
                 TopAppBar(
                     title = { Text("MineraLog") },
                     actions = {
+                        // Import CSV button
+                        IconButton(onClick = { csvImportLauncher.launch("text/*") }) {
+                            Icon(Icons.Default.Upload, contentDescription = stringResource(R.string.action_import_csv))
+                        }
                         // Bulk edit button
                         IconButton(onClick = { viewModel.enterSelectionMode() }) {
                             Icon(Icons.Default.Checklist, contentDescription = "Bulk edit")
@@ -207,34 +288,102 @@ fun HomeScreen(
                 }
             }
 
-            // Mineral list
-            if (minerals.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No minerals yet. Add your first one!")
+            // Mineral list with pagination (v1.5.0)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Show loading indicator at the top when refreshing
+                when (mineralsPaged.loadState.refresh) {
+                    is LoadState.Loading -> {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+                    is LoadState.Error -> {
+                        val error = (mineralsPaged.loadState.refresh as LoadState.Error).error
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Error loading minerals: ${error.localizedMessage}",
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
+                    is LoadState.NotLoading -> {
+                        if (mineralsPaged.itemCount == 0) {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(0.8f),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("No minerals yet. Add your first one!")
+                                }
+                            }
+                        }
+                    }
                 }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(minerals, key = { it.id }) { mineral ->
+
+                // Paged items
+                items(
+                    count = mineralsPaged.itemCount,
+                    key = mineralsPaged.itemKey { it.id }
+                ) { index ->
+                    val mineral = mineralsPaged[index]
+                    mineral?.let {
                         MineralListItem(
-                            mineral = mineral,
+                            mineral = it,
                             selectionMode = selectionMode,
-                            isSelected = mineral.id in selectedIds,
+                            isSelected = it.id in selectedIds,
                             onClick = {
                                 if (selectionMode) {
-                                    viewModel.toggleSelection(mineral.id)
+                                    viewModel.toggleSelection(it.id)
                                 } else {
-                                    onMineralClick(mineral.id)
+                                    onMineralClick(it.id)
                                 }
                             }
                         )
                     }
+                }
+
+                // Show loading indicator at the bottom when loading more
+                when (mineralsPaged.loadState.append) {
+                    is LoadState.Loading -> {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+                    is LoadState.Error -> {
+                        val error = (mineralsPaged.loadState.append as LoadState.Error).error
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Error loading more: ${error.localizedMessage}",
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                    }
+                    else -> {}
                 }
             }
         }
@@ -264,7 +413,19 @@ fun HomeScreen(
             },
             onExportCsv = {
                 showBulkActionsSheet = false
-                showExportCsvDialog = true
+                // Check if warning has been shown before
+                if (csvExportWarningShown) {
+                    showExportCsvDialog = true
+                } else {
+                    showCsvExportWarningDialog = true
+                }
+            },
+            onGenerateLabels = {
+                showBulkActionsSheet = false
+                // Generate filename with timestamp
+                val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
+                    .format(java.util.Date())
+                pdfLabelLauncher.launch("mineralog_labels_$timestamp.pdf")
             },
             onCompare = if (selectionCount in 2..3) {
                 {
@@ -274,6 +435,22 @@ fun HomeScreen(
                 }
             } else null,
             onDismiss = { showBulkActionsSheet = false }
+        )
+    }
+
+    // CSV export warning dialog (shown only once)
+    if (showCsvExportWarningDialog) {
+        CsvExportWarningDialog(
+            onDismiss = {
+                showCsvExportWarningDialog = false
+            },
+            onProceed = { dontShowAgain ->
+                if (dontShowAgain) {
+                    viewModel.markCsvExportWarningShown()
+                }
+                showCsvExportWarningDialog = false
+                showExportCsvDialog = true
+            }
         )
     }
 
@@ -288,6 +465,20 @@ fun HomeScreen(
                 val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
                     .format(java.util.Date())
                 csvExportLauncher.launch("mineralog_export_$timestamp.csv")
+            }
+        )
+    }
+
+    // CSV import dialog
+    if (showImportCsvDialog && selectedCsvUri != null) {
+        ImportCsvDialog(
+            csvUri = selectedCsvUri!!,
+            onDismiss = {
+                showImportCsvDialog = false
+                selectedCsvUri = null
+            },
+            onImport = { uri, mode ->
+                viewModel.importCsvFile(uri, mode)
             }
         )
     }

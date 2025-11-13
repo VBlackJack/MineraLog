@@ -1,5 +1,9 @@
 package net.meshcore.mineralog.data.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -29,6 +33,11 @@ interface MineralRepository {
     fun filterAdvancedFlow(criteria: FilterCriteria): Flow<List<Mineral>>
     suspend fun getCount(): Int
     fun getCountFlow(): Flow<Int>
+
+    // Paging 3 support (v1.5.0)
+    fun getAllPaged(): Flow<PagingData<Mineral>>
+    fun searchPaged(query: String): Flow<PagingData<Mineral>>
+    fun filterAdvancedPaged(criteria: FilterCriteria): Flow<PagingData<Mineral>>
 
     // Provenance
     suspend fun insertProvenance(provenance: Provenance)
@@ -255,6 +264,82 @@ class MineralRepositoryImpl(
     override fun getPhotosFlow(mineralId: String): Flow<List<Photo>> {
         return photoDao.getByMineralIdFlow(mineralId).map { entities ->
             entities.map { it.toDomain() }
+        }
+    }
+
+    // ========== Paging 3 Support (v1.5.0) ==========
+
+    override fun getAllPaged(): Flow<PagingData<Mineral>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                enablePlaceholders = true,
+                prefetchDistance = 5
+            ),
+            pagingSourceFactory = { mineralDao.getAllPaged() }
+        ).flow.map { pagingData ->
+            pagingData.map { entity ->
+                // Load related entities individually for each paged item
+                val provenance = provenanceDao.getByMineralId(entity.id)
+                val storage = storageDao.getByMineralId(entity.id)
+                val photos = photoDao.getByMineralId(entity.id)
+                entity.toDomain(provenance, storage, photos)
+            }
+        }
+    }
+
+    override fun searchPaged(query: String): Flow<PagingData<Mineral>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                enablePlaceholders = true,
+                prefetchDistance = 5
+            ),
+            pagingSourceFactory = { mineralDao.searchPaged(query) }
+        ).flow.map { pagingData ->
+            pagingData.map { entity ->
+                // Load related entities individually for each paged item
+                val provenance = provenanceDao.getByMineralId(entity.id)
+                val storage = storageDao.getByMineralId(entity.id)
+                val photos = photoDao.getByMineralId(entity.id)
+                entity.toDomain(provenance, storage, photos)
+            }
+        }
+    }
+
+    override fun filterAdvancedPaged(criteria: FilterCriteria): Flow<PagingData<Mineral>> {
+        // If criteria is empty, return all minerals
+        if (criteria.isEmpty()) {
+            return getAllPaged()
+        }
+
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                enablePlaceholders = true,
+                prefetchDistance = 5
+            ),
+            pagingSourceFactory = {
+                mineralDao.filterAdvancedPaged(
+                    groups = criteria.groups.takeIf { it.isNotEmpty() },
+                    countries = criteria.countries.takeIf { it.isNotEmpty() },
+                    mohsMin = criteria.mohsMin,
+                    mohsMax = criteria.mohsMax,
+                    statusTypes = criteria.statusTypes.takeIf { it.isNotEmpty() },
+                    qualityMin = criteria.qualityMin,
+                    qualityMax = criteria.qualityMax,
+                    hasPhotos = criteria.hasPhotos,
+                    fluorescent = criteria.fluorescent
+                )
+            }
+        ).flow.map { pagingData ->
+            pagingData.map { entity ->
+                // Load related entities individually for each paged item
+                val provenance = provenanceDao.getByMineralId(entity.id)
+                val storage = storageDao.getByMineralId(entity.id)
+                val photos = photoDao.getByMineralId(entity.id)
+                entity.toDomain(provenance, storage, photos)
+            }
         }
     }
 }

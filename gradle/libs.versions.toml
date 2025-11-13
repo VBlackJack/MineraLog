@@ -9,6 +9,8 @@ lifecycle = "2.8.7"
 activity-compose = "1.9.3"
 navigation = "2.8.5"
 room = "2.6.1"
+paging = "3.3.5"
+paging-compose = "3.3.5"
 datastore = "1.1.1"
 work = "2.10.0"
 camerax = "1.4.1"
@@ -55,6 +57,11 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
+androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
+
+# Paging
+androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "paging" }
+androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging-compose" }
 
 # DataStore
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }

@@ -1,27 +1,51 @@
 package net.meshcore.mineralog.ui.screens.home
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.model.FilterCriteria
 import net.meshcore.mineralog.data.repository.BackupRepository
+import net.meshcore.mineralog.data.repository.CsvImportMode
 import net.meshcore.mineralog.data.repository.FilterPresetRepository
 import net.meshcore.mineralog.data.repository.MineralRepository
+import net.meshcore.mineralog.data.repository.SettingsRepository
+import net.meshcore.mineralog.data.util.QrLabelPdfGenerator
 import net.meshcore.mineralog.domain.model.FilterPreset
 import net.meshcore.mineralog.domain.model.Mineral
 
 class HomeViewModel(
+    private val context: Context,
     private val mineralRepository: MineralRepository,
     private val filterPresetRepository: FilterPresetRepository,
-    private val backupRepository: BackupRepository
+    private val backupRepository: BackupRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     // Export state
     private val _exportState = MutableStateFlow<ExportState>(ExportState.Idle)
     val exportState: StateFlow<ExportState> = _exportState.asStateFlow()
+
+    // Import state
+    private val _importState = MutableStateFlow<ImportState>(ImportState.Idle)
+    val importState: StateFlow<ImportState> = _importState.asStateFlow()
+
+    // Label generation state (v1.5.0)
+    private val _labelGenerationState = MutableStateFlow<LabelGenerationState>(LabelGenerationState.Idle)
+    val labelGenerationState: StateFlow<LabelGenerationState> = _labelGenerationState.asStateFlow()
+
+    // CSV export warning state
+    val csvExportWarningShown: StateFlow<Boolean> = settingsRepository.getCsvExportWarningShown()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -54,6 +78,25 @@ class HomeViewModel(
             initialValue = emptyList()
         )
 
+    // Paged minerals for efficient large dataset handling (v1.5.0)
+    val mineralsPaged: Flow<PagingData<Mineral>> = combine(
+        _searchQuery.debounce(300),
+        _filterCriteria,
+        _isFilterActive
+    ) { query, criteria, filterActive ->
+        Triple(query, criteria, filterActive)
+    }.flatMapLatest { (query, criteria, filterActive) ->
+        when {
+            // Search takes precedence
+            query.isNotBlank() -> mineralRepository.searchPaged(query)
+            // Apply filters if active
+            filterActive && !criteria.isEmpty() -> mineralRepository.filterAdvancedPaged(criteria)
+            // Default: show all
+            else -> mineralRepository.getAllPaged()
+        }
+    }.cachedIn(viewModelScope)
+
+    // Legacy non-paged flow for bulk operations that need full list access
     val minerals: StateFlow<List<Mineral>> = combine(
         _searchQuery.debounce(300),
         _filterCriteria,
@@ -174,6 +217,77 @@ class HomeViewModel(
     fun resetExportState() {
         _exportState.value = ExportState.Idle
     }
+
+    fun markCsvExportWarningShown() {
+        viewModelScope.launch {
+            settingsRepository.setCsvExportWarningShown(true)
+        }
+    }
+
+    // Import functionality
+    fun importCsvFile(uri: Uri, mode: CsvImportMode) {
+        viewModelScope.launch {
+            _importState.value = ImportState.Importing
+            try {
+                val result = backupRepository.importCsv(uri, mode)
+
+                if (result.isSuccess) {
+                    val importResult = result.getOrThrow()
+                    _importState.value = ImportState.Success(
+                        imported = importResult.imported,
+                        skipped = importResult.skipped,
+                        errors = importResult.errors
+                    )
+                } else {
+                    _importState.value = ImportState.Error(
+                        result.exceptionOrNull()?.message ?: "Unknown error"
+                    )
+                }
+            } catch (e: Exception) {
+                _importState.value = ImportState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
+
+    fun resetImportState() {
+        _importState.value = ImportState.Idle
+    }
+
+    // QR Label generation (v1.5.0)
+    fun generateLabelsForSelected(outputUri: Uri) {
+        viewModelScope.launch {
+            _labelGenerationState.value = LabelGenerationState.Generating
+            try {
+                // Get selected minerals
+                val selectedMinerals = getSelectedMinerals()
+
+                if (selectedMinerals.isEmpty()) {
+                    _labelGenerationState.value = LabelGenerationState.Error("No minerals selected")
+                    return@launch
+                }
+
+                // Generate PDF with QR labels
+                val generator = QrLabelPdfGenerator(context)
+                val result = generator.generate(selectedMinerals, outputUri)
+
+                if (result.isSuccess) {
+                    _labelGenerationState.value = LabelGenerationState.Success(selectedMinerals.size)
+                } else {
+                    _labelGenerationState.value = LabelGenerationState.Error(
+                        result.exceptionOrNull()?.message ?: "Failed to generate labels"
+                    )
+                }
+            } catch (e: Exception) {
+                _labelGenerationState.value = LabelGenerationState.Error(
+                    e.message ?: "Unknown error generating labels"
+                )
+            }
+        }
+    }
+
+    fun resetLabelGenerationState() {
+        _labelGenerationState.value = LabelGenerationState.Idle
+    }
 }
 
 sealed class ExportState {
@@ -183,15 +297,31 @@ sealed class ExportState {
     data class Error(val message: String) : ExportState()
 }
 
+sealed class ImportState {
+    data object Idle : ImportState()
+    data object Importing : ImportState()
+    data class Success(val imported: Int, val skipped: Int, val errors: List<String>) : ImportState()
+    data class Error(val message: String) : ImportState()
+}
+
+sealed class LabelGenerationState {
+    data object Idle : LabelGenerationState()
+    data object Generating : LabelGenerationState()
+    data class Success(val count: Int) : LabelGenerationState()
+    data class Error(val message: String) : LabelGenerationState()
+}
+
 class HomeViewModelFactory(
+    private val context: Context,
     private val mineralRepository: MineralRepository,
     private val filterPresetRepository: FilterPresetRepository,
-    private val backupRepository: BackupRepository
+    private val backupRepository: BackupRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-            return HomeViewModel(mineralRepository, filterPresetRepository, backupRepository) as T
+            return HomeViewModel(context, mineralRepository, filterPresetRepository, backupRepository, settingsRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
