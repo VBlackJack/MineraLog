@@ -1,5 +1,6 @@
 package net.meshcore.mineralog.data.local.dao
 
+import androidx.paging.PagingSource
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import net.meshcore.mineralog.data.local.entity.MineralEntity
@@ -46,6 +47,62 @@ interface MineralDao {
 
     @Query("SELECT * FROM minerals ORDER BY updatedAt DESC")
     suspend fun getAll(): List<MineralEntity>
+
+    // ========== Paging 3 Support (v1.5.0) ==========
+
+    /**
+     * Get all minerals as paged data source.
+     * Returns PagingSource for efficient loading of large datasets.
+     */
+    @Query("SELECT * FROM minerals ORDER BY updatedAt DESC")
+    fun getAllPaged(): PagingSource<Int, MineralEntity>
+
+    /**
+     * Search minerals with pagination support.
+     */
+    @Query("""
+        SELECT * FROM minerals
+        WHERE name LIKE '%' || :query || '%'
+           OR group LIKE '%' || :query || '%'
+           OR formula LIKE '%' || :query || '%'
+           OR notes LIKE '%' || :query || '%'
+           OR tags LIKE '%' || :query || '%'
+        ORDER BY updatedAt DESC
+    """)
+    fun searchPaged(query: String): PagingSource<Int, MineralEntity>
+
+    /**
+     * Advanced filter with pagination support.
+     */
+    @Query("""
+        SELECT m.* FROM minerals m
+        LEFT JOIN provenance p ON m.provenanceId = p.id
+        WHERE (:groups IS NULL OR m.group IN (:groups))
+          AND (:countries IS NULL OR p.country IN (:countries))
+          AND (:mohsMin IS NULL OR m.mohsMax >= :mohsMin)
+          AND (:mohsMax IS NULL OR m.mohsMin <= :mohsMax)
+          AND (:statusTypes IS NULL OR m.statusType IN (:statusTypes))
+          AND (:qualityMin IS NULL OR m.qualityRating >= :qualityMin)
+          AND (:qualityMax IS NULL OR m.qualityRating <= :qualityMax)
+          AND (:hasPhotos IS NULL OR
+               (:hasPhotos = 1 AND EXISTS (SELECT 1 FROM photos WHERE mineralId = m.id)) OR
+               (:hasPhotos = 0 AND NOT EXISTS (SELECT 1 FROM photos WHERE mineralId = m.id)))
+          AND (:fluorescent IS NULL OR
+               (:fluorescent = 1 AND m.fluorescence IS NOT NULL AND m.fluorescence != 'none') OR
+               (:fluorescent = 0 AND (m.fluorescence IS NULL OR m.fluorescence = 'none')))
+        ORDER BY m.updatedAt DESC
+    """)
+    fun filterAdvancedPaged(
+        groups: List<String>? = null,
+        countries: List<String>? = null,
+        mohsMin: Float? = null,
+        mohsMax: Float? = null,
+        statusTypes: List<String>? = null,
+        qualityMin: Int? = null,
+        qualityMax: Int? = null,
+        hasPhotos: Boolean? = null,
+        fluorescent: Boolean? = null
+    ): PagingSource<Int, MineralEntity>
 
     @Query("""
         SELECT * FROM minerals

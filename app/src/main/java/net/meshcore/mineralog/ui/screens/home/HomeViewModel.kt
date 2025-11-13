@@ -4,6 +4,8 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.model.FilterCriteria
@@ -69,6 +71,25 @@ class HomeViewModel(
             initialValue = emptyList()
         )
 
+    // Paged minerals for efficient large dataset handling (v1.5.0)
+    val mineralsPaged: Flow<PagingData<Mineral>> = combine(
+        _searchQuery.debounce(300),
+        _filterCriteria,
+        _isFilterActive
+    ) { query, criteria, filterActive ->
+        Triple(query, criteria, filterActive)
+    }.flatMapLatest { (query, criteria, filterActive) ->
+        when {
+            // Search takes precedence
+            query.isNotBlank() -> mineralRepository.searchPaged(query)
+            // Apply filters if active
+            filterActive && !criteria.isEmpty() -> mineralRepository.filterAdvancedPaged(criteria)
+            // Default: show all
+            else -> mineralRepository.getAllPaged()
+        }
+    }.cachedIn(viewModelScope)
+
+    // Legacy non-paged flow for bulk operations that need full list access
     val minerals: StateFlow<List<Mineral>> = combine(
         _searchQuery.debounce(300),
         _filterCriteria,
