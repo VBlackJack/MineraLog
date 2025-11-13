@@ -228,7 +228,7 @@ private fun ComparisonSection(
     title: String,
     minerals: List<Mineral>,
     modifier: Modifier = Modifier,
-    properties: (Mineral) -> List<Pair<String, String>>
+    properties: @Composable (Mineral) -> List<Pair<String, String>>
 ) {
     Column(modifier = modifier) {
         // Section header
