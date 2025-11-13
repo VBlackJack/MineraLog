@@ -77,8 +77,18 @@ fun SettingsScreen(
                 pendingExportUri = null
             }
             is BackupExportState.Error -> {
+                val errorMessage = (exportState as BackupExportState.Error).message
+                val actionableMessage = when {
+                    errorMessage.contains("permission", ignoreCase = true) ->
+                        "Export failed: Permission denied. Please grant storage access and try again."
+                    errorMessage.contains("space", ignoreCase = true) ->
+                        "Export failed: Not enough storage space. Free up space and retry."
+                    errorMessage.contains("no minerals", ignoreCase = true) ->
+                        "Export failed: No minerals to export. Add minerals first."
+                    else -> "Export failed: $errorMessage. Check your storage settings."
+                }
                 snackbarHostState.showSnackbar(
-                    message = "Export failed: ${(exportState as BackupExportState.Error).message}",
+                    message = actionableMessage,
                     duration = SnackbarDuration.Long
                 )
                 viewModel.resetExportState()
@@ -106,8 +116,22 @@ fun SettingsScreen(
             }
             is BackupImportState.Error -> {
                 val errorMessage = (importState as BackupImportState.Error).message
+                val actionableMessage = when {
+                    errorMessage.contains("decrypt", ignoreCase = true) ||
+                    errorMessage.contains("password", ignoreCase = true) ->
+                        "Import failed: Incorrect password. ${decryptAttempts - 1} attempt${if (decryptAttempts - 1 != 1) "s" else ""} remaining."
+                    errorMessage.contains("corrupt", ignoreCase = true) ->
+                        "Import failed: File is corrupted or invalid. Try a different backup file."
+                    errorMessage.contains("version", ignoreCase = true) ->
+                        "Import failed: Backup created with newer app version. Update the app first."
+                    errorMessage.contains("format", ignoreCase = true) ->
+                        "Import failed: Invalid file format. Select a valid MineraLog backup ZIP file."
+                    errorMessage.contains("permission", ignoreCase = true) ->
+                        "Import failed: Cannot read file. Grant storage access and retry."
+                    else -> "Import failed: $errorMessage. Ensure the file is a valid backup."
+                }
                 snackbarHostState.showSnackbar(
-                    message = "Import failed: $errorMessage",
+                    message = actionableMessage,
                     duration = SnackbarDuration.Long
                 )
 

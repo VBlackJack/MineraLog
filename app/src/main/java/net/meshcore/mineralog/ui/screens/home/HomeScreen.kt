@@ -14,7 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -319,7 +321,13 @@ fun HomeScreen(
                     is LoadState.Loading -> {
                         item {
                             Box(
-                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                                    .semantics {
+                                        liveRegion = LiveRegionMode.Polite
+                                        contentDescription = "Loading minerals"
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator()
@@ -349,7 +357,11 @@ fun HomeScreen(
                                 ) {
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
-                                        modifier = Modifier.padding(32.dp)
+                                        modifier = Modifier
+                                            .padding(32.dp)
+                                            .semantics {
+                                                contentDescription = "Empty collection state. Your collection is empty. Start building your mineral collection by adding your first specimen. Tap the add button below to get started."
+                                            }
                                     ) {
                                         Icon(
                                             Icons.Default.Inventory,
@@ -410,7 +422,13 @@ fun HomeScreen(
                     is LoadState.Loading -> {
                         item {
                             Box(
-                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                                    .semantics {
+                                        liveRegion = LiveRegionMode.Polite
+                                        contentDescription = "Loading more minerals"
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator()
@@ -459,7 +477,19 @@ fun HomeScreen(
             selectedCount = selectionCount,
             selectedMineralNames = viewModel.getSelectedMinerals().map { it.name },
             onDelete = {
+                val count = selectionCount
                 viewModel.deleteSelected()
+                // Show undo snackbar
+                LaunchedEffect(Unit) {
+                    val result = snackbarHostState.showSnackbar(
+                        message = "Deleted $count mineral${if (count > 1) "s" else ""}",
+                        actionLabel = "Undo",
+                        duration = SnackbarDuration.Long
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.undoDelete()
+                    }
+                }
             },
             onExportCsv = {
                 showBulkActionsSheet = false
@@ -536,7 +566,12 @@ fun HomeScreen(
     // Loading indicator for export
     if (exportState is ExportState.Exporting) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = "Exporting minerals"
+                },
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()

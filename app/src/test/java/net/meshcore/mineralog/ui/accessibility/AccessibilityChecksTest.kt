@@ -26,6 +26,18 @@ import org.junit.jupiter.api.Disabled
  * - BulkActionsBottomSheet: Added mineral name preview in delete confirmation
  * - Empty states: Enhanced with icons, titles, and guidance messages
  * - Loading states: Added CircularProgressIndicator to form submission
+ *
+ * Latest UX/A11y improvements (2025-11):
+ * - Loading announcements: Added liveRegion + contentDescription to all CircularProgressIndicators
+ * - Form errors: Added liveRegion to error messages in AddMineralScreen for screen reader announcements
+ * - Undo delete: Implemented Snackbar with Undo action for deletions with temporary storage
+ * - Password strength: Added liveRegion to password strength indicator for real-time announcements
+ * - Unsaved changes: Added BackHandler with confirmation dialog in AddMineralScreen
+ * - Error messages: Improved actionable error messages in SettingsScreen (import/export)
+ * - Empty states: Added comprehensive semantic descriptions to empty collection states
+ * - HomeScreen: Loading states now announce "Loading minerals" and "Loading more minerals"
+ * - StatisticsScreen: Loading state announces "Loading statistics"
+ * - ComparatorScreen: Loading state announces "Loading comparison"
  */
 class AccessibilityChecksTest {
 

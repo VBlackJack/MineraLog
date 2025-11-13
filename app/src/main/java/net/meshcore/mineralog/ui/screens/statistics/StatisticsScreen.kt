@@ -13,7 +13,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -56,7 +58,11 @@ fun StatisticsScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues),
+                        .padding(paddingValues)
+                        .semantics {
+                            liveRegion = LiveRegionMode.Polite
+                            contentDescription = "Loading statistics"
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -107,7 +113,11 @@ private fun StatisticsContent(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(32.dp)
+                modifier = Modifier
+                    .padding(32.dp)
+                    .semantics {
+                        contentDescription = "No statistics available. Your collection is empty. Add minerals to see statistics and analytics."
+                    }
             ) {
                 Text(
                     text = stringResource(R.string.statistics_empty_title),
