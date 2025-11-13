@@ -197,7 +197,7 @@ fun FilterBottomSheet(
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
                             .padding(bottom = 8.dp)
-                            .semantics { contentDescription = "" } // Decorative - slider has stateDescription
+                            .semantics { this.contentDescription = "" } // Decorative - slider has stateDescription
                     )
 
                     RangeSlider(
@@ -267,7 +267,7 @@ fun FilterBottomSheet(
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
                             .padding(bottom = 8.dp)
-                            .semantics { contentDescription = "" } // Decorative - slider has stateDescription
+                            .semantics { this.contentDescription = "" } // Decorative - slider has stateDescription
                     )
 
                     RangeSlider(

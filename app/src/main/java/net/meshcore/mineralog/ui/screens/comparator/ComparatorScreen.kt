@@ -152,8 +152,7 @@ private fun ComparisonContent(
             listOf(
                 stringResource(R.string.field_name) to mineral.name,
                 stringResource(R.string.field_group) to (mineral.group ?: "-"),
-                stringResource(R.string.field_formula) to (mineral.formula ?: "-"),
-                stringResource(R.string.field_color) to (mineral.color ?: "-")
+                stringResource(R.string.field_formula) to (mineral.formula ?: "-")
             )
         }
 
@@ -185,8 +184,8 @@ private fun ComparisonContent(
         ) { mineral ->
             listOf(
                 stringResource(R.string.field_fluorescence) to (mineral.fluorescence ?: "-"),
-                stringResource(R.string.field_radioactivity) to (mineral.radioactivity ?: "-"),
-                stringResource(R.string.field_magnetism) to (mineral.magnetism ?: "-")
+                stringResource(R.string.field_radioactivity) to if (mineral.radioactive) "Yes" else "No",
+                stringResource(R.string.field_magnetism) to if (mineral.magnetic) "Yes" else "No"
             )
         }
 
@@ -210,7 +209,7 @@ private fun ComparisonContent(
             listOf(
                 stringResource(R.string.provenance_country) to (mineral.provenance?.country ?: "-"),
                 stringResource(R.string.provenance_locality) to (mineral.provenance?.locality ?: "-"),
-                stringResource(R.string.provenance_acquisition_date) to (mineral.provenance?.acquisitionDate?.toString() ?: "-"),
+                stringResource(R.string.provenance_acquisition_date) to (mineral.provenance?.acquiredAt?.toString() ?: "-"),
                 stringResource(R.string.provenance_estimated_value) to
                     if (mineral.provenance?.estimatedValue != null) {
                         "${mineral.provenance.estimatedValue} ${mineral.provenance.currency ?: ""}"
