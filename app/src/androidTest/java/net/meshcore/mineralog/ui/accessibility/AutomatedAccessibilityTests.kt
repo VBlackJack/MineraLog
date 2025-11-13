@@ -8,9 +8,12 @@ import net.meshcore.mineralog.ui.screens.home.HomeScreen
 import net.meshcore.mineralog.ui.screens.detail.MineralDetailScreen
 import net.meshcore.mineralog.ui.screens.statistics.StatisticsScreen
 import net.meshcore.mineralog.ui.theme.MineraLogTheme
+import net.meshcore.mineralog.ui.accessibility.ColorContrastValidator
+import androidx.compose.material3.MaterialTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.Assert.assertTrue
 
 /**
  * Automated Accessibility Tests - 5 Core Checks
@@ -375,5 +378,57 @@ class AutomatedAccessibilityTests {
                     ) == androidx.compose.ui.semantics.LiveRegionMode.Polite
                 }
             )
+    }
+
+    /**
+     * Check #3: Color Contrast Validator (WCAG 2.1 AA)
+     *
+     * Validates that the Material 3 theme color scheme meets WCAG 2.1 AA
+     * minimum contrast requirements:
+     * - Normal text: 4.5:1 minimum
+     * - Large text: 3.0:1 minimum
+     * - Non-text content: 3.0:1 minimum
+     */
+    @Test
+    fun check3_colorContrast_meetsWCAG_AA() {
+        lateinit var onSurface: androidx.compose.ui.graphics.Color
+        lateinit var surface: androidx.compose.ui.graphics.Color
+        lateinit var onPrimary: androidx.compose.ui.graphics.Color
+        lateinit var primary: androidx.compose.ui.graphics.Color
+        lateinit var onError: androidx.compose.ui.graphics.Color
+        lateinit var error: androidx.compose.ui.graphics.Color
+
+        composeTestRule.setContent {
+            MineraLogTheme {
+                val colorScheme = MaterialTheme.colorScheme
+                onSurface = colorScheme.onSurface
+                surface = colorScheme.surface
+                onPrimary = colorScheme.onPrimary
+                primary = colorScheme.primary
+                onError = colorScheme.onError
+                error = colorScheme.error
+            }
+        }
+
+        // Test primary text on surface (most common pairing)
+        val surfaceTextResult = ColorContrastValidator.validate(onSurface, surface)
+        assertTrue(
+            "Primary text on surface must meet WCAG AA (4.5:1). Got: ${surfaceTextResult.contrastRatio}:1",
+            surfaceTextResult.meetsAANormalText
+        )
+
+        // Test text on primary (buttons, chips)
+        val primaryTextResult = ColorContrastValidator.validate(onPrimary, primary)
+        assertTrue(
+            "Text on primary must meet WCAG AA (4.5:1). Got: ${primaryTextResult.contrastRatio}:1",
+            primaryTextResult.meetsAANormalText
+        )
+
+        // Test error text
+        val errorTextResult = ColorContrastValidator.validate(onError, error)
+        assertTrue(
+            "Error text must meet WCAG AA (4.5:1). Got: ${errorTextResult.contrastRatio}:1",
+            errorTextResult.meetsAANormalText
+        )
     }
 }

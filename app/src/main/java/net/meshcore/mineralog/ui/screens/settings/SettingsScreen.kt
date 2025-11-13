@@ -40,6 +40,7 @@ fun SettingsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showEncryptDialog by remember { mutableStateOf(false) }
     var showDecryptDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
     var decryptAttempts by remember { mutableStateOf(3) }
     var pendingExportUri by remember { mutableStateOf<Uri?>(null) }
     var pendingImportUri by remember { mutableStateOf<Uri?>(null) }
@@ -239,14 +240,88 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
-            // About
+            // About - Quick Win #5
             SettingsItem(
                 title = "About",
-                subtitle = "MineraLog v1.5.0"
+                subtitle = "MineraLog v1.8.0"
             ) {
-                // Show about dialog
+                showAboutDialog = true
             }
         }
+    }
+
+    // Quick Win #5: About Dialog
+    if (showAboutDialog) {
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            icon = {
+                Icon(
+                    Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(48.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "MineraLog",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Version 1.8.0",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    Text(
+                        text = "A comprehensive mineral collection manager with advanced features:",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Column(
+                        modifier = Modifier.padding(start = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("• 100% WCAG 2.1 AA Compliant", style = MaterialTheme.typography.bodySmall)
+                        Text("• Encrypted backup & restore", style = MaterialTheme.typography.bodySmall)
+                        Text("• CSV import/export", style = MaterialTheme.typography.bodySmall)
+                        Text("• QR label generation", style = MaterialTheme.typography.bodySmall)
+                        Text("• Advanced filtering & search", style = MaterialTheme.typography.bodySmall)
+                        Text("• Statistics & visualizations", style = MaterialTheme.typography.bodySmall)
+                    }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                    Text(
+                        text = "© 2025 MineraLog Contributors",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Text(
+                        text = "Licensed under Apache License 2.0",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Text(
+                        text = "Built with Jetpack Compose & Material 3",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAboutDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
     }
 
     // Encrypt password dialog for export

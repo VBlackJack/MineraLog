@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.ui.components.TooltipTextField
+import net.meshcore.mineralog.ui.components.TooltipDropdownField
 import net.meshcore.mineralog.ui.components.MineralFieldTooltips
+import net.meshcore.mineralog.ui.components.MineralFieldValues
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -224,71 +226,78 @@ fun AddMineralScreen(
             )
 
             Text(
-                text = "Optional fields with inline help. Tap ⓘ for explanations.",
+                text = "Quick Win #3: Select from predefined values or enter custom. Tap ⓘ for explanations.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            TooltipTextField(
+            TooltipDropdownField(
                 value = diaphaneity,
                 onValueChange = { viewModel.onDiaphaneityChange(it) },
                 label = "Diaphaneity",
                 tooltipText = MineralFieldTooltips.DIAPHANEITY,
-                placeholder = "e.g., transparent, translucent, opaque",
+                options = MineralFieldValues.DIAPHANEITY_TYPES,
+                placeholder = "Select transparency level",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
-            TooltipTextField(
+            TooltipDropdownField(
                 value = cleavage,
                 onValueChange = { viewModel.onCleavageChange(it) },
                 label = "Cleavage",
                 tooltipText = MineralFieldTooltips.CLEAVAGE,
-                placeholder = "e.g., perfect, good, poor, none",
+                options = MineralFieldValues.CLEAVAGE_TYPES,
+                placeholder = "Select cleavage quality",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
-            TooltipTextField(
+            TooltipDropdownField(
                 value = fracture,
                 onValueChange = { viewModel.onFractureChange(it) },
                 label = "Fracture",
                 tooltipText = MineralFieldTooltips.FRACTURE,
-                placeholder = "e.g., conchoidal, uneven, splintery",
+                options = MineralFieldValues.FRACTURE_TYPES,
+                placeholder = "Select fracture type",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
-            TooltipTextField(
+            TooltipDropdownField(
                 value = luster,
                 onValueChange = { viewModel.onLusterChange(it) },
                 label = "Luster",
                 tooltipText = MineralFieldTooltips.LUSTER,
-                placeholder = "e.g., metallic, vitreous, pearly",
+                options = MineralFieldValues.LUSTER_TYPES,
+                placeholder = "Select luster type",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
-            TooltipTextField(
+            TooltipDropdownField(
                 value = streak,
                 onValueChange = { viewModel.onStreakChange(it) },
                 label = "Streak",
                 tooltipText = MineralFieldTooltips.STREAK,
-                placeholder = "e.g., white, black, red",
+                options = MineralFieldValues.STREAK_COLORS,
+                placeholder = "Select streak color",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
-            TooltipTextField(
+            TooltipDropdownField(
                 value = habit,
                 onValueChange = { viewModel.onHabitChange(it) },
                 label = "Habit",
                 tooltipText = MineralFieldTooltips.HABIT,
-                placeholder = "e.g., prismatic, tabular, massive",
+                options = MineralFieldValues.HABIT_TYPES,
+                placeholder = "Select crystal habit",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
-            TooltipTextField(
+            TooltipDropdownField(
                 value = crystalSystem,
                 onValueChange = { viewModel.onCrystalSystemChange(it) },
                 label = "Crystal System",
                 tooltipText = MineralFieldTooltips.CRYSTAL_SYSTEM,
-                placeholder = "e.g., cubic, hexagonal, monoclinic",
+                options = MineralFieldValues.CRYSTAL_SYSTEMS,
+                placeholder = "Select crystal system",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
