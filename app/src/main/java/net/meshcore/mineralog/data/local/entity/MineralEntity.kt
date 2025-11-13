@@ -69,7 +69,49 @@ data class MineralEntity(
     val qualityRating: Int? = null, // 1-5, specimen quality assessment
     val completeness: Int = 0, // 0-100, calculated percentage of filled fields
 
-    // Relationships (stored as foreign keys)
+    /**
+     * Foreign key relationships - UNIDIRECTIONAL DESIGN
+     *
+     * These fields establish a one-to-one relationship with ProvenanceEntity and StorageEntity.
+     * IMPORTANT: Room foreign keys are NOT used intentionally for the following reasons:
+     *
+     * 1. **Manual Cascade Control**: We handle cascades in the Repository layer for better control:
+     *    - When a Mineral is deleted, we explicitly delete related Provenance/Storage
+     *    - This allows logging, undo functionality, and custom cascade logic
+     *    - See: MineralRepositoryImpl.delete() for cascade implementation
+     *
+     * 2. **Unidirectional Navigation**: Child entities (Provenance/Storage) have mineralId,
+     *    but parent (Mineral) only stores IDs, not Room @Relation annotations:
+     *    - Prevents circular dependencies
+     *    - Simplifies serialization (JSON export/import)
+     *    - Allows partial loading (load Mineral without related data)
+     *    - Batch queries avoid N+1 problems (see BackupRepository.exportZip)
+     *
+     * 3. **Nullable by Design**: IDs can be null (Mineral can exist without provenance/storage):
+     *    - Supports progressive data entry
+     *    - Optional metadata collection
+     *    - Orphan cleanup handled in Repository layer
+     *
+     * 4. **Lookup Pattern**: To get related entities:
+     *    ```kotlin
+     *    val provenance = provenanceDao.getByMineralId(mineral.id)
+     *    val storage = storageDao.getByMineralId(mineral.id)
+     *    ```
+     *    Or use domain model mappers that handle the joins:
+     *    ```kotlin
+     *    mineralEntity.toDomain(provenance, storage, photos)
+     *    ```
+     *
+     * WARNING: If lookup returns null unexpectedly, check:
+     * - Cascade delete logic in MineralRepositoryImpl
+     * - Orphan cleanup on import (BackupRepository.importZip)
+     * - Transaction boundaries (all inserts/deletes must be in same transaction)
+     *
+     * @see ProvenanceEntity.mineralId for the bidirectional link
+     * @see StorageEntity.mineralId for the bidirectional link
+     * @see net.meshcore.mineralog.data.repository.MineralRepositoryImpl.delete cascade logic
+     * @see net.meshcore.mineralog.data.mapper.EntityMappersKt.toDomain for relationship loading
+     */
     val provenanceId: String? = null, // UUID reference to ProvenanceEntity
     val storageId: String? = null, // UUID reference to StorageEntity
 
