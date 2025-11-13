@@ -33,6 +33,7 @@ fun HomeScreen(
     onCompareClick: (List<String>) -> Unit = {},
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
+            context = LocalContext.current.applicationContext,
             mineralRepository = (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
             filterPresetRepository = (LocalContext.current.applicationContext as MineraLogApplication).filterPresetRepository,
             backupRepository = (LocalContext.current.applicationContext as MineraLogApplication).backupRepository,
@@ -53,6 +54,7 @@ fun HomeScreen(
     val selectionCount by viewModel.selectionCount.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
     val importState by viewModel.importState.collectAsState()
+    val labelGenerationState by viewModel.labelGenerationState.collectAsState()
     val csvExportWarningShown by viewModel.csvExportWarningShown.collectAsState()
 
     var showFilterSheet by remember { mutableStateOf(false) }
@@ -80,6 +82,15 @@ fun HomeScreen(
         uri?.let { selectedUri ->
             selectedCsvUri = selectedUri
             showImportCsvDialog = true
+        }
+    }
+
+    // File picker for PDF label generation (v1.5.0)
+    val pdfLabelLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            viewModel.generateLabelsForSelected(selectedUri)
         }
     }
 
@@ -122,6 +133,29 @@ fun HomeScreen(
                     duration = SnackbarDuration.Long
                 )
                 viewModel.resetImportState()
+            }
+            else -> {}
+        }
+    }
+
+    // Handle label generation state changes (v1.5.0)
+    LaunchedEffect(labelGenerationState) {
+        when (labelGenerationState) {
+            is LabelGenerationState.Success -> {
+                val count = (labelGenerationState as LabelGenerationState.Success).count
+                snackbarHostState.showSnackbar(
+                    message = "Generated $count QR labels successfully",
+                    duration = SnackbarDuration.Short
+                )
+                viewModel.resetLabelGenerationState()
+                viewModel.exitSelectionMode()
+            }
+            is LabelGenerationState.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = "Label generation failed: ${(labelGenerationState as LabelGenerationState.Error).message}",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetLabelGenerationState()
             }
             else -> {}
         }
@@ -385,6 +419,13 @@ fun HomeScreen(
                 } else {
                     showCsvExportWarningDialog = true
                 }
+            },
+            onGenerateLabels = {
+                showBulkActionsSheet = false
+                // Generate filename with timestamp
+                val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
+                    .format(java.util.Date())
+                pdfLabelLauncher.launch("mineralog_labels_$timestamp.pdf")
             },
             onCompare = if (selectionCount in 2..3) {
                 {

@@ -1,5 +1,6 @@
 package net.meshcore.mineralog.ui.screens.home
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -14,10 +15,12 @@ import net.meshcore.mineralog.data.repository.CsvImportMode
 import net.meshcore.mineralog.data.repository.FilterPresetRepository
 import net.meshcore.mineralog.data.repository.MineralRepository
 import net.meshcore.mineralog.data.repository.SettingsRepository
+import net.meshcore.mineralog.data.util.QrLabelPdfGenerator
 import net.meshcore.mineralog.domain.model.FilterPreset
 import net.meshcore.mineralog.domain.model.Mineral
 
 class HomeViewModel(
+    private val context: Context,
     private val mineralRepository: MineralRepository,
     private val filterPresetRepository: FilterPresetRepository,
     private val backupRepository: BackupRepository,
@@ -31,6 +34,10 @@ class HomeViewModel(
     // Import state
     private val _importState = MutableStateFlow<ImportState>(ImportState.Idle)
     val importState: StateFlow<ImportState> = _importState.asStateFlow()
+
+    // Label generation state (v1.5.0)
+    private val _labelGenerationState = MutableStateFlow<LabelGenerationState>(LabelGenerationState.Idle)
+    val labelGenerationState: StateFlow<LabelGenerationState> = _labelGenerationState.asStateFlow()
 
     // CSV export warning state
     val csvExportWarningShown: StateFlow<Boolean> = settingsRepository.getCsvExportWarningShown()
@@ -245,6 +252,42 @@ class HomeViewModel(
     fun resetImportState() {
         _importState.value = ImportState.Idle
     }
+
+    // QR Label generation (v1.5.0)
+    fun generateLabelsForSelected(outputUri: Uri) {
+        viewModelScope.launch {
+            _labelGenerationState.value = LabelGenerationState.Generating
+            try {
+                // Get selected minerals
+                val selectedMinerals = getSelectedMinerals()
+
+                if (selectedMinerals.isEmpty()) {
+                    _labelGenerationState.value = LabelGenerationState.Error("No minerals selected")
+                    return@launch
+                }
+
+                // Generate PDF with QR labels
+                val generator = QrLabelPdfGenerator(context)
+                val result = generator.generate(selectedMinerals, outputUri)
+
+                if (result.isSuccess) {
+                    _labelGenerationState.value = LabelGenerationState.Success(selectedMinerals.size)
+                } else {
+                    _labelGenerationState.value = LabelGenerationState.Error(
+                        result.exceptionOrNull()?.message ?: "Failed to generate labels"
+                    )
+                }
+            } catch (e: Exception) {
+                _labelGenerationState.value = LabelGenerationState.Error(
+                    e.message ?: "Unknown error generating labels"
+                )
+            }
+        }
+    }
+
+    fun resetLabelGenerationState() {
+        _labelGenerationState.value = LabelGenerationState.Idle
+    }
 }
 
 sealed class ExportState {
@@ -261,7 +304,15 @@ sealed class ImportState {
     data class Error(val message: String) : ImportState()
 }
 
+sealed class LabelGenerationState {
+    data object Idle : LabelGenerationState()
+    data object Generating : LabelGenerationState()
+    data class Success(val count: Int) : LabelGenerationState()
+    data class Error(val message: String) : LabelGenerationState()
+}
+
 class HomeViewModelFactory(
+    private val context: Context,
     private val mineralRepository: MineralRepository,
     private val filterPresetRepository: FilterPresetRepository,
     private val backupRepository: BackupRepository,
@@ -270,7 +321,7 @@ class HomeViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-            return HomeViewModel(mineralRepository, filterPresetRepository, backupRepository, settingsRepository) as T
+            return HomeViewModel(context, mineralRepository, filterPresetRepository, backupRepository, settingsRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

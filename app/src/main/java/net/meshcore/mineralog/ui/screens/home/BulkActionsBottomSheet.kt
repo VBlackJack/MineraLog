@@ -14,7 +14,7 @@ import net.meshcore.mineralog.R
 
 /**
  * Bottom sheet for bulk actions on selected minerals.
- * Supports delete and export operations.
+ * Supports delete, export, compare, and label generation operations.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,6 +22,7 @@ fun BulkActionsBottomSheet(
     selectedCount: Int,
     onDelete: () -> Unit,
     onExportCsv: () -> Unit,
+    onGenerateLabels: (() -> Unit)? = null,
     onCompare: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
@@ -128,6 +129,30 @@ fun BulkActionsBottomSheet(
                         onDismiss()
                     }
             )
+
+            // Generate QR Labels action (v1.5.0)
+            onGenerateLabels?.let { generateLabels ->
+                ListItem(
+                    headlineContent = {
+                        Text("Generate QR Labels")
+                    },
+                    supportingContent = {
+                        Text("Create printable PDF with QR codes")
+                    },
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.QrCode2,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            generateLabels()
+                            onDismiss()
+                        }
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
