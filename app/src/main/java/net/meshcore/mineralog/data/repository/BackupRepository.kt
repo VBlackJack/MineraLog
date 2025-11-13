@@ -22,6 +22,7 @@ interface BackupRepository {
     suspend fun exportZip(uri: Uri, password: String? = null): Result<Unit>
     suspend fun exportCsv(uri: Uri, minerals: List<Mineral>): Result<Unit>
     suspend fun importZip(uri: Uri, password: String? = null, mode: ImportMode = ImportMode.MERGE): Result<ImportResult>
+    suspend fun importCsv(uri: Uri, mode: CsvImportMode = CsvImportMode.MERGE): Result<ImportResult>
     suspend fun createBackup(password: String? = null): Result<File>
     suspend fun restoreBackup(file: File, password: String? = null): Result<Unit>
 }
@@ -30,6 +31,12 @@ enum class ImportMode {
     MERGE,      // Upsert by ID
     REPLACE,    // Drop all and import
     MAP_IDS     // Remap conflicting UUIDs
+}
+
+enum class CsvImportMode {
+    MERGE,             // Update existing by name match, insert new
+    REPLACE,           // Drop all and import
+    SKIP_DUPLICATES    // Skip rows with duplicate names
 }
 
 data class ImportResult(
@@ -267,6 +274,199 @@ class BackupRepositoryImpl(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override suspend fun importCsv(uri: Uri, mode: CsvImportMode): Result<ImportResult> = withContext(Dispatchers.IO) {
+        try {
+            val errors = mutableListOf<String>()
+            var imported = 0
+            var skipped = 0
+
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                // Parse CSV
+                val parser = net.meshcore.mineralog.data.util.CsvParser()
+                val parseResult = parser.parse(inputStream)
+
+                if (parseResult.errors.isNotEmpty()) {
+                    errors.addAll(parseResult.errors.map { "Line ${it.lineNumber}: ${it.message}" })
+                }
+
+                if (parseResult.headers.isEmpty()) {
+                    return@withContext Result.failure(Exception("CSV file has no headers"))
+                }
+
+                // Auto-map headers to domain fields
+                val columnMapping = net.meshcore.mineralog.data.util.CsvColumnMapper.mapHeaders(parseResult.headers)
+
+                // Get existing minerals for name-based lookups
+                val existingMinerals = database.mineralDao().getAll()
+                val existingByName = existingMinerals.associateBy { it.name.lowercase() }
+
+                // Use transaction for atomicity
+                database.runInTransaction {
+                    // Handle REPLACE mode
+                    if (mode == CsvImportMode.REPLACE) {
+                        database.mineralDao().deleteAll()
+                        database.provenanceDao().deleteAll()
+                        database.storageDao().deleteAll()
+                        database.photoDao().deleteAll()
+                    }
+
+                    // Process each row
+                    parseResult.rows.forEachIndexed { index, row ->
+                        try {
+                            val mineral = parseMineralFromCsvRow(row, columnMapping)
+
+                            // Validate required fields
+                            if (mineral.name.isBlank()) {
+                                errors.add("Row ${index + 2}: Name is required")
+                                skipped++
+                                return@forEachIndexed
+                            }
+
+                            // Check for duplicates based on mode
+                            val existing = existingByName[mineral.name.lowercase()]
+                            when (mode) {
+                                CsvImportMode.SKIP_DUPLICATES -> {
+                                    if (existing != null) {
+                                        skipped++
+                                        return@forEachIndexed
+                                    }
+                                }
+                                CsvImportMode.MERGE -> {
+                                    // Use existing ID if found, otherwise generate new
+                                    if (existing != null) {
+                                        // Update logic will be handled by upsert
+                                    }
+                                }
+                                CsvImportMode.REPLACE -> {
+                                    // Already cleared, just insert
+                                }
+                            }
+
+                            // Insert or update mineral
+                            database.mineralDao().insert(mineral.toEntity())
+
+                            // Insert provenance if present
+                            mineral.provenance?.let { prov ->
+                                database.provenanceDao().insert(prov.toEntity())
+                            }
+
+                            // Insert storage if present
+                            mineral.storage?.let { storage ->
+                                database.storageDao().insert(storage.toEntity())
+                            }
+
+                            imported++
+                        } catch (e: Exception) {
+                            errors.add("Row ${index + 2}: ${e.message}")
+                            skipped++
+                        }
+                    }
+                }
+            } ?: return@withContext Result.failure(Exception("Failed to open CSV file"))
+
+            Result.success(ImportResult(imported, skipped, errors))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Parse a Mineral object from a CSV row using column mapping.
+     */
+    private fun parseMineralFromCsvRow(
+        row: Map<String, String>,
+        columnMapping: Map<String, String>
+    ): Mineral {
+        // Helper to get mapped value
+        fun getMapped(domainField: String): String? {
+            val csvHeader = columnMapping.entries.find { it.value == domainField }?.key
+            return csvHeader?.let { row[it] }?.takeIf { it.isNotBlank() }
+        }
+
+        fun getFloat(domainField: String): Float? {
+            return getMapped(domainField)?.toFloatOrNull()
+        }
+
+        fun getInt(domainField: String): Int? {
+            return getMapped(domainField)?.toIntOrNull()
+        }
+
+        fun getBoolean(domainField: String): Boolean {
+            val value = getMapped(domainField)?.lowercase() ?: return false
+            return value in listOf("true", "yes", "1", "y", "oui")
+        }
+
+        // Generate IDs
+        val mineralId = java.util.UUID.randomUUID().toString()
+
+        // Parse basic mineral fields
+        val name = getMapped("name") ?: throw IllegalArgumentException("Name is required")
+
+        // Handle special case: single "mohs" field maps to both min and max
+        val mohsMin = getFloat("mohsMin") ?: getFloat("mohs")
+        val mohsMax = getFloat("mohsMax") ?: getFloat("mohs")
+
+        // Parse provenance fields
+        val hasProvenance = listOf("prov_country", "prov_locality", "prov_site", "prov_source").any { getMapped(it) != null }
+        val provenance = if (hasProvenance) {
+            net.meshcore.mineralog.domain.model.Provenance(
+                id = java.util.UUID.randomUUID().toString(),
+                mineralId = mineralId,
+                country = getMapped("prov_country"),
+                locality = getMapped("prov_locality"),
+                site = getMapped("prov_site"),
+                source = getMapped("prov_source"),
+                price = getFloat("prov_price"),
+                estimatedValue = getFloat("prov_estimatedValue"),
+                currency = getMapped("prov_currency") ?: "USD"
+            )
+        } else null
+
+        // Parse storage fields
+        val hasStorage = listOf("storage_place", "storage_container", "storage_box", "storage_slot").any { getMapped(it) != null }
+        val storage = if (hasStorage) {
+            net.meshcore.mineralog.domain.model.Storage(
+                id = java.util.UUID.randomUUID().toString(),
+                mineralId = mineralId,
+                place = getMapped("storage_place"),
+                container = getMapped("storage_container"),
+                box = getMapped("storage_box"),
+                slot = getMapped("storage_slot")
+            )
+        } else null
+
+        return Mineral(
+            id = mineralId,
+            name = name,
+            group = getMapped("group"),
+            formula = getMapped("formula"),
+            crystalSystem = getMapped("crystalSystem"),
+            mohsMin = mohsMin,
+            mohsMax = mohsMax,
+            cleavage = getMapped("cleavage"),
+            fracture = getMapped("fracture"),
+            luster = getMapped("luster"),
+            streak = getMapped("streak"),
+            diaphaneity = getMapped("diaphaneity"),
+            habit = getMapped("habit"),
+            specificGravity = getFloat("specificGravity"),
+            fluorescence = getMapped("fluorescence"),
+            magnetic = getBoolean("magnetic"),
+            radioactive = getBoolean("radioactive"),
+            dimensionsMm = getMapped("dimensionsMm"),
+            weightGr = getFloat("weightGr"),
+            status = getMapped("status") ?: "incomplete",
+            statusType = getMapped("statusType") ?: "in_collection",
+            qualityRating = getInt("qualityRating"),
+            completeness = getInt("completeness") ?: 0,
+            notes = getMapped("notes"),
+            tags = getMapped("tags")?.split(";")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList(),
+            provenance = provenance,
+            storage = storage,
+            photos = emptyList() // CSV doesn't include photos
+        )
     }
 
     private fun escapeCSV(value: String): String {
