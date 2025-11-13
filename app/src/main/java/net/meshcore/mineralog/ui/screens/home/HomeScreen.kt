@@ -33,7 +33,8 @@ fun HomeScreen(
         factory = HomeViewModelFactory(
             mineralRepository = (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
             filterPresetRepository = (LocalContext.current.applicationContext as MineraLogApplication).filterPresetRepository,
-            backupRepository = (LocalContext.current.applicationContext as MineraLogApplication).backupRepository
+            backupRepository = (LocalContext.current.applicationContext as MineraLogApplication).backupRepository,
+            settingsRepository = (LocalContext.current.applicationContext as MineraLogApplication).settingsRepository
         )
     )
 ) {
@@ -46,9 +47,11 @@ fun HomeScreen(
     val selectedIds by viewModel.selectedIds.collectAsState()
     val selectionCount by viewModel.selectionCount.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
+    val csvExportWarningShown by viewModel.csvExportWarningShown.collectAsState()
 
     var showFilterSheet by remember { mutableStateOf(false) }
     var showBulkActionsSheet by remember { mutableStateOf(false) }
+    var showCsvExportWarningDialog by remember { mutableStateOf(false) }
     var showExportCsvDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -264,7 +267,12 @@ fun HomeScreen(
             },
             onExportCsv = {
                 showBulkActionsSheet = false
-                showExportCsvDialog = true
+                // Check if warning has been shown before
+                if (csvExportWarningShown) {
+                    showExportCsvDialog = true
+                } else {
+                    showCsvExportWarningDialog = true
+                }
             },
             onCompare = if (selectionCount in 2..3) {
                 {
@@ -274,6 +282,22 @@ fun HomeScreen(
                 }
             } else null,
             onDismiss = { showBulkActionsSheet = false }
+        )
+    }
+
+    // CSV export warning dialog (shown only once)
+    if (showCsvExportWarningDialog) {
+        CsvExportWarningDialog(
+            onDismiss = {
+                showCsvExportWarningDialog = false
+            },
+            onProceed = { dontShowAgain ->
+                if (dontShowAgain) {
+                    viewModel.markCsvExportWarningShown()
+                }
+                showCsvExportWarningDialog = false
+                showExportCsvDialog = true
+            }
         )
     }
 

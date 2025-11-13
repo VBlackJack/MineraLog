@@ -17,6 +17,8 @@ interface SettingsRepository {
     suspend fun setThemeMode(mode: String)
     fun getCopyPhotosToInternalStorage(): Flow<Boolean>
     suspend fun setCopyPhotosToInternalStorage(copy: Boolean)
+    fun getCsvExportWarningShown(): Flow<Boolean>
+    suspend fun setCsvExportWarningShown(shown: Boolean)
 }
 
 class SettingsRepositoryImpl(private val context: Context) : SettingsRepository {
@@ -25,6 +27,7 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
         val LANGUAGE = stringPreferencesKey("language")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val COPY_PHOTOS = booleanPreferencesKey("copy_photos_to_internal")
+        val CSV_EXPORT_WARNING_SHOWN = booleanPreferencesKey("csv_export_warning_shown")
     }
 
     override fun getLanguage(): Flow<String> {
@@ -60,6 +63,18 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
     override suspend fun setCopyPhotosToInternalStorage(copy: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Keys.COPY_PHOTOS] = copy
+        }
+    }
+
+    override fun getCsvExportWarningShown(): Flow<Boolean> {
+        return context.dataStore.data.map { preferences ->
+            preferences[Keys.CSV_EXPORT_WARNING_SHOWN] ?: false
+        }
+    }
+
+    override suspend fun setCsvExportWarningShown(shown: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.CSV_EXPORT_WARNING_SHOWN] = shown
         }
     }
 }

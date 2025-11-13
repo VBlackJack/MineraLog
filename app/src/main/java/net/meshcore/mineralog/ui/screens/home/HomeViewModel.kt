@@ -10,18 +10,28 @@ import net.meshcore.mineralog.data.model.FilterCriteria
 import net.meshcore.mineralog.data.repository.BackupRepository
 import net.meshcore.mineralog.data.repository.FilterPresetRepository
 import net.meshcore.mineralog.data.repository.MineralRepository
+import net.meshcore.mineralog.data.repository.SettingsRepository
 import net.meshcore.mineralog.domain.model.FilterPreset
 import net.meshcore.mineralog.domain.model.Mineral
 
 class HomeViewModel(
     private val mineralRepository: MineralRepository,
     private val filterPresetRepository: FilterPresetRepository,
-    private val backupRepository: BackupRepository
+    private val backupRepository: BackupRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     // Export state
     private val _exportState = MutableStateFlow<ExportState>(ExportState.Idle)
     val exportState: StateFlow<ExportState> = _exportState.asStateFlow()
+
+    // CSV export warning state
+    val csvExportWarningShown: StateFlow<Boolean> = settingsRepository.getCsvExportWarningShown()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -174,6 +184,12 @@ class HomeViewModel(
     fun resetExportState() {
         _exportState.value = ExportState.Idle
     }
+
+    fun markCsvExportWarningShown() {
+        viewModelScope.launch {
+            settingsRepository.setCsvExportWarningShown(true)
+        }
+    }
 }
 
 sealed class ExportState {
@@ -186,12 +202,13 @@ sealed class ExportState {
 class HomeViewModelFactory(
     private val mineralRepository: MineralRepository,
     private val filterPresetRepository: FilterPresetRepository,
-    private val backupRepository: BackupRepository
+    private val backupRepository: BackupRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-            return HomeViewModel(mineralRepository, filterPresetRepository, backupRepository) as T
+            return HomeViewModel(mineralRepository, filterPresetRepository, backupRepository, settingsRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

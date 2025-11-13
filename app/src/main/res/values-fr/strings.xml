@@ -220,6 +220,10 @@
     <string name="export_csv_title">Exporter en CSV</string>
     <string name="export_csv_subtitle">%d minéraux sélectionnés</string>
     <string name="export_csv_select_columns">Sélectionner les colonnes à exporter</string>
+    <string name="csv_export_warning_title">Limitations de l\'export CSV</string>
+    <string name="csv_export_warning_message">Les exports CSV sont uniquement pour l\'analyse de données et ne peuvent pas être ré-importés.\n\nPour des sauvegardes complètes avec photos et restauration complète des données, utilisez plutôt l\'export ZIP.\n\nConsultez la documentation pour en savoir plus sur les options d\'import/export.</string>
+    <string name="csv_export_warning_checkbox">Ne plus afficher ce message</string>
+    <string name="csv_export_warning_understand">J\'ai compris</string>
     <string name="import_select_file">Sélectionner le fichier ZIP</string>
     <string name="export_select_destination">Sélectionner la destination</string>
     <string name="export_format">Format</string>
