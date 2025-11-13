@@ -11,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -276,13 +278,31 @@ private fun ComparisonRow(
                 }
             )
             .padding(16.dp)
+            .semantics(mergeDescendants = true) {
+                if (highlight) {
+                    contentDescription = "$propertyName: Different values - ${values.joinToString(", ")}"
+                }
+            }
     ) {
-        // Property name
-        Text(
-            text = propertyName,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f)
-        )
+        // Property name with difference indicator
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (highlight) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = "Different values",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+            }
+            Text(
+                text = propertyName,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
 
         // Values for each mineral
         values.forEach { value ->

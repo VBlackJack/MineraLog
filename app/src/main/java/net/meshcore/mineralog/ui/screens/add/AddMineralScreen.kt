@@ -10,6 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -67,8 +69,17 @@ fun AddMineralScreen(
                 value = name,
                 onValueChange = { viewModel.onNameChange(it) },
                 label = { Text("Name *") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        if (name.isBlank()) {
+                            error("Required field")
+                        }
+                    },
+                singleLine = true,
+                supportingText = {
+                    Text("Required field")
+                }
             )
 
             OutlinedTextField(

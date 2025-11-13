@@ -9,6 +9,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.meshcore.mineralog.R
@@ -47,6 +50,14 @@ fun FilterBottomSheet(
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 16.dp)
                 .verticalScroll(rememberScrollState())
+                .onPreviewKeyEvent { keyEvent ->
+                    if (keyEvent.key == Key.Escape) {
+                        onDismiss()
+                        true
+                    } else {
+                        false
+                    }
+                }
         ) {
             // Header
             Row(

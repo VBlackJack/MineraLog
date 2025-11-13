@@ -10,6 +10,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -102,8 +104,16 @@ fun EncryptPasswordDialog(
 
                 // Password strength indicator
                 if (password.isNotEmpty()) {
+                    val strengthText = when (passwordStrength) {
+                        PasswordStrength.WEAK -> "Weak"
+                        PasswordStrength.MEDIUM -> "Medium"
+                        PasswordStrength.STRONG -> "Strong"
+                    }
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.semantics {
+                            stateDescription = "Password strength: $strengthText"
+                        }
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),

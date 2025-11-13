@@ -1,13 +1,22 @@
 package net.meshcore.mineralog.ui.theme
 
 import android.app.Activity
+import android.provider.Settings
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+
+/**
+ * CompositionLocal for reduced motion preference.
+ * When true, animations should be disabled or simplified.
+ */
+val LocalReducedMotion = compositionLocalOf { false }
 
 private val LightColorScheme = lightColorScheme(
     primary = md_theme_light_primary,
@@ -69,13 +78,26 @@ fun MineraLogTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+
     val colorScheme = when {
         dynamicColor && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S -> {
-            val context = androidx.compose.ui.platform.LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
+    }
+
+    // Detect reduced motion preference from system settings
+    val reducedMotion = try {
+        val animatorDurationScale = Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.TRANSITION_ANIMATION_SCALE,
+            1f
+        )
+        animatorDurationScale == 0f
+    } catch (e: Exception) {
+        false
     }
 
     val view = LocalView.current
@@ -87,9 +109,13 @@ fun MineraLogTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalReducedMotion provides reducedMotion
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }
