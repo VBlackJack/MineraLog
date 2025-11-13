@@ -17,6 +17,8 @@ import net.meshcore.mineralog.ui.screens.add.AddMineralScreen
 import net.meshcore.mineralog.ui.screens.settings.SettingsScreen
 import net.meshcore.mineralog.ui.screens.statistics.StatisticsScreen
 import net.meshcore.mineralog.ui.screens.statistics.StatisticsViewModel
+import net.meshcore.mineralog.ui.screens.comparator.ComparatorScreen
+import net.meshcore.mineralog.ui.screens.comparator.ComparatorViewModel
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -26,6 +28,9 @@ sealed class Screen(val route: String) {
     }
     data object Settings : Screen("settings")
     data object Statistics : Screen("statistics")
+    data object Compare : Screen("compare/{mineralIds}") {
+        fun createRoute(mineralIds: List<String>) = "compare/${mineralIds.joinToString(",")}"
+    }
 }
 
 @Composable
@@ -60,6 +65,9 @@ fun MineraLogNavHost(
                 },
                 onStatisticsClick = {
                     navController.navigate(Screen.Statistics.route)
+                },
+                onCompareClick = { mineralIds ->
+                    navController.navigate(Screen.Compare.createRoute(mineralIds))
                 }
             )
         }
@@ -101,6 +109,27 @@ fun MineraLogNavHost(
             StatisticsScreen(
                 viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.Compare.route,
+            arguments = listOf(
+                navArgument("mineralIds") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val mineralIdsString = backStackEntry.arguments?.getString("mineralIds") ?: return@composable
+            val mineralIds = mineralIdsString.split(",")
+
+            val application = LocalContext.current.applicationContext as MineraLogApplication
+            val viewModel = ComparatorViewModel(
+                mineralIds = mineralIds,
+                mineralRepository = application.mineralRepository
+            )
+            ComparatorScreen(
+                mineralIds = mineralIds,
+                onNavigateBack = { navController.popBackStack() },
+                viewModel = viewModel
             )
         }
     }

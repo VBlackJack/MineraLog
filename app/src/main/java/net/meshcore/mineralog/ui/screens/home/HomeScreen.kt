@@ -23,6 +23,7 @@ fun HomeScreen(
     onAddClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onStatisticsClick: () -> Unit = {},
+    onCompareClick: (List<String>) -> Unit = {},
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             mineralRepository = (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
@@ -223,6 +224,13 @@ fun HomeScreen(
                 // TODO: Implement CSV export with column selection
                 // This will be implemented in the next step
             },
+            onCompare = if (selectionCount in 2..3) {
+                {
+                    val selectedMinerals = viewModel.getSelectedMinerals()
+                    onCompareClick(selectedMinerals.map { it.id })
+                    viewModel.exitSelectionMode()
+                }
+            } else null,
             onDismiss = { showBulkActionsSheet = false }
         )
     }

@@ -131,6 +131,7 @@
     <string name="provenance_locality">Localité</string>
     <string name="provenance_country">Pays</string>
     <string name="provenance_acquisition_date">Date d\'acquisition</string>
+    <string name="provenance_estimated_value">Valeur estimée</string>
     <string name="provenance_source">Source</string>
     <string name="provenance_source_hint">Marchand, collecte terrain, cadeau…</string>
     <string name="provenance_coordinates">Coordonnées</string>
@@ -196,6 +197,7 @@
 
     <!-- Comparator Screen -->
     <string name="compare_title">Comparer les minéraux</string>
+    <string name="compare_property">Propriété</string>
     <string name="compare_select">Sélectionnez les minéraux à comparer</string>
     <string name="compare_max_reached">Maximum 3 minéraux</string>
     <string name="compare_min_required">Sélectionnez au moins 2 minéraux</string>
@@ -286,6 +288,10 @@
 
     <!-- Status/Lifecycle -->
     <string name="status_title">Statut</string>
+    <string name="status_section_title">Informations de statut</string>
+    <string name="status_type">Statut</string>
+    <string name="status_quality_rating">Évaluation de qualité</string>
+    <string name="status_completeness">Complétude des données</string>
     <string name="status_collection">Dans la collection</string>
     <string name="status_display">En vitrine</string>
     <string name="status_loaned">Prêté</string>
@@ -369,6 +375,8 @@
     <!-- Bulk Actions (v1.3.0) -->
     <string name="bulk_actions_title">Actions groupées</string>
     <string name="bulk_selected_count">%d minéraux sélectionnés</string>
+    <string name="bulk_action_compare">Comparer côte à côte</string>
+    <string name="bulk_action_compare_desc">Afficher le tableau de comparaison</string>
     <string name="bulk_action_delete">Supprimer la sélection</string>
     <string name="bulk_action_export_csv">Exporter en CSV</string>
     <string name="bulk_action_export_csv_desc">Exporter les minéraux sélectionnés avec colonnes personnalisables</string>

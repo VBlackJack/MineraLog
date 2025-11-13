@@ -131,6 +131,7 @@
     <string name="provenance_locality">Locality</string>
     <string name="provenance_country">Country</string>
     <string name="provenance_acquisition_date">Acquisition Date</string>
+    <string name="provenance_estimated_value">Estimated Value</string>
     <string name="provenance_source">Source</string>
     <string name="provenance_source_hint">Dealer, field collecting, gift…</string>
     <string name="provenance_coordinates">Coordinates</string>
@@ -196,6 +197,7 @@
 
     <!-- Comparator Screen -->
     <string name="compare_title">Compare Minerals</string>
+    <string name="compare_property">Property</string>
     <string name="compare_select">Select minerals to compare</string>
     <string name="compare_max_reached">Maximum 3 minerals</string>
     <string name="compare_min_required">Select at least 2 minerals</string>
@@ -286,6 +288,10 @@
 
     <!-- Status/Lifecycle -->
     <string name="status_title">Status</string>
+    <string name="status_section_title">Status Information</string>
+    <string name="status_type">Status</string>
+    <string name="status_quality_rating">Quality Rating</string>
+    <string name="status_completeness">Data Completeness</string>
     <string name="status_collection">In Collection</string>
     <string name="status_display">On Display</string>
     <string name="status_loaned">Loaned</string>
@@ -369,6 +375,8 @@
     <!-- Bulk Actions (v1.3.0) -->
     <string name="bulk_actions_title">Bulk Actions</string>
     <string name="bulk_selected_count">%d minerals selected</string>
+    <string name="bulk_action_compare">Compare Side-by-Side</string>
+    <string name="bulk_action_compare_desc">View property comparison table</string>
     <string name="bulk_action_delete">Delete Selected</string>
     <string name="bulk_action_export_csv">Export to CSV</string>
     <string name="bulk_action_export_csv_desc">Export selected minerals with customizable columns</string>
