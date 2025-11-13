@@ -11,6 +11,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -55,7 +57,22 @@ fun BarChart(
     val maxValue = sortedData.maxOfOrNull { it.value } ?: 1
     val textMeasurer = rememberTextMeasurer()
 
-    Column(modifier = modifier.padding(16.dp)) {
+    // Generate accessible description of chart data
+    val chartDescription = buildString {
+        append("Bar chart showing top ${sortedData.size} items: ")
+        sortedData.forEachIndexed { index, (label, value) ->
+            append("$label $value")
+            if (index < sortedData.size - 1) append(", ")
+        }
+        if (data.size > maxBars) {
+            append(", and ${data.size - maxBars} more")
+        }
+    }
+
+    Column(modifier = modifier
+        .padding(16.dp)
+        .semantics { contentDescription = chartDescription }
+    ) {
         sortedData.forEach { (label, value) ->
             Row(
                 modifier = Modifier

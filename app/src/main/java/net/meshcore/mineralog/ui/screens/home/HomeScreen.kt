@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.LoadState
@@ -229,13 +231,20 @@ fun HomeScreen(
                     .padding(16.dp),
                 placeholder = { Text("Search minerals...") },
                 leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null)
+                    Icon(Icons.Default.Search, contentDescription = "Search")
                 },
                 trailingIcon = {
                     BadgedBox(
                         badge = {
                             if (isFilterActive) {
                                 Badge { Text("${filterCriteria.activeCount()}") }
+                            }
+                        },
+                        modifier = Modifier.semantics {
+                            contentDescription = if (isFilterActive) {
+                                "${filterCriteria.activeCount()} active filters"
+                            } else {
+                                "No active filters"
                             }
                         }
                     ) {
@@ -276,13 +285,12 @@ fun HomeScreen(
                         }
                     )
                     IconButton(
-                        onClick = { viewModel.clearFilter() },
-                        modifier = Modifier.size(32.dp)
+                        onClick = { viewModel.clearFilter() }
                     ) {
                         Icon(
                             Icons.Default.Close,
                             contentDescription = "Clear filter",
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }

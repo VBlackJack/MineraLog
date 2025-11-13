@@ -10,6 +10,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -48,7 +50,20 @@ fun PieChart(
     val total = data.values.sum().toFloat()
     val textMeasurer = rememberTextMeasurer()
 
-    Canvas(modifier = modifier.padding(16.dp)) {
+    // Generate accessible description of chart data
+    val chartDescription = buildString {
+        append("Pie chart showing distribution: ")
+        data.entries.forEachIndexed { index, (label, value) ->
+            val percentage = ((value / total) * 100).toInt()
+            append("$label $value ($percentage%)")
+            if (index < data.size - 1) append(", ")
+        }
+    }
+
+    Canvas(modifier = modifier
+        .padding(16.dp)
+        .semantics { contentDescription = chartDescription }
+    ) {
         val canvasSize = size.minDimension
         val radius = canvasSize / 2f * 0.8f // 80% of canvas for pie, 20% for labels
         val center = Offset(size.width / 2f, size.height / 2f)

@@ -10,6 +10,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -101,7 +104,10 @@ fun DecryptPasswordDialog(
                             } else {
                                 MaterialTheme.colorScheme.tertiaryContainer
                             }
-                        )
+                        ),
+                        modifier = Modifier.semantics {
+                            liveRegion = LiveRegionMode.Assertive
+                        }
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
