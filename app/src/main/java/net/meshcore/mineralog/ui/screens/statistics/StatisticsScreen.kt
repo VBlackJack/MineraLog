@@ -13,6 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import net.meshcore.mineralog.R
@@ -231,6 +233,20 @@ private fun StatisticsContent(
                         .fillMaxWidth()
                         .height(300.dp)
                         .padding(16.dp)
+                        .semantics {
+                            contentDescription = buildString {
+                                append("Pie chart showing distribution by group. ")
+                                append("${topGroups.size} groups displayed. ")
+                                topGroups.entries.forEachIndexed { index, entry ->
+                                    if (index < 3) {
+                                        append("${entry.key}: ${entry.value} minerals. ")
+                                    }
+                                }
+                                if (topGroups.size > 3) {
+                                    append("And ${topGroups.size - 3} more groups.")
+                                }
+                            }
+                        }
                 )
             }
 
@@ -251,7 +267,22 @@ private fun StatisticsContent(
             ) {
                 BarChart(
                     data = statistics.byCountry,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = buildString {
+                                append("Bar chart showing distribution by country. ")
+                                val topCountries = statistics.byCountry.entries
+                                    .sortedByDescending { it.value }
+                                    .take(3)
+                                topCountries.forEachIndexed { index, entry ->
+                                    append("${entry.key}: ${entry.value} minerals. ")
+                                }
+                                if (statistics.byCountry.size > 3) {
+                                    append("And ${statistics.byCountry.size - 3} more countries.")
+                                }
+                            }
+                        },
                     maxBars = 15
                 )
             }
@@ -277,7 +308,22 @@ private fun StatisticsContent(
                 }
                 BarChart(
                     data = hardnessData,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = buildString {
+                                append("Bar chart showing distribution by hardness ranges. ")
+                                val topRanges = hardnessData.entries
+                                    .sortedByDescending { it.value }
+                                    .take(3)
+                                topRanges.forEach { entry ->
+                                    append("Hardness ${entry.key}: ${entry.value} minerals. ")
+                                }
+                                if (hardnessData.size > 3) {
+                                    append("And ${hardnessData.size - 3} more ranges.")
+                                }
+                            }
+                        },
                     maxBars = 10
                 )
             }
@@ -299,7 +345,16 @@ private fun StatisticsContent(
             ) {
                 BarChart(
                     data = statistics.byStatus,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = buildString {
+                                append("Bar chart showing distribution by status. ")
+                                statistics.byStatus.entries.forEach { entry ->
+                                    append("${entry.key}: ${entry.value} minerals. ")
+                                }
+                            }
+                        },
                     maxBars = 10
                 )
             }

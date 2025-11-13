@@ -13,6 +13,8 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import net.meshcore.mineralog.R
 import net.meshcore.mineralog.data.model.FilterCriteria
@@ -209,6 +211,9 @@ fun FilterBottomSheet(
                                 mohsMin = if (mohsMin > 1f) mohsMin else null,
                                 mohsMax = if (mohsMax < 10f) mohsMax else null
                             )
+                        },
+                        modifier = Modifier.semantics {
+                            stateDescription = "Hardness range from ${mohsMin.toInt()} to ${mohsMax.toInt()}"
                         }
                     )
                 }
@@ -274,6 +279,9 @@ fun FilterBottomSheet(
                                 qualityMin = if (qualityMin > 1) qualityMin else null,
                                 qualityMax = if (qualityMax < 5) qualityMax else null
                             )
+                        },
+                        modifier = Modifier.semantics {
+                            stateDescription = "Quality range from $qualityMin to $qualityMax"
                         }
                     )
                 }

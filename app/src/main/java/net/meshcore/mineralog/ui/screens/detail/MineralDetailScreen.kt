@@ -178,7 +178,8 @@ fun DetailRow(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(

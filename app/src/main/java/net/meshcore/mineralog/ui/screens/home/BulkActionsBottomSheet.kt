@@ -23,6 +23,7 @@ import net.meshcore.mineralog.R
 @Composable
 fun BulkActionsBottomSheet(
     selectedCount: Int,
+    selectedMineralNames: List<String> = emptyList(),
     onDelete: () -> Unit,
     onExportCsv: () -> Unit,
     onGenerateLabels: (() -> Unit)? = null,
@@ -192,7 +193,30 @@ fun BulkActionsBottomSheet(
                 Text(stringResource(R.string.bulk_delete_confirm_title))
             },
             text = {
-                Text(stringResource(R.string.bulk_delete_confirm_message, selectedCount))
+                Column {
+                    Text(stringResource(R.string.bulk_delete_confirm_message, selectedCount))
+
+                    // Show preview of mineral names if available
+                    if (selectedMineralNames.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        val displayNames = selectedMineralNames.take(5)
+                        displayNames.forEach { name ->
+                            Text(
+                                text = "• $name",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 8.dp, top = 2.dp)
+                            )
+                        }
+                        if (selectedMineralNames.size > 5) {
+                            Text(
+                                text = "• and ${selectedMineralNames.size - 5} more...",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 8.dp, top = 2.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             },
             confirmButton = {
                 Button(

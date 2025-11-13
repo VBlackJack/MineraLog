@@ -32,6 +32,9 @@ fun AddMineralScreen(
     val group by viewModel.group.collectAsState()
     val formula by viewModel.formula.collectAsState()
     val notes by viewModel.notes.collectAsState()
+    val saveState by viewModel.saveState.collectAsState()
+
+    val isSaving = saveState is SaveMineralState.Saving
 
     Scaffold(
         topBar = {
@@ -49,8 +52,15 @@ fun AddMineralScreen(
                                 onMineralAdded(mineralId)
                             }
                         },
-                        enabled = name.isNotBlank()
+                        enabled = name.isNotBlank() && !isSaving
                     ) {
+                        if (isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
                         Text("SAVE")
                     }
                 }
@@ -77,9 +87,9 @@ fun AddMineralScreen(
                         }
                     },
                 singleLine = true,
-                supportingText = {
-                    Text("Required field")
-                }
+                supportingText = if (name.isBlank()) {
+                    { Text("Required field", color = MaterialTheme.colorScheme.error) }
+                } else null
             )
 
             OutlinedTextField(
