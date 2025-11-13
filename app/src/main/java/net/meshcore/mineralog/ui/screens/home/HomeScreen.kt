@@ -13,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -69,6 +71,7 @@ fun HomeScreen(
     var showImportCsvDialog by remember { mutableStateOf(false) }
     var selectedCsvUri by remember { mutableStateOf<Uri?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val hapticFeedback = LocalHapticFeedback.current
 
     // File picker for CSV export
     val csvExportLauncher = rememberLauncherForActivityResult(
@@ -426,39 +429,114 @@ fun HomeScreen(
                                     modifier = Modifier.fillMaxWidth().fillMaxHeight(0.8f),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        modifier = Modifier
-                                            .padding(32.dp)
-                                            .semantics {
-                                                contentDescription = "Empty collection state. Your collection is empty. Start building your mineral collection by adding your first specimen. Tap the add button below to get started."
+                                    // Quick Win #2: Different states for empty collection vs. no search results
+                                    if (searchQuery.isNotEmpty() || isFilterActive) {
+                                        // No search results state
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            modifier = Modifier
+                                                .padding(32.dp)
+                                                .semantics {
+                                                    contentDescription = "No search results found for '$searchQuery'. Try different keywords or clear filters to see all minerals."
+                                                }
+                                        ) {
+                                            Icon(
+                                                Icons.Default.SearchOff,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(64.dp),
+                                                tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+                                            )
+                                            Spacer(modifier = Modifier.height(16.dp))
+                                            Text(
+                                                text = "No Results Found",
+                                                style = MaterialTheme.typography.headlineSmall,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            if (searchQuery.isNotEmpty()) {
+                                                Text(
+                                                    text = "No minerals match \"$searchQuery\"",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                                )
                                             }
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Inventory,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(64.dp),
-                                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
-                                        )
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        Text(
-                                            text = "Your Collection is Empty",
-                                            style = MaterialTheme.typography.headlineSmall,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = "Start building your mineral collection by adding your first specimen",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                        )
-                                        Spacer(modifier = Modifier.height(24.dp))
-                                        Text(
-                                            text = "Tap the + button below to get started",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
+                                            if (isFilterActive) {
+                                                Text(
+                                                    text = "with the current filters",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.height(24.dp))
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                if (searchQuery.isNotEmpty()) {
+                                                    OutlinedButton(
+                                                        onClick = { viewModel.onSearchQueryChange("") }
+                                                    ) {
+                                                        Icon(
+                                                            Icons.Default.Clear,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.width(4.dp))
+                                                        Text("Clear Search")
+                                                    }
+                                                }
+                                                if (isFilterActive) {
+                                                    OutlinedButton(
+                                                        onClick = { viewModel.clearFilter() }
+                                                    ) {
+                                                        Icon(
+                                                            Icons.Default.FilterListOff,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.width(4.dp))
+                                                        Text("Clear Filters")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        // Empty collection state
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            modifier = Modifier
+                                                .padding(32.dp)
+                                                .semantics {
+                                                    contentDescription = "Empty collection state. Your collection is empty. Start building your mineral collection by adding your first specimen. Tap the add button below to get started."
+                                                }
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Inventory,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(64.dp),
+                                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                            )
+                                            Spacer(modifier = Modifier.height(16.dp))
+                                            Text(
+                                                text = "Your Collection is Empty",
+                                                style = MaterialTheme.typography.headlineSmall,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                text = "Start building your mineral collection by adding your first specimen",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                            )
+                                            Spacer(modifier = Modifier.height(24.dp))
+                                            Text(
+                                                text = "Tap the + button below to get started",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -550,15 +628,22 @@ fun HomeScreen(
             onDelete = {
                 val count = selectionCount
                 viewModel.deleteSelected()
-                // Show undo snackbar
+                // Quick Win #4: Indefinite Undo snackbar with haptic feedback
                 LaunchedEffect(Unit) {
                     val result = snackbarHostState.showSnackbar(
                         message = "Deleted $count mineral${if (count > 1) "s" else ""}",
                         actionLabel = "Undo",
-                        duration = SnackbarDuration.Long
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Indefinite
                     )
-                    if (result == SnackbarResult.ActionPerformed) {
-                        viewModel.undoDelete()
+                    when (result) {
+                        SnackbarResult.ActionPerformed -> {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.undoDelete()
+                        }
+                        SnackbarResult.Dismissed -> {
+                            // User dismissed, deletion is permanent
+                        }
                     }
                 }
             },

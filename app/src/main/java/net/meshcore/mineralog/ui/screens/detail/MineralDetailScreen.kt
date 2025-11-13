@@ -24,6 +24,7 @@ import net.meshcore.mineralog.domain.model.Mineral
 fun MineralDetailScreen(
     mineralId: String,
     onNavigateBack: () -> Unit,
+    onEditClick: (String) -> Unit = {},
     viewModel: MineralDetailViewModel = viewModel(
         factory = MineralDetailViewModelFactory(
             mineralId,
@@ -40,6 +41,23 @@ fun MineralDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                    }
+                },
+                actions = {
+                    // Quick Win #1: Edit button for quick access
+                    IconButton(
+                        onClick = { onEditClick(mineralId) },
+                        enabled = mineral != null
+                    ) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Edit mineral",
+                            tint = if (mineral != null) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                            }
+                        )
                     }
                 }
             )
