@@ -341,4 +341,38 @@
     <string name="acc_photo_thumbnail">Miniature photo %d sur %d</string>
     <string name="acc_loading">Chargement du contenu</string>
     <string name="acc_empty_list">Liste vide</string>
+
+    <!-- Filters (v1.3.0) -->
+    <string name="filter_title">Filtrer les minéraux</string>
+    <string name="filter_active_count">filtres actifs</string>
+    <string name="filter_presets">Préréglages enregistrés</string>
+    <string name="filter_by_group">Filtrer par groupe</string>
+    <string name="filter_by_country">Filtrer par pays</string>
+    <string name="filter_by_hardness">Filtrer par dureté</string>
+    <string name="filter_hardness_range">Dureté : %.1f - %.1f</string>
+    <string name="filter_by_status">Filtrer par statut</string>
+    <string name="filter_by_quality">Filtrer par qualité</string>
+    <string name="filter_quality_range">Qualité : %d - %d étoiles</string>
+    <string name="filter_by_photos">Filtrer par photos</string>
+    <string name="filter_has_photos">Avec photos</string>
+    <string name="filter_no_photos">Sans photos</string>
+    <string name="filter_by_fluorescence">Filtrer par fluorescence</string>
+    <string name="filter_fluorescent">Fluorescent</string>
+    <string name="filter_not_fluorescent">Non fluorescent</string>
+    <string name="filter_clear">Effacer</string>
+    <string name="filter_save_preset">Enregistrer le préréglage</string>
+    <string name="filter_apply">Appliquer</string>
+    <string name="filter_preset_name">Nom du préréglage</string>
+    <string name="save">Enregistrer</string>
+    <string name="cancel">Annuler</string>
+
+    <!-- Bulk Actions (v1.3.0) -->
+    <string name="bulk_actions_title">Actions groupées</string>
+    <string name="bulk_selected_count">%d minéraux sélectionnés</string>
+    <string name="bulk_action_delete">Supprimer la sélection</string>
+    <string name="bulk_action_export_csv">Exporter en CSV</string>
+    <string name="bulk_action_export_csv_desc">Exporter les minéraux sélectionnés avec colonnes personnalisables</string>
+    <string name="bulk_delete_confirm_title">Supprimer les minéraux ?</string>
+    <string name="bulk_delete_confirm_message">Cela supprimera définitivement %d minéraux et toutes les photos associées.</string>
+    <string name="delete">Supprimer</string>
 </resources>

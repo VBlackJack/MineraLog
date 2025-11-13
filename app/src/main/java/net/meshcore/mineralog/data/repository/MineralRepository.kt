@@ -8,6 +8,7 @@ import net.meshcore.mineralog.data.local.dao.PhotoDao
 import net.meshcore.mineralog.data.local.dao.ProvenanceDao
 import net.meshcore.mineralog.data.local.dao.StorageDao
 import net.meshcore.mineralog.data.mapper.*
+import net.meshcore.mineralog.data.model.FilterCriteria
 import net.meshcore.mineralog.domain.model.Mineral
 import net.meshcore.mineralog.domain.model.Photo
 import net.meshcore.mineralog.domain.model.Provenance
@@ -23,6 +24,7 @@ interface MineralRepository {
     fun getAllFlow(): Flow<List<Mineral>>
     suspend fun getAll(): List<Mineral>
     fun searchFlow(query: String): Flow<List<Mineral>>
+    fun filterAdvancedFlow(criteria: FilterCriteria): Flow<List<Mineral>>
     suspend fun getCount(): Int
     fun getCountFlow(): Flow<Int>
 
@@ -113,6 +115,32 @@ class MineralRepositoryImpl(
 
     override fun searchFlow(query: String): Flow<List<Mineral>> {
         return mineralDao.searchFlow(query).map { entities ->
+            entities.map { entity ->
+                val provenance = provenanceDao.getByMineralId(entity.id)
+                val storage = storageDao.getByMineralId(entity.id)
+                val photos = photoDao.getByMineralId(entity.id)
+                entity.toDomain(provenance, storage, photos)
+            }
+        }
+    }
+
+    override fun filterAdvancedFlow(criteria: FilterCriteria): Flow<List<Mineral>> {
+        // If criteria is empty, return all minerals
+        if (criteria.isEmpty()) {
+            return getAllFlow()
+        }
+
+        return mineralDao.filterAdvanced(
+            groups = criteria.groups.takeIf { it.isNotEmpty() },
+            countries = criteria.countries.takeIf { it.isNotEmpty() },
+            mohsMin = criteria.mohsMin,
+            mohsMax = criteria.mohsMax,
+            statusTypes = criteria.statusTypes.takeIf { it.isNotEmpty() },
+            qualityMin = criteria.qualityMin,
+            qualityMax = criteria.qualityMax,
+            hasPhotos = criteria.hasPhotos,
+            fluorescent = criteria.fluorescent
+        ).map { entities ->
             entities.map { entity ->
                 val provenance = provenanceDao.getByMineralId(entity.id)
                 val storage = storageDao.getByMineralId(entity.id)
