@@ -47,14 +47,17 @@
 - **Real-Time**: Debounced search for smooth UX (<300ms latency)
 
 ### 💾 Import/Export
-- **ZIP Format**: Complete backup with photos, encryption support (Argon2id + AES-256-GCM)
-- **CSV Format**: Spreadsheet-compatible, bulk editing friendly
-- **3 Import Modes**: Merge (upsert), Replace (fresh start), Map IDs (conflict resolution)
-- **Validation & Error Reporting**: Detailed logs of import issues
+- **ZIP Format**: Complete backup with photos, encryption support ready (Argon2id + AES-256-GCM)
+  - **3 Import Modes**: Merge (upsert), Replace (fresh start), Map IDs (conflict resolution)
+  - **Encryption UI**: Coming in v1.5
+- **CSV Format**: Export only (import coming in v1.5)
+  - Spreadsheet-compatible with selective column export
+  - Bulk editing friendly for reimport via ZIP workflow
+- **Validation & Error Reporting**: Detailed logs of import issues (ZIP only)
 
 ### 🔒 Security & Privacy
 - **Offline-First**: All data stored locally, no cloud dependency
-- **Encrypted Backups**: Argon2id KDF + AES-256-GCM cipher
+- **Encrypted Backups**: Crypto implementation ready (Argon2id KDF + AES-256-GCM cipher, UI integration in v1.5)
 - **No Telemetry**: Zero analytics without explicit consent
 - **Storage Access Framework**: Secure file access via Android SAF
 

@@ -41,7 +41,6 @@ fun ExportCsvDialog(
             CsvColumn("name", R.string.detail_label_name, CsvColumnCategory.BASIC),
             CsvColumn("group", R.string.detail_label_group, CsvColumnCategory.BASIC),
             CsvColumn("formula", R.string.detail_label_formula, CsvColumnCategory.BASIC),
-            CsvColumn("color", R.string.detail_label_color, CsvColumnCategory.BASIC),
             CsvColumn("streak", R.string.detail_label_streak, CsvColumnCategory.BASIC),
             CsvColumn("luster", R.string.detail_label_luster, CsvColumnCategory.BASIC),
 
@@ -51,9 +50,7 @@ fun ExportCsvDialog(
             CsvColumn("specific_gravity", R.string.detail_label_specific_gravity, CsvColumnCategory.PHYSICAL),
             CsvColumn("cleavage", R.string.detail_label_cleavage, CsvColumnCategory.PHYSICAL),
             CsvColumn("fracture", R.string.detail_label_fracture, CsvColumnCategory.PHYSICAL),
-            CsvColumn("tenacity", R.string.field_tenacity, CsvColumnCategory.PHYSICAL),
             CsvColumn("diaphaneity", R.string.field_diaphaneity, CsvColumnCategory.PHYSICAL),
-            CsvColumn("habitus", R.string.field_habitus, CsvColumnCategory.PHYSICAL),
 
             // Special Properties
             CsvColumn("fluorescence", R.string.field_fluorescence, CsvColumnCategory.SPECIAL),

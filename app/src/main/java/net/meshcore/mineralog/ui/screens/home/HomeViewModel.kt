@@ -134,11 +134,9 @@ class HomeViewModel(
 
     fun deleteSelected() {
         viewModelScope.launch {
-            // Delete all selected minerals efficiently
+            // Batch delete all selected minerals efficiently
             val idsToDelete = _selectedIds.value.toList()
-            idsToDelete.forEach { id ->
-                mineralRepository.delete(id)
-            }
+            mineralRepository.deleteByIds(idsToDelete)
             exitSelectionMode()
         }
     }

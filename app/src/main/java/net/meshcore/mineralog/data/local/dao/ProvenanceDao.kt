@@ -25,6 +25,9 @@ interface ProvenanceDao {
     @Query("DELETE FROM provenances WHERE mineralId = :mineralId")
     suspend fun deleteByMineralId(mineralId: String)
 
+    @Query("DELETE FROM provenances WHERE mineralId IN (:mineralIds)")
+    suspend fun deleteByMineralIds(mineralIds: List<String>)
+
     @Query("DELETE FROM provenances")
     suspend fun deleteAll()
 
