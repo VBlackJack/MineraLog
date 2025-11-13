@@ -10,6 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.meshcore.mineralog.MineraLogApplication
@@ -51,7 +55,11 @@ fun MineralDetailScreen(
         } ?: Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = "Loading mineral details"
+                },
             contentAlignment = androidx.compose.ui.Alignment.Center
         ) {
             CircularProgressIndicator()

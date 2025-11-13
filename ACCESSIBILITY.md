@@ -365,9 +365,24 @@ Run accessibility tests:
 # Run all accessibility tests
 ./gradlew connectedAndroidTest
 
-# Run specific test class
+# Run specific test class (AddMineralScreen tests)
 ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=net.meshcore.mineralog.ui.accessibility.ComposeAccessibilityTest
+
+# Run automated accessibility checks (WCAG 2.1 AA validation)
+./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=net.meshcore.mineralog.ui.accessibility.AutomatedAccessibilityTests
 ```
+
+**New: Automated Accessibility Test Suite (v1.6.1)**
+
+Five core automated checks validate WCAG 2.1 AA compliance:
+
+1. ✅ **Touch Target Size Validator** - Verifies all interactive elements ≥ 48dp
+2. ✅ **ContentDescription Coverage** - Ensures all icons have proper descriptions
+3. ✅ **Semantic Properties** - Validates custom components have semantic attributes
+4. ✅ **Live Region Announcements** - Checks loading/error states announce properly
+5. ✅ **Text Scaling Support** - Tests UI at 200% font scale
+
+See `AutomatedAccessibilityTests.kt` for implementation details.
 
 ### CI/CD Integration
 
@@ -412,6 +427,9 @@ Add to your CI pipeline (`.github/workflows/android.yml`):
 ### MineraLog-Specific
 
 - **Accessibility Tests**: `app/src/androidTest/java/.../ui/accessibility/`
+  - `ComposeAccessibilityTest.kt` - Screen-specific tests
+  - `AutomatedAccessibilityTests.kt` - WCAG 2.1 AA automated validation suite (NEW)
+- **Accessibility Spec**: `DOCS/UX_ACCESSIBILITY_IMPROVEMENTS_SPEC.md` - Full improvement roadmap (NEW)
 - **Tooltip Components**: `app/src/main/java/.../ui/components/TooltipTextField.kt`
 - **Example Screens**: See `AddMineralScreen.kt` for reference implementation
 
@@ -543,3 +561,4 @@ MineraLog is **WCAG 2.1 AA Compliant**. Add this badge to README.md:
 
 *Last updated: 2025-11-13*
 *Contributors: Claude, MineraLog Team*
+*Version: v1.6.1*
