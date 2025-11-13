@@ -2,10 +2,13 @@ package net.meshcore.mineralog.data.repository
 
 import android.content.Context
 import android.net.Uri
+import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import net.meshcore.mineralog.data.crypto.DecryptionException
+import net.meshcore.mineralog.data.crypto.PasswordBasedCrypto
 import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.mapper.toDomain
 import net.meshcore.mineralog.domain.model.Mineral
@@ -79,8 +82,16 @@ class BackupRepositoryImpl(
             // Create ZIP
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
                 ZipOutputStream(outputStream).use { zip ->
+                    // Prepare minerals.json data
+                    val mineralsJsonBytes = json.encodeToString(minerals).toByteArray()
+
+                    // Encrypt if password provided
+                    val encryptionResult = if (password != null) {
+                        PasswordBasedCrypto.encrypt(mineralsJsonBytes, password)
+                    } else null
+
                     // manifest.json
-                    val manifest = mapOf(
+                    val manifest = mutableMapOf<String, Any>(
                         "app" to "MineraLog",
                         "schemaVersion" to "1.0.0",
                         "exportedAt" to Instant.now().toString(),
@@ -90,13 +101,27 @@ class BackupRepositoryImpl(
                         ),
                         "encrypted" to (password != null)
                     )
+
+                    // Add encryption metadata if encrypted
+                    if (encryptionResult != null) {
+                        manifest["encryption"] = mapOf(
+                            "algorithm" to "Argon2id+AES-256-GCM",
+                            "salt" to encryptionResult.encodedSalt,
+                            "iv" to encryptionResult.encodedIv
+                        )
+                    }
+
                     zip.putNextEntry(ZipEntry("manifest.json"))
                     zip.write(json.encodeToString(manifest).toByteArray())
                     zip.closeEntry()
 
-                    // minerals.json
+                    // minerals.json (encrypted or plaintext)
                     zip.putNextEntry(ZipEntry("minerals.json"))
-                    zip.write(json.encodeToString(minerals).toByteArray())
+                    if (encryptionResult != null) {
+                        zip.write(encryptionResult.ciphertext)
+                    } else {
+                        zip.write(mineralsJsonBytes)
+                    }
                     zip.closeEntry()
 
                     // media files
@@ -128,12 +153,17 @@ class BackupRepositoryImpl(
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 ZipInputStream(inputStream).use { zip ->
                     var entry: ZipEntry? = zip.nextEntry
-                    var mineralsJson: String? = null
+                    var mineralsBytes: ByteArray? = null
+                    var manifestJson: String? = null
 
+                    // First pass: read manifest and minerals.json
                     while (entry != null) {
                         when {
+                            entry.name == "manifest.json" -> {
+                                manifestJson = zip.readBytes().toString(Charsets.UTF_8)
+                            }
                             entry.name == "minerals.json" -> {
-                                mineralsJson = zip.readBytes().toString(Charsets.UTF_8)
+                                mineralsBytes = zip.readBytes()
                             }
                             entry.name.startsWith("media/") -> {
                                 val file = File(context.filesDir, entry.name)
@@ -143,6 +173,41 @@ class BackupRepositoryImpl(
                         }
                         zip.closeEntry()
                         entry = zip.nextEntry
+                    }
+
+                    // Parse manifest to check for encryption
+                    val manifest = manifestJson?.let { json.decodeFromString<Map<String, Any>>(it) }
+                    val isEncrypted = manifest?.get("encrypted") as? Boolean ?: false
+
+                    // Decrypt minerals.json if necessary
+                    val mineralsJson = if (isEncrypted) {
+                        if (password == null) {
+                            return@withContext Result.failure(Exception("This backup is encrypted. Please provide a password."))
+                        }
+
+                        // Extract encryption metadata
+                        val encryptionMap = manifest?.get("encryption") as? Map<*, *>
+                            ?: return@withContext Result.failure(Exception("Encrypted backup is missing encryption metadata"))
+
+                        val encodedSalt = encryptionMap["salt"] as? String
+                            ?: return@withContext Result.failure(Exception("Missing encryption salt"))
+                        val encodedIv = encryptionMap["iv"] as? String
+                            ?: return@withContext Result.failure(Exception("Missing encryption IV"))
+
+                        // Decrypt
+                        try {
+                            val decryptedBytes = PasswordBasedCrypto.decryptFromBase64(
+                                encodedCiphertext = Base64.encodeToString(mineralsBytes, Base64.NO_WRAP),
+                                password = password,
+                                encodedSalt = encodedSalt,
+                                encodedIv = encodedIv
+                            )
+                            String(decryptedBytes, Charsets.UTF_8)
+                        } catch (e: DecryptionException) {
+                            return@withContext Result.failure(Exception("Failed to decrypt backup. Wrong password or corrupted data.", e))
+                        }
+                    } else {
+                        mineralsBytes?.toString(Charsets.UTF_8)
                     }
 
                     // Import minerals with transaction for data integrity
