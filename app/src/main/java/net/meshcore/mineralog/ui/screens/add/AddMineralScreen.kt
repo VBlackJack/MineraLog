@@ -3,22 +3,28 @@ package net.meshcore.mineralog.ui.screens.add
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.meshcore.mineralog.MineraLogApplication
+import net.meshcore.mineralog.ui.components.TooltipTextField
+import net.meshcore.mineralog.ui.components.MineralFieldTooltips
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,7 +33,8 @@ fun AddMineralScreen(
     onMineralAdded: (String) -> Unit,
     viewModel: AddMineralViewModel = viewModel(
         factory = AddMineralViewModelFactory(
-            (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository
+            (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
+            (LocalContext.current.applicationContext as MineraLogApplication).settingsRepository
         )
     )
 ) {
@@ -35,11 +42,33 @@ fun AddMineralScreen(
     val group by viewModel.group.collectAsState()
     val formula by viewModel.formula.collectAsState()
     val notes by viewModel.notes.collectAsState()
+    val diaphaneity by viewModel.diaphaneity.collectAsState()
+    val cleavage by viewModel.cleavage.collectAsState()
+    val fracture by viewModel.fracture.collectAsState()
+    val luster by viewModel.luster.collectAsState()
+    val streak by viewModel.streak.collectAsState()
+    val habit by viewModel.habit.collectAsState()
+    val crystalSystem by viewModel.crystalSystem.collectAsState()
     val saveState by viewModel.saveState.collectAsState()
+    val draftSavedIndicator by viewModel.draftSavedIndicator.collectAsState()
 
     val isSaving = saveState is SaveMineralState.Saving
-    val hasUnsavedChanges = name.isNotBlank() || group.isNotBlank() || formula.isNotBlank() || notes.isNotBlank()
+    val hasUnsavedChanges = name.isNotBlank() || group.isNotBlank() || formula.isNotBlank() ||
+            notes.isNotBlank() || diaphaneity.isNotBlank() || cleavage.isNotBlank() ||
+            fracture.isNotBlank() || luster.isNotBlank() || streak.isNotBlank() ||
+            habit.isNotBlank() || crystalSystem.isNotBlank()
     var showDiscardDialog by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
+    // Save action for keyboard submit
+    val saveAction: () -> Unit = {
+        if (name.isNotBlank() && !isSaving) {
+            focusManager.clearFocus()
+            viewModel.saveMineral { mineralId ->
+                onMineralAdded(mineralId)
+            }
+        }
+    }
 
     // Handle back button with unsaved changes warning
     BackHandler(enabled = hasUnsavedChanges && !isSaving) {
@@ -86,6 +115,27 @@ fun AddMineralScreen(
                     }
                 },
                 actions = {
+                    // Draft saved indicator
+                    if (draftSavedIndicator) {
+                        Row(
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text(
+                                text = "Draft saved",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
                     TextButton(
                         onClick = {
                             viewModel.saveMineral { mineralId ->
@@ -129,6 +179,7 @@ fun AddMineralScreen(
                         }
                     },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 supportingText = if (name.isBlank()) {
                     { Text("Name is required", color = MaterialTheme.colorScheme.error) }
                 } else null
@@ -139,7 +190,8 @@ fun AddMineralScreen(
                 onValueChange = { viewModel.onGroupChange(it) },
                 label = { Text("Group") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
             OutlinedTextField(
@@ -147,7 +199,8 @@ fun AddMineralScreen(
                 onValueChange = { viewModel.onFormulaChange(it) },
                 label = { Text("Chemical Formula") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
             OutlinedTextField(
@@ -157,6 +210,85 @@ fun AddMineralScreen(
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 4,
                 maxLines = 8
+            )
+
+            // Technical Properties Section
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            Text(
+                text = "Technical Properties",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Text(
+                text = "Optional fields with inline help. Tap ⓘ for explanations.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            TooltipTextField(
+                value = diaphaneity,
+                onValueChange = { viewModel.onDiaphaneityChange(it) },
+                label = "Diaphaneity",
+                tooltipText = MineralFieldTooltips.DIAPHANEITY,
+                placeholder = "e.g., transparent, translucent, opaque",
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+
+            TooltipTextField(
+                value = cleavage,
+                onValueChange = { viewModel.onCleavageChange(it) },
+                label = "Cleavage",
+                tooltipText = MineralFieldTooltips.CLEAVAGE,
+                placeholder = "e.g., perfect, good, poor, none",
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+
+            TooltipTextField(
+                value = fracture,
+                onValueChange = { viewModel.onFractureChange(it) },
+                label = "Fracture",
+                tooltipText = MineralFieldTooltips.FRACTURE,
+                placeholder = "e.g., conchoidal, uneven, splintery",
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+
+            TooltipTextField(
+                value = luster,
+                onValueChange = { viewModel.onLusterChange(it) },
+                label = "Luster",
+                tooltipText = MineralFieldTooltips.LUSTER,
+                placeholder = "e.g., metallic, vitreous, pearly",
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+
+            TooltipTextField(
+                value = streak,
+                onValueChange = { viewModel.onStreakChange(it) },
+                label = "Streak",
+                tooltipText = MineralFieldTooltips.STREAK,
+                placeholder = "e.g., white, black, red",
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+
+            TooltipTextField(
+                value = habit,
+                onValueChange = { viewModel.onHabitChange(it) },
+                label = "Habit",
+                tooltipText = MineralFieldTooltips.HABIT,
+                placeholder = "e.g., prismatic, tabular, massive",
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+
+            TooltipTextField(
+                value = crystalSystem,
+                onValueChange = { viewModel.onCrystalSystemChange(it) },
+                label = "Crystal System",
+                tooltipText = MineralFieldTooltips.CRYSTAL_SYSTEM,
+                placeholder = "e.g., cubic, hexagonal, monoclinic",
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { saveAction() })
             )
         }
     }

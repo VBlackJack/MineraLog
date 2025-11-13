@@ -3,11 +3,15 @@ package net.meshcore.mineralog.ui.screens.add
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.repository.MineralRepository
+import net.meshcore.mineralog.data.repository.SettingsRepository
 import net.meshcore.mineralog.domain.model.Mineral
 import java.time.Instant
 import java.util.UUID
@@ -19,8 +23,10 @@ sealed class SaveMineralState {
     data class Error(val message: String) : SaveMineralState()
 }
 
+@OptIn(FlowPreview::class)
 class AddMineralViewModel(
-    private val mineralRepository: MineralRepository
+    private val mineralRepository: MineralRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _name = MutableStateFlow("")
@@ -35,8 +41,130 @@ class AddMineralViewModel(
     private val _notes = MutableStateFlow("")
     val notes: StateFlow<String> = _notes.asStateFlow()
 
+    // Technical mineral properties with tooltips
+    private val _diaphaneity = MutableStateFlow("")
+    val diaphaneity: StateFlow<String> = _diaphaneity.asStateFlow()
+
+    private val _cleavage = MutableStateFlow("")
+    val cleavage: StateFlow<String> = _cleavage.asStateFlow()
+
+    private val _fracture = MutableStateFlow("")
+    val fracture: StateFlow<String> = _fracture.asStateFlow()
+
+    private val _luster = MutableStateFlow("")
+    val luster: StateFlow<String> = _luster.asStateFlow()
+
+    private val _streak = MutableStateFlow("")
+    val streak: StateFlow<String> = _streak.asStateFlow()
+
+    private val _habit = MutableStateFlow("")
+    val habit: StateFlow<String> = _habit.asStateFlow()
+
+    private val _crystalSystem = MutableStateFlow("")
+    val crystalSystem: StateFlow<String> = _crystalSystem.asStateFlow()
+
     private val _saveState = MutableStateFlow<SaveMineralState>(SaveMineralState.Idle)
     val saveState: StateFlow<SaveMineralState> = _saveState.asStateFlow()
+
+    private val _draftSavedIndicator = MutableStateFlow(false)
+    val draftSavedIndicator: StateFlow<Boolean> = _draftSavedIndicator.asStateFlow()
+
+    init {
+        // Load draft on initialization
+        loadDraft()
+
+        // Auto-save with debounce (500ms)
+        viewModelScope.launch {
+            combine(
+                _name,
+                _group,
+                _formula,
+                _notes,
+                _diaphaneity,
+                _cleavage,
+                _fracture,
+                _luster,
+                _streak,
+                _habit,
+                _crystalSystem
+            ) { fields -> fields }
+                .debounce(500) // Wait 500ms after last change
+                .collect {
+                    // Only save if any field has content
+                    val hasContent = it.any { field -> field.toString().isNotBlank() }
+                    if (hasContent) {
+                        saveDraft()
+                    }
+                }
+        }
+    }
+
+    private fun loadDraft() {
+        viewModelScope.launch {
+            val name = settingsRepository.getDraftName().kotlinx.coroutines.flow.first()
+            if (name.isNotEmpty()) _name.value = name
+        }
+        viewModelScope.launch {
+            val group = settingsRepository.getDraftGroup().kotlinx.coroutines.flow.first()
+            if (group.isNotEmpty()) _group.value = group
+        }
+        viewModelScope.launch {
+            val formula = settingsRepository.getDraftFormula().kotlinx.coroutines.flow.first()
+            if (formula.isNotEmpty()) _formula.value = formula
+        }
+        viewModelScope.launch {
+            val notes = settingsRepository.getDraftNotes().kotlinx.coroutines.flow.first()
+            if (notes.isNotEmpty()) _notes.value = notes
+        }
+        viewModelScope.launch {
+            val diaphaneity = settingsRepository.getDraftDiaphaneity().kotlinx.coroutines.flow.first()
+            if (diaphaneity.isNotEmpty()) _diaphaneity.value = diaphaneity
+        }
+        viewModelScope.launch {
+            val cleavage = settingsRepository.getDraftCleavage().kotlinx.coroutines.flow.first()
+            if (cleavage.isNotEmpty()) _cleavage.value = cleavage
+        }
+        viewModelScope.launch {
+            val fracture = settingsRepository.getDraftFracture().kotlinx.coroutines.flow.first()
+            if (fracture.isNotEmpty()) _fracture.value = fracture
+        }
+        viewModelScope.launch {
+            val luster = settingsRepository.getDraftLuster().kotlinx.coroutines.flow.first()
+            if (luster.isNotEmpty()) _luster.value = luster
+        }
+        viewModelScope.launch {
+            val streak = settingsRepository.getDraftStreak().kotlinx.coroutines.flow.first()
+            if (streak.isNotEmpty()) _streak.value = streak
+        }
+        viewModelScope.launch {
+            val habit = settingsRepository.getDraftHabit().kotlinx.coroutines.flow.first()
+            if (habit.isNotEmpty()) _habit.value = habit
+        }
+        viewModelScope.launch {
+            val crystalSystem = settingsRepository.getDraftCrystalSystem().kotlinx.coroutines.flow.first()
+            if (crystalSystem.isNotEmpty()) _crystalSystem.value = crystalSystem
+        }
+    }
+
+    private suspend fun saveDraft() {
+        settingsRepository.setDraftName(_name.value)
+        settingsRepository.setDraftGroup(_group.value)
+        settingsRepository.setDraftFormula(_formula.value)
+        settingsRepository.setDraftNotes(_notes.value)
+        settingsRepository.setDraftDiaphaneity(_diaphaneity.value)
+        settingsRepository.setDraftCleavage(_cleavage.value)
+        settingsRepository.setDraftFracture(_fracture.value)
+        settingsRepository.setDraftLuster(_luster.value)
+        settingsRepository.setDraftStreak(_streak.value)
+        settingsRepository.setDraftHabit(_habit.value)
+        settingsRepository.setDraftCrystalSystem(_crystalSystem.value)
+        settingsRepository.setDraftTimestamp(System.currentTimeMillis())
+
+        // Show "Draft saved" indicator briefly
+        _draftSavedIndicator.value = true
+        kotlinx.coroutines.delay(2000)
+        _draftSavedIndicator.value = false
+    }
 
     fun onNameChange(value: String) {
         _name.value = value
@@ -53,6 +181,34 @@ class AddMineralViewModel(
 
     fun onNotesChange(value: String) {
         _notes.value = value
+    }
+
+    fun onDiaphaneityChange(value: String) {
+        _diaphaneity.value = value
+    }
+
+    fun onCleavageChange(value: String) {
+        _cleavage.value = value
+    }
+
+    fun onFractureChange(value: String) {
+        _fracture.value = value
+    }
+
+    fun onLusterChange(value: String) {
+        _luster.value = value
+    }
+
+    fun onStreakChange(value: String) {
+        _streak.value = value
+    }
+
+    fun onHabitChange(value: String) {
+        _habit.value = value
+    }
+
+    fun onCrystalSystemChange(value: String) {
+        _crystalSystem.value = value
     }
 
     fun saveMineral(onSuccess: (String) -> Unit) {
@@ -78,12 +234,23 @@ class AddMineralViewModel(
                     group = _group.value.trim().takeIf { it.isNotBlank() },
                     formula = _formula.value.trim().takeIf { it.isNotBlank() },
                     notes = _notes.value.trim().takeIf { it.isNotBlank() },
+                    diaphaneity = _diaphaneity.value.trim().takeIf { it.isNotBlank() },
+                    cleavage = _cleavage.value.trim().takeIf { it.isNotBlank() },
+                    fracture = _fracture.value.trim().takeIf { it.isNotBlank() },
+                    luster = _luster.value.trim().takeIf { it.isNotBlank() },
+                    streak = _streak.value.trim().takeIf { it.isNotBlank() },
+                    habit = _habit.value.trim().takeIf { it.isNotBlank() },
+                    crystalSystem = _crystalSystem.value.trim().takeIf { it.isNotBlank() },
                     status = "incomplete",
                     createdAt = Instant.now(),
                     updatedAt = Instant.now()
                 )
                 mineralRepository.insert(mineral)
                 _saveState.value = SaveMineralState.Success(mineralId)
+
+                // Clear draft after successful save
+                settingsRepository.clearDraft()
+
                 onSuccess(mineralId)
             } catch (e: Exception) {
                 _saveState.value = SaveMineralState.Error(e.message ?: "Failed to save mineral")
@@ -97,12 +264,13 @@ class AddMineralViewModel(
 }
 
 class AddMineralViewModelFactory(
-    private val mineralRepository: MineralRepository
+    private val mineralRepository: MineralRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AddMineralViewModel::class.java)) {
-            return AddMineralViewModel(mineralRepository) as T
+            return AddMineralViewModel(mineralRepository, settingsRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
