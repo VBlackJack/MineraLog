@@ -195,7 +195,9 @@ fun FilterBottomSheet(
                     Text(
                         text = stringResource(R.string.filter_hardness_range, mohsMin, mohsMax),
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .semantics { contentDescription = "" } // Decorative - slider has stateDescription
                     )
 
                     RangeSlider(
@@ -263,7 +265,9 @@ fun FilterBottomSheet(
                     Text(
                         text = stringResource(R.string.filter_quality_range, qualityMin, qualityMax),
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .semantics { contentDescription = "" } // Decorative - slider has stateDescription
                     )
 
                     RangeSlider(
@@ -290,8 +294,14 @@ fun FilterBottomSheet(
             // Photo filter
             FilterSection(
                 title = stringResource(R.string.filter_by_photos),
-                expanded = false,
-                onExpandChange = {}
+                expanded = "photos" in expandedSections,
+                onExpandChange = { expanded ->
+                    expandedSections = if (expanded) {
+                        expandedSections + "photos"
+                    } else {
+                        expandedSections - "photos"
+                    }
+                }
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -321,8 +331,14 @@ fun FilterBottomSheet(
             // Fluorescence filter
             FilterSection(
                 title = stringResource(R.string.filter_by_fluorescence),
-                expanded = false,
-                onExpandChange = {}
+                expanded = "fluorescence" in expandedSections,
+                onExpandChange = { expanded ->
+                    expandedSections = if (expanded) {
+                        expandedSections + "fluorescence"
+                    } else {
+                        expandedSections - "fluorescence"
+                    }
+                }
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

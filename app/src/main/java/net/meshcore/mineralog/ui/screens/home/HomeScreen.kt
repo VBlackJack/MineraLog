@@ -577,6 +577,31 @@ fun HomeScreen(
             CircularProgressIndicator()
         }
     }
+
+    // Loading indicator for label generation (Quick Win #1)
+    if (labelGenerationState is LabelGenerationState.Generating) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = "Generating PDF labels"
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CircularProgressIndicator()
+                Text(
+                    text = "Generating labels...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
 }
 
 @Composable
