@@ -196,6 +196,100 @@ class QrCodeGeneratorTest {
         assertNotNull(bitmap4)
     }
 
+    // ===== Phase 3 (P2) - Additional Coverage Tests =====
+
+    @Test
+    fun `encodeMineralUri handles empty ID`() {
+        val emptyId = ""
+
+        val encoded = QrCodeGenerator.encodeMineralUri(emptyId)
+
+        assertEquals("mineralog://mineral/", encoded)
+        // Should still encode properly even with empty ID
+        assertTrue(encoded.startsWith("mineralog://mineral/"))
+    }
+
+    @Test
+    fun `decodeMineralUri handles empty URI`() {
+        val emptyUri = ""
+
+        val decoded = QrCodeGenerator.decodeMineralUri(emptyUri)
+
+        assertEquals("", decoded)
+    }
+
+    @Test
+    fun `encodeMineralUri handles very long ID`() {
+        val longId = "a".repeat(500)
+
+        val encoded = QrCodeGenerator.encodeMineralUri(longId)
+
+        assertEquals("mineralog://mineral/$longId", encoded)
+        assertTrue(encoded.length > 500)
+    }
+
+    @Test
+    fun `decodeMineralUri handles URI with query parameters`() {
+        // Edge case: URI with query params (shouldn't happen but test defensively)
+        val uriWithParams = "mineralog://mineral/test-id?param=value"
+
+        val decoded = QrCodeGenerator.decodeMineralUri(uriWithParams)
+
+        // Should decode the full ID including query params
+        assertEquals("test-id?param=value", decoded)
+    }
+
+    @Test
+    fun `encodeMineralUri handles special URL characters`() {
+        // Test with characters that might need URL encoding
+        val specialId = "id with spaces & symbols!@#$%"
+
+        val encoded = QrCodeGenerator.encodeMineralUri(specialId)
+
+        assertEquals("mineralog://mineral/$specialId", encoded)
+        // Note: In production, these might need URL encoding
+        // but current implementation passes them through as-is
+    }
+
+    @Test
+    @EnabledIf("isAndroidEnvironmentAvailable")
+    fun `generate handles minimum size`() {
+        val data = "test"
+        val minSize = 32 // Very small QR code
+
+        val bitmap = QrCodeGenerator.generate(data, size = minSize)
+
+        assertNotNull(bitmap)
+        assertEquals(minSize, bitmap.width)
+        assertEquals(minSize, bitmap.height)
+    }
+
+    @Test
+    @EnabledIf("isAndroidEnvironmentAvailable")
+    fun `generate handles maximum practical size`() {
+        val data = "test"
+        val maxSize = 2048 // Large QR code
+
+        val bitmap = QrCodeGenerator.generate(data, size = maxSize)
+
+        assertNotNull(bitmap)
+        assertEquals(maxSize, bitmap.width)
+        assertEquals(maxSize, bitmap.height)
+    }
+
+    @Test
+    @EnabledIf("isAndroidEnvironmentAvailable")
+    fun `generateBatch handles duplicate IDs`() {
+        val mineralIds = listOf("id-1", "id-2", "id-1") // Duplicate id-1
+
+        val results = QrCodeGenerator.generateBatch(mineralIds)
+
+        // Should only generate 2 unique QR codes (last wins)
+        assertEquals(2, results.size)
+        assertTrue(results.containsKey("id-1"))
+        assertTrue(results.containsKey("id-2"))
+    }
+
     // Helper method for conditional test execution
     companion object {
         @JvmStatic

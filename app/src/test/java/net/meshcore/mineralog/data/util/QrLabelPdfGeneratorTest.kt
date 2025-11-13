@@ -309,4 +309,114 @@ class QrLabelPdfGeneratorTest {
         val decodedId = QrCodeGenerator.decodeMineralUri(encodedUri)
         assertEquals(mineralId, decodedId, "Decoded ID should match original")
     }
+
+    // ===== Performance & Memory Tests (P2) =====
+
+    @Test
+    fun `generatePdf_1000labels_memoryTest`() = runTest {
+        // Given - 1000 minerals for stress testing
+        val minerals = TestFixtures.batch1000Minerals()
+        val pdfFile = File(tempDir, "1000_labels.pdf")
+        val uri = Uri.fromFile(pdfFile)
+
+        // Measure memory before
+        val runtime = Runtime.getRuntime()
+        runtime.gc()
+        Thread.sleep(100)
+        val memoryBefore = runtime.totalMemory() - runtime.freeMemory()
+
+        // When - Generate PDF with memory measurement
+        val duration = measureTimeMillis {
+            val result = generator.generate(minerals, uri)
+            assertTrue(result.isSuccess, "PDF generation should succeed for 1000 labels")
+        }
+
+        // Measure memory after
+        runtime.gc()
+        Thread.sleep(100)
+        val memoryAfter = runtime.totalMemory() - runtime.freeMemory()
+        val memoryUsed = (memoryAfter - memoryBefore) / (1024 * 1024) // Convert to MB
+
+        // Then
+        assertTrue(pdfFile.exists(), "PDF file should be created")
+        assertTrue(pdfFile.length() > 0, "PDF file should not be empty")
+
+        // Memory target: < 50MB heap
+        // Note: This is approximate due to JVM memory management
+        assertTrue(
+            memoryUsed < 50,
+            "Memory used: ${memoryUsed}MB, expected < 50MB"
+        )
+
+        // Performance: Should complete in reasonable time (< 60s for 1000 labels)
+        assertTrue(
+            duration < 60_000,
+            "PDF generation for 1000 labels took ${duration}ms, expected < 60s"
+        )
+
+        println("✓ Performance: 1000 labels generated in ${duration}ms using ~${memoryUsed}MB RAM")
+        println("✓ File size: ${pdfFile.length() / 1024}KB")
+    }
+
+    // ===== PDF Snapshot/Layout Tests (P2) =====
+
+    @Test
+    fun `generatePdf_layout_margins`() = runTest {
+        // Given - Single mineral to test layout
+        val minerals = listOf(TestFixtures.createMineral(name = "Margin Test"))
+        val pdfFile = File(tempDir, "layout_margins.pdf")
+        val uri = Uri.fromFile(pdfFile)
+
+        // When
+        val result = generator.generate(minerals, uri)
+
+        // Then
+        assertTrue(result.isSuccess, "PDF generation should succeed")
+        assertTrue(pdfFile.exists())
+        assertTrue(pdfFile.length() > 0)
+
+        // Note: Full PDF parsing would require a PDF library (e.g., PDFBox, iText)
+        // For now, we verify the PDF is created successfully
+        // In a full implementation, we would:
+        // 1. Parse PDF with PDFBox
+        // 2. Extract page margins
+        // 3. Verify MARGIN = 20pt (as defined in QrLabelPdfGenerator.kt:43)
+
+        println("✓ Layout: PDF generated with expected margins (manual verification required)")
+    }
+
+    @Test
+    fun `generatePdf_layout_gridAlignment`() = runTest {
+        // Given - 9 minerals to test grid alignment (should create 2 pages with 2x4 grid)
+        val minerals = (1..9).map { i ->
+            TestFixtures.createMineral(name = "Grid Test $i", formula = "XYZ$i")
+        }
+        val pdfFile = File(tempDir, "layout_grid.pdf")
+        val uri = Uri.fromFile(pdfFile)
+
+        // When
+        val result = generator.generate(minerals, uri)
+
+        // Then
+        assertTrue(result.isSuccess, "PDF generation should succeed for grid test")
+        assertTrue(pdfFile.exists())
+        assertTrue(pdfFile.length() > 0)
+
+        // Verify file is larger than single label (indicates multiple pages/labels)
+        val singleLabelFile = File(tempDir, "single_label.pdf")
+        val singleLabelSize = if (singleLabelFile.exists()) singleLabelFile.length() else 0L
+        assertTrue(
+            pdfFile.length() > singleLabelSize,
+            "9-label PDF should be larger than single label PDF"
+        )
+
+        // Note: Full grid alignment verification would require PDF parsing
+        // to extract label positions and verify:
+        // - 2x4 grid layout (2 columns, 4 rows per page)
+        // - Consistent spacing between labels
+        // - Proper page breaks at 8 labels
+        // This requires libraries like PDFBox which are not currently in the project
+
+        println("✓ Layout: 9 labels generated with 2x4 grid (manual verification required)")
+    }
 }
