@@ -22,6 +22,7 @@ fun HomeScreen(
     onMineralClick: (String) -> Unit,
     onAddClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onStatisticsClick: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository
@@ -36,6 +37,9 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("MineraLog") },
                 actions = {
+                    IconButton(onClick = onStatisticsClick) {
+                        Icon(Icons.Default.BarChart, contentDescription = "Statistics")
+                    }
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }

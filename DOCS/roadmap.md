@@ -1,6 +1,6 @@
 # MineraLog Roadmap
 
-## Current Version: v1.2.0 (2025-11-12)
+## Current Version: v1.2.1 (2025-11-12)
 
 ---
 
@@ -81,32 +81,76 @@
 
 ---
 
-## 🔜 v1.2.1 - Filter UI & Export Enhancements (Next Patch)
+## ✅ Completed in v1.2.1 (2025-11-12)
+
+### Critical Fixes ⚡
+- ✅ **DI Container Implementation**
+  - Application-scoped repositories (statisticsRepository, filterPresetRepository)
+  - Manual DI pattern in MineraLogApplication
+  - Removed TODO placeholder in NavHost
+  - Statistics feature now fully functional
+
+- ✅ **HomeScreen Statistics Integration**
+  - Added BarChart icon button in TopAppBar
+  - onStatisticsClick parameter in HomeScreen signature
+  - Direct navigation to Statistics screen
+  - Material 3 compliant UI/UX
+
+- ✅ **French i18n Completion**
+  - 10 new statistics strings translated (FR)
+  - statistics_title, statistics_overview, statistics_time_based, etc.
+  - Complete bilingual support (EN/FR)
+
+### Technical Improvements
+- ✅ Version bumped to 1.2.1 (versionCode 3)
+- ✅ No breaking changes
+- ✅ Full backward compatibility
+
+### Known Limitations (Deferred to v1.3.0)
+- ⏸️ Filter preset UI not implemented (backend ready)
+- ⏸️ CSV column selection UI not implemented (backend ready)
+- ⏸️ Statistics export to PDF (future enhancement)
+
+---
+
+## 🎯 v1.3.0 - Comparator & Bulk Operations (Q1 2026)
 
 **Priority:** High
-**Effort:** Small (1 week)
+**Effort:** Medium (3-4 weeks)
 
 ### Features
-- **Statistics Dashboard**
-  - Total minerals, total value, average value
-  - Distribution charts: by group (pie), by country (bar), by hardness (bar)
-  - Most common group, most valuable specimen
-  - Completeness metrics: % fully documented
-  - Time-based stats: added this month/year
+- **Mineral Comparator**
+  - Select 2-3 minerals for side-by-side comparison
+  - Diff highlighting for different values
+  - Sticky headers for scrolling long comparisons
+  - Export comparison as PDF
 
-- **Advanced Filtering**
-  - Multi-criteria filters (group + country + hardness range)
-  - Saved filter presets
-  - Filter export/sharing
+- **Bulk Editor**
+  - Multi-select mode in home screen
+  - Bulk actions: move to storage, add tags, delete, export
+  - Confirmation dialogs with counts
+  - Progress indicators for long operations
+  - Undo support (where applicable)
 
-- **Export Enhancements**
-  - Statistics export to PDF
-  - Custom CSV column selection
-  - Batch photo export (ZIP of just photos)
+- **Batch Import Improvements**
+  - CSV import with column mapping UI
+  - Preview before import (first 10 rows)
+  - Conflict resolution options (skip, overwrite, create new)
+
+- **Filter Preset UI** (from v1.2.0 backend)
+  - FilterBottomSheet with multi-criteria selection
+  - Save/load/delete filter presets
+  - Integration with HomeScreen
+
+- **CSV Column Selection UI** (from v1.2.0 backend)
+  - ExportConfigDialog with column checkboxes
+  - Preview CSV header before export
+  - Save preferences for future exports
 
 ### Technical
-- Compose Canvas charts (no heavy dependencies)
-- Lazy computation with ViewModel caching
+- Selection state management in ViewModel
+- Optimistic UI updates with rollback
+- Background WorkManager for bulk operations
 - Indexed queries for performance (<300ms)
 
 ---
