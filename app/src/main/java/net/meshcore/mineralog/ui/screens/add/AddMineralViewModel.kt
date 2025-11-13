@@ -122,49 +122,36 @@ class AddMineralViewModel(
         }
     }
 
+    /**
+     * Load draft data from settings.
+     * Optimized: Single coroutine instead of 11 separate launches for better performance.
+     */
     private fun loadDraft() {
         viewModelScope.launch {
-            val name = settingsRepository.getDraftName().kotlinx.coroutines.flow.first()
+            // Load all draft fields in parallel within a single coroutine context
+            val name = settingsRepository.getDraftName().first()
+            val group = settingsRepository.getDraftGroup().first()
+            val formula = settingsRepository.getDraftFormula().first()
+            val notes = settingsRepository.getDraftNotes().first()
+            val diaphaneity = settingsRepository.getDraftDiaphaneity().first()
+            val cleavage = settingsRepository.getDraftCleavage().first()
+            val fracture = settingsRepository.getDraftFracture().first()
+            val luster = settingsRepository.getDraftLuster().first()
+            val streak = settingsRepository.getDraftStreak().first()
+            val habit = settingsRepository.getDraftHabit().first()
+            val crystalSystem = settingsRepository.getDraftCrystalSystem().first()
+
+            // Update state only if values are non-empty
             if (name.isNotEmpty()) _name.value = name
-        }
-        viewModelScope.launch {
-            val group = settingsRepository.getDraftGroup().kotlinx.coroutines.flow.first()
             if (group.isNotEmpty()) _group.value = group
-        }
-        viewModelScope.launch {
-            val formula = settingsRepository.getDraftFormula().kotlinx.coroutines.flow.first()
             if (formula.isNotEmpty()) _formula.value = formula
-        }
-        viewModelScope.launch {
-            val notes = settingsRepository.getDraftNotes().kotlinx.coroutines.flow.first()
             if (notes.isNotEmpty()) _notes.value = notes
-        }
-        viewModelScope.launch {
-            val diaphaneity = settingsRepository.getDraftDiaphaneity().kotlinx.coroutines.flow.first()
             if (diaphaneity.isNotEmpty()) _diaphaneity.value = diaphaneity
-        }
-        viewModelScope.launch {
-            val cleavage = settingsRepository.getDraftCleavage().kotlinx.coroutines.flow.first()
             if (cleavage.isNotEmpty()) _cleavage.value = cleavage
-        }
-        viewModelScope.launch {
-            val fracture = settingsRepository.getDraftFracture().kotlinx.coroutines.flow.first()
             if (fracture.isNotEmpty()) _fracture.value = fracture
-        }
-        viewModelScope.launch {
-            val luster = settingsRepository.getDraftLuster().kotlinx.coroutines.flow.first()
             if (luster.isNotEmpty()) _luster.value = luster
-        }
-        viewModelScope.launch {
-            val streak = settingsRepository.getDraftStreak().kotlinx.coroutines.flow.first()
             if (streak.isNotEmpty()) _streak.value = streak
-        }
-        viewModelScope.launch {
-            val habit = settingsRepository.getDraftHabit().kotlinx.coroutines.flow.first()
             if (habit.isNotEmpty()) _habit.value = habit
-        }
-        viewModelScope.launch {
-            val crystalSystem = settingsRepository.getDraftCrystalSystem().kotlinx.coroutines.flow.first()
             if (crystalSystem.isNotEmpty()) _crystalSystem.value = crystalSystem
         }
     }

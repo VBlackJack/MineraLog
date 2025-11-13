@@ -119,9 +119,16 @@ android {
     }
 
     lint {
-        abortOnError = false
+        // Enable strict lint checks for better code quality
+        abortOnError = true
         checkReleaseBuilds = true
-        warningsAsErrors = false
+        warningsAsErrors = false // Set to true for even stricter checks
+
+        // Disable specific checks that may be too strict for this project
+        disable += setOf(
+            "ObsoleteLintCustomCheck",
+            "GradleDependency" // Allow older dependency versions
+        )
     }
 }
 

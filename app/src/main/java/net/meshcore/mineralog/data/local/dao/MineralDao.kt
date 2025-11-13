@@ -272,22 +272,24 @@ interface MineralDao {
 
     /**
      * Get count of minerals added this month.
-     * Uses current timestamp to determine the month.
+     * Note: createdAt is stored as milliseconds since epoch (Java/Kotlin standard),
+     * divided by 1000 to convert to seconds for SQLite's unixepoch format.
      */
     @Query("""
         SELECT COUNT(*)
         FROM minerals
-        WHERE strftime('%Y-%m', createdAt / 1000, 'unixepoch') = strftime('%Y-%m', 'now')
+        WHERE strftime('%Y-%m', CAST(createdAt / 1000 AS INTEGER), 'unixepoch') = strftime('%Y-%m', 'now')
     """)
     suspend fun getAddedThisMonth(): Int
 
     /**
      * Get count of minerals added this year.
+     * Note: createdAt is stored as milliseconds since epoch, converted to seconds for SQLite.
      */
     @Query("""
         SELECT COUNT(*)
         FROM minerals
-        WHERE strftime('%Y', createdAt / 1000, 'unixepoch') = strftime('%Y', 'now')
+        WHERE strftime('%Y', CAST(createdAt / 1000 AS INTEGER), 'unixepoch') = strftime('%Y', 'now')
     """)
     suspend fun getAddedThisYear(): Int
 
