@@ -335,7 +335,7 @@ fun AddMineralScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .semantics {
-                                contentDescription = "Tags field. Enter comma-separated tags. " +
+                                this.contentDescription = "Tags field. Enter comma-separated tags. " +
                                         "Autocomplete suggestions available."
                             },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -352,7 +352,7 @@ fun AddMineralScreen(
                                 .fillMaxWidth()
                                 .padding(top = 4.dp)
                                 .semantics {
-                                    contentDescription = "${tagSuggestions.size} tag suggestions available"
+                                    this.contentDescription = "${tagSuggestions.size} tag suggestions available"
                                     liveRegion = LiveRegionMode.Polite
                                 },
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -373,7 +373,7 @@ fun AddMineralScreen(
                                                 viewModel.onTagsChange(newTagsText + ", ")
                                             }
                                             .semantics {
-                                                contentDescription = "Select tag: $suggestion"
+                                                this.contentDescription = "Select tag: $suggestion"
                                             },
                                         color = MaterialTheme.colorScheme.surface
                                     ) {

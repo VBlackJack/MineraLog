@@ -175,8 +175,3 @@ object PasswordBasedCrypto {
         return decrypt(ciphertext, password, salt, iv)
     }
 }
-
-/**
- * Exception thrown when decryption fails.
- */
-class DecryptionException(message: String, cause: Throwable? = null) : Exception(message, cause)

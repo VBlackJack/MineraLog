@@ -3,6 +3,7 @@ package net.meshcore.mineralog.data.repository
 import android.content.Context
 import android.net.Uri
 import android.util.Base64
+import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -11,6 +12,7 @@ import net.meshcore.mineralog.data.crypto.DecryptionException
 import net.meshcore.mineralog.data.crypto.PasswordBasedCrypto
 import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.mapper.toDomain
+import net.meshcore.mineralog.data.mapper.toEntity
 import net.meshcore.mineralog.domain.model.Mineral
 import okio.buffer
 import okio.sink
@@ -308,7 +310,7 @@ class BackupRepositoryImpl(
                         val minerals = json.decodeFromString<List<Mineral>>(jsonStr)
 
                         // Use transaction to ensure atomicity
-                        database.runInTransaction {
+                        database.withTransaction {
                             if (mode == ImportMode.REPLACE) {
                                 database.mineralDao().deleteAll()
                                 database.provenanceDao().deleteAll()
@@ -461,7 +463,7 @@ class BackupRepositoryImpl(
                 val existingByName = existingMinerals.associateBy { it.name.lowercase() }
 
                 // Use transaction for atomicity
-                database.runInTransaction {
+                database.withTransaction {
                     // Handle REPLACE mode
                     if (mode == CsvImportMode.REPLACE) {
                         database.mineralDao().deleteAll()
@@ -688,8 +690,4 @@ class BackupRepositoryImpl(
         }
     }
 
-    private fun Mineral.toEntity() = net.meshcore.mineralog.data.mapper.toEntity()
-    private fun net.meshcore.mineralog.domain.model.Provenance.toEntity() = net.meshcore.mineralog.data.mapper.toEntity()
-    private fun net.meshcore.mineralog.domain.model.Storage.toEntity() = net.meshcore.mineralog.data.mapper.toEntity()
-    private fun net.meshcore.mineralog.domain.model.Photo.toEntity() = net.meshcore.mineralog.data.mapper.toEntity()
 }

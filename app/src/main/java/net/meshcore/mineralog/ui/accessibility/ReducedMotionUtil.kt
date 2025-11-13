@@ -70,7 +70,7 @@ object ReducedMotionUtil {
      */
     fun getSpringStiffness(context: Context): Float {
         return if (isReducedMotionEnabled(context)) {
-            Spring.StiffnessVeryHigh // Quick, minimal bounce
+            Spring.StiffnessHigh // Quick, minimal bounce
         } else {
             Spring.StiffnessMedium // Normal spring animation
         }
