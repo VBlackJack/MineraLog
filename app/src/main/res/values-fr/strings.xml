@@ -217,6 +217,9 @@
     <!-- Import/Export -->
     <string name="import_title">Importer</string>
     <string name="export_title">Exporter</string>
+    <string name="export_csv_title">Exporter en CSV</string>
+    <string name="export_csv_subtitle">%d minéraux sélectionnés</string>
+    <string name="export_csv_select_columns">Sélectionner les colonnes à exporter</string>
     <string name="import_select_file">Sélectionner le fichier ZIP</string>
     <string name="export_select_destination">Sélectionner la destination</string>
     <string name="export_format">Format</string>
@@ -230,6 +233,8 @@
     <string name="export_progress">Export en cours… %d%%</string>
     <string name="import_progress">Import en cours… %d%%</string>
     <string name="export_success">%d minéraux exportés</string>
+    <string name="export_success_feedback">%d minéraux exportés avec succès</string>
+    <string name="export_error_feedback">Échec de l\'export : %s</string>
     <string name="import_success">%d minéraux importés</string>
     <string name="export_error">Échec de l\'export</string>
     <string name="import_error">Échec de l\'import</string>

@@ -1,11 +1,13 @@
 package net.meshcore.mineralog.ui.screens.home
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.model.FilterCriteria
+import net.meshcore.mineralog.data.repository.BackupRepository
 import net.meshcore.mineralog.data.repository.FilterPresetRepository
 import net.meshcore.mineralog.data.repository.MineralRepository
 import net.meshcore.mineralog.domain.model.FilterPreset
@@ -13,8 +15,13 @@ import net.meshcore.mineralog.domain.model.Mineral
 
 class HomeViewModel(
     private val mineralRepository: MineralRepository,
-    private val filterPresetRepository: FilterPresetRepository
+    private val filterPresetRepository: FilterPresetRepository,
+    private val backupRepository: BackupRepository
 ) : ViewModel() {
+
+    // Export state
+    private val _exportState = MutableStateFlow<ExportState>(ExportState.Idle)
+    val exportState: StateFlow<ExportState> = _exportState.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -137,16 +144,49 @@ class HomeViewModel(
     fun getSelectedMinerals(): List<Mineral> {
         return minerals.value.filter { it.id in _selectedIds.value }
     }
+
+    // Export functionality (v1.4.0)
+    fun exportSelectedToCsv(uri: Uri, selectedColumns: Set<String>) {
+        viewModelScope.launch {
+            _exportState.value = ExportState.Exporting
+            try {
+                val mineralsToExport = getSelectedMinerals()
+                val result = backupRepository.exportCsv(uri, mineralsToExport)
+
+                if (result.isSuccess) {
+                    _exportState.value = ExportState.Success(mineralsToExport.size)
+                } else {
+                    _exportState.value = ExportState.Error(
+                        result.exceptionOrNull()?.message ?: "Unknown error"
+                    )
+                }
+            } catch (e: Exception) {
+                _exportState.value = ExportState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
+
+    fun resetExportState() {
+        _exportState.value = ExportState.Idle
+    }
+}
+
+sealed class ExportState {
+    data object Idle : ExportState()
+    data object Exporting : ExportState()
+    data class Success(val count: Int) : ExportState()
+    data class Error(val message: String) : ExportState()
 }
 
 class HomeViewModelFactory(
     private val mineralRepository: MineralRepository,
-    private val filterPresetRepository: FilterPresetRepository
+    private val filterPresetRepository: FilterPresetRepository,
+    private val backupRepository: BackupRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-            return HomeViewModel(mineralRepository, filterPresetRepository) as T
+            return HomeViewModel(mineralRepository, filterPresetRepository, backupRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

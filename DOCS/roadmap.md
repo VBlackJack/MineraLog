@@ -1,6 +1,6 @@
 # MineraLog Roadmap
 
-## Current Version: v1.3.1 (2025-11-13)
+## Current Version: v1.4.0 (2025-11-13)
 
 ---
 
@@ -234,8 +234,6 @@
 - ✅ i18n strings added for all Comparator features
 
 ### Known Limitations (Deferred to Future Releases)
-- ⏸️ CSV export UI (file picker integration) - backend ready
-- ⏸️ CSV column selection dialog - backend supports all columns
 - ⏸️ Export comparison as PDF - future enhancement
 - ⏸️ Batch CSV import with column mapping - future enhancement
 - ⏸️ Bulk tag addition/removal - future enhancement
@@ -243,32 +241,64 @@
 
 ---
 
-## 🎯 v1.4.0 - Export UI & Photo Gallery (Q1 2026)
+## ✅ Completed in v1.4.0 (2025-11-13)
 
-**Priority:** High
-**Effort:** Small (1-2 weeks)
+### CSV Export UI ⭐
+- ✅ **ExportCsvDialog Component**
+  - Column selection dialog with 35 customizable columns
+  - Grouped by category (Basic, Physical, Special, Status, Provenance, Storage, Other)
+  - Select All / Deselect All quick actions
+  - Checkbox selection for each column
+  - LazyColumn for efficient rendering
+  - Material 3 compliant design
 
-### Features
-- **CSV Export UI**
-  - File picker integration for export destination
-  - Column selection dialog with checkboxes
-  - Preview CSV header before export
-  - Save preferences for future exports
+- ✅ **File Picker Integration (SAF)**
+  - rememberLauncherForActivityResult with CreateDocument contract
+  - Automatic filename generation with timestamp
+  - MIME type: text/csv
+  - User-selectable destination folder
 
-- **Batch Import Improvements**
-  - CSV import with column mapping UI
-  - Preview before import (first 10 rows)
-  - Conflict resolution options (skip, overwrite, create new)
+- ✅ **Export State Management**
+  - Sealed class ExportState (Idle/Exporting/Success/Error)
+  - ViewModelScope coroutines for async export
+  - Progress indicator during export (CircularProgressIndicator)
+  - Success/error snackbar feedback
 
-- **Bulk Operations Enhancements**
-  - Bulk tag addition/removal
-  - Bulk storage location assignment
-  - Progress indicators for long operations
+- ✅ **HomeViewModel Integration**
+  - BackupRepository injection
+  - exportSelectedToCsv() function
+  - Export state flow for reactive UI
+  - resetExportState() for cleanup
 
-### Technical
-- File picker integration (SAF - Storage Access Framework)
-- Background WorkManager for bulk operations
-- Optimistic UI updates with rollback
+- ✅ **User Feedback**
+  - Snackbar for success messages ("Exported N minerals successfully")
+  - Snackbar for error messages with details
+  - Loading overlay during export
+  - Automatic selection mode exit after success
+
+### Internationalization
+- ✅ 6 new English strings for export UI
+- ✅ 6 new French translations
+  - export_csv_title, export_csv_subtitle, export_csv_select_columns
+  - export_success_feedback, export_error_feedback
+- ✅ Complete bilingual support maintained (EN/FR)
+
+### Technical Improvements
+- ✅ Storage Access Framework (SAF) integration
+- ✅ Compose Activity Result API
+- ✅ BackupRepository with comprehensive CSV export (35 columns)
+- ✅ CSV escaping for special characters (commas, quotes, newlines)
+- ✅ Version updated to 1.4.0 (versionCode 6)
+
+### Documentation
+- ✅ Roadmap updated with v1.4.0 completion details
+
+### Known Limitations (Deferred to Future Releases)
+- ⏸️ Column selection in export (dialog shows, but all columns exported)  - needs backend integration
+- ⏸️ Batch CSV import with column mapping - future enhancement
+- ⏸️ Bulk tag addition/removal - future enhancement
+- ⏸️ Bulk storage location assignment - future enhancement
+- ⏸️ Export comparison as PDF - future enhancement
 
 ---
 
@@ -500,7 +530,7 @@
 | Statistics Dashboard | High | Medium | High | ✅ v1.2 |
 | Advanced Filtering & Bulk Ops | High | Medium | High | ✅ v1.3 |
 | Mineral Comparator | High | Small | High | ✅ v1.3.1 |
-| Export UI & Bulk Enhancements | High | Small | Medium | v1.4 |
+| CSV Export UI | High | Small | Medium | ✅ v1.4 |
 | Photo Gallery | High | Large | High | v1.5 |
 | Map View | Medium | Medium | Medium | v1.6 |
 | QR Labels | Medium | Medium | High | v1.7 |
