@@ -219,4 +219,84 @@ object TestFixtures {
         file.writeBytes(bytes)
         return file
     }
+
+    // ===== PDF Label Generation Fixtures =====
+
+    /**
+     * Mineral with a very long name for testing text wrapping.
+     */
+    val longNameMineral = Mineral(
+        id = "test-long-name",
+        name = "Potassium Aluminum Silicate Hydroxide Fluoride Complex",
+        formula = "KAl₂(AlSi₃O₁₀)(F,OH)₂",
+        group = "Phyllosilicates - Mica Group Minerals with Extended Classification",
+        statusType = "in_collection",
+        completeness = 100,
+        createdAt = Instant.now(),
+        updatedAt = Instant.now()
+    )
+
+    /**
+     * Mineral with unicode characters in name and formula.
+     */
+    val unicodeMineral = Mineral(
+        id = "test-unicode",
+        name = "Azurite α-crystal",
+        formula = "Cu₃(CO₃)₂(OH)₂",
+        group = "Carbonates",
+        statusType = "in_collection",
+        completeness = 100,
+        createdAt = Instant.now(),
+        updatedAt = Instant.now()
+    )
+
+    /**
+     * Minimal mineral with only required fields.
+     */
+    val minimalMineral = Mineral(
+        id = "test-minimal",
+        name = "Unknown",
+        formula = null,
+        group = null,
+        statusType = "in_collection",
+        completeness = 0,
+        createdAt = Instant.now(),
+        updatedAt = Instant.now()
+    )
+
+    /**
+     * Generate a batch of 100 minerals for performance testing.
+     */
+    fun batch100Minerals(): List<Mineral> {
+        return (1..100).map { i ->
+            Mineral(
+                id = "batch-$i",
+                name = "Mineral #$i",
+                formula = "XYZ$i",
+                group = "Test Group",
+                statusType = "in_collection",
+                completeness = 50,
+                createdAt = Instant.now(),
+                updatedAt = Instant.now()
+            )
+        }
+    }
+
+    /**
+     * Generate a batch of 1000 minerals for stress testing.
+     */
+    fun batch1000Minerals(): List<Mineral> {
+        return (1..1000).map { i ->
+            Mineral(
+                id = "large-$i",
+                name = "Specimen $i",
+                formula = "ABC$i",
+                group = "Test Group",
+                statusType = "in_collection",
+                completeness = 50,
+                createdAt = Instant.now(),
+                updatedAt = Instant.now()
+            )
+        }
+    }
 }

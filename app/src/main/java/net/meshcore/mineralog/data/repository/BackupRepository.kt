@@ -566,6 +566,14 @@ class BackupRepositoryImpl(
         val mohsMin = getFloat("mohsMin") ?: getFloat("mohs")
         val mohsMax = getFloat("mohsMax") ?: getFloat("mohs")
 
+        // Validate Mohs hardness range (1.0 to 10.0)
+        if (mohsMin != null && (mohsMin < 1.0f || mohsMin > 10.0f)) {
+            throw IllegalArgumentException("Mohs Min must be between 1.0 and 10.0 (got: $mohsMin)")
+        }
+        if (mohsMax != null && (mohsMax < 1.0f || mohsMax > 10.0f)) {
+            throw IllegalArgumentException("Mohs Max must be between 1.0 and 10.0 (got: $mohsMax)")
+        }
+
         // Parse provenance fields
         val hasProvenance = listOf("prov_country", "prov_locality", "prov_site", "prov_source").any { getMapped(it) != null }
         val provenance = if (hasProvenance) {
