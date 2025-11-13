@@ -169,6 +169,14 @@ fun AddMineralScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Quick Win #7: Required field legend
+            Text(
+                text = "* Required field",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
             OutlinedTextField(
                 value = name,
                 onValueChange = { viewModel.onNameChange(it) },

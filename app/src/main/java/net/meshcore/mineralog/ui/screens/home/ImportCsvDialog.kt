@@ -325,9 +325,7 @@ fun ImportCsvDialog(
                                                 val isTruncated = cellValue.length > 20
                                                 val displayValue = if (isTruncated) cellValue.take(20) + "…" else cellValue
 
-                                                Text(
-                                                    text = displayValue,
-                                                    style = MaterialTheme.typography.bodySmall,
+                                                Box(
                                                     modifier = Modifier
                                                         .weight(1f)
                                                         .then(
@@ -337,14 +335,20 @@ fun ImportCsvDialog(
                                                                         selectedCellValue = cellValue
                                                                         selectedCellHeader = header
                                                                     }
+                                                                    .padding(vertical = 2.dp, horizontal = 4.dp)
                                                                     .semantics {
                                                                         contentDescription = "$header: $displayValue Truncated. Tap to expand"
                                                                     }
                                                             } else {
-                                                                Modifier
+                                                                Modifier.padding(vertical = 2.dp, horizontal = 4.dp)
                                                             }
                                                         )
-                                                )
+                                                ) {
+                                                    Text(
+                                                        text = displayValue,
+                                                        style = MaterialTheme.typography.bodySmall
+                                                    )
+                                                }
 
                                                 if (index < result.headers.size - 1) {
                                                     Text(" | ", style = MaterialTheme.typography.bodySmall)

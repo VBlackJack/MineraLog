@@ -91,12 +91,18 @@ fun ExportCsvDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(stringResource(R.string.export_csv_title))
                 Text(
                     text = stringResource(R.string.export_csv_subtitle, selectedCount),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                // Quick Win #10: Column counter
+                Text(
+                    text = "${selectedColumns.size} of ${availableColumns.size} columns selected",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         },
@@ -137,13 +143,39 @@ fun ExportCsvDialog(
                         val columnsInCategory = availableColumns.filter { it.category == category }
 
                         if (columnsInCategory.isNotEmpty()) {
+                            // Quick Win #6: Category header with select/deselect all
                             item {
-                                Text(
-                                    text = stringResource(getCategoryNameResId(category)),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp, horizontal = 16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = stringResource(getCategoryNameResId(category)),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+
+                                    // Quick Win #6: Category select/deselect button
+                                    val allCategorySelected = columnsInCategory.all { it.id in selectedColumns }
+                                    TextButton(
+                                        onClick = {
+                                            val categoryIds = columnsInCategory.map { it.id }
+                                            selectedColumns = if (allCategorySelected) {
+                                                selectedColumns - categoryIds.toSet()
+                                            } else {
+                                                selectedColumns + categoryIds.toSet()
+                                            }
+                                        }
+                                    ) {
+                                        Text(
+                                            text = if (allCategorySelected) "Deselect" else "Select",
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                }
                             }
 
                             items(columnsInCategory) { column ->

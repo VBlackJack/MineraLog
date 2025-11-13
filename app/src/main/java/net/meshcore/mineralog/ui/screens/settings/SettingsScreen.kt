@@ -1,6 +1,8 @@
 package net.meshcore.mineralog.ui.screens.settings
 
+import android.content.Intent
 import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -37,6 +39,7 @@ fun SettingsScreen(
     val exportState by viewModel.exportState.collectAsState()
     val importState by viewModel.importState.collectAsState()
 
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     var showEncryptDialog by remember { mutableStateOf(false) }
     var showDecryptDialog by remember { mutableStateOf(false) }
@@ -79,19 +82,28 @@ fun SettingsScreen(
             }
             is BackupExportState.Error -> {
                 val errorMessage = (exportState as BackupExportState.Error).message
+                val hasPermissionError = errorMessage.contains("permission", ignoreCase = true)
                 val actionableMessage = when {
-                    errorMessage.contains("permission", ignoreCase = true) ->
-                        "Export failed: Permission denied. Please grant storage access and try again."
+                    hasPermissionError ->
+                        "Permission denied. Grant storage access to export backup."
                     errorMessage.contains("space", ignoreCase = true) ->
-                        "Export failed: Not enough storage space. Free up space and retry."
+                        "Not enough storage space. Free up space and retry."
                     errorMessage.contains("no minerals", ignoreCase = true) ->
-                        "Export failed: No minerals to export. Add minerals first."
-                    else -> "Export failed: $errorMessage. Check your storage settings."
+                        "No minerals to export. Add minerals first."
+                    else -> "Export failed: $errorMessage"
                 }
-                snackbarHostState.showSnackbar(
+                val result = snackbarHostState.showSnackbar(
                     message = actionableMessage,
+                    actionLabel = if (hasPermissionError) "Open Settings" else null,
                     duration = SnackbarDuration.Long
                 )
+                if (result == SnackbarResult.ActionPerformed && hasPermissionError) {
+                    // Open app settings
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                }
                 viewModel.resetExportState()
                 pendingExportUri = null
             }
@@ -117,24 +129,33 @@ fun SettingsScreen(
             }
             is BackupImportState.Error -> {
                 val errorMessage = (importState as BackupImportState.Error).message
+                val hasPermissionError = errorMessage.contains("permission", ignoreCase = true)
                 val actionableMessage = when {
                     errorMessage.contains("decrypt", ignoreCase = true) ||
                     errorMessage.contains("password", ignoreCase = true) ->
-                        "Import failed: Incorrect password. ${decryptAttempts - 1} attempt${if (decryptAttempts - 1 != 1) "s" else ""} remaining."
+                        "Incorrect password. ${decryptAttempts - 1} attempt${if (decryptAttempts - 1 != 1) "s" else ""} remaining."
                     errorMessage.contains("corrupt", ignoreCase = true) ->
-                        "Import failed: File is corrupted or invalid. Try a different backup file."
+                        "File is corrupted or invalid. Try a different backup."
                     errorMessage.contains("version", ignoreCase = true) ->
-                        "Import failed: Backup created with newer app version. Update the app first."
+                        "Backup created with newer app version. Update app first."
                     errorMessage.contains("format", ignoreCase = true) ->
-                        "Import failed: Invalid file format. Select a valid MineraLog backup ZIP file."
-                    errorMessage.contains("permission", ignoreCase = true) ->
-                        "Import failed: Cannot read file. Grant storage access and retry."
-                    else -> "Import failed: $errorMessage. Ensure the file is a valid backup."
+                        "Invalid file format. Select a valid MineraLog backup."
+                    hasPermissionError ->
+                        "Cannot read file. Grant storage access to import."
+                    else -> "Import failed: $errorMessage"
                 }
-                snackbarHostState.showSnackbar(
+                val result = snackbarHostState.showSnackbar(
                     message = actionableMessage,
+                    actionLabel = if (hasPermissionError) "Open Settings" else null,
                     duration = SnackbarDuration.Long
                 )
+                if (result == SnackbarResult.ActionPerformed && hasPermissionError) {
+                    // Open app settings
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                }
 
                 // Check if it's a wrong password error
                 if (errorMessage.contains("decrypt", ignoreCase = true) ||
