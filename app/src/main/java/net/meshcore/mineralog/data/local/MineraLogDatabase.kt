@@ -18,12 +18,14 @@ import net.meshcore.mineralog.data.local.entity.ProvenanceEntity
 import net.meshcore.mineralog.data.local.entity.StorageEntity
 import net.meshcore.mineralog.data.local.migration.MIGRATION_1_2
 import net.meshcore.mineralog.data.local.migration.MIGRATION_2_3
+import net.meshcore.mineralog.data.local.migration.MIGRATION_3_4
 
 /**
  * Main Room database for MineraLog application.
  * Version 1: Initial schema with minerals, provenances, storage, and photos tables.
  * Version 2: Added lifecycle status, quality rating, completeness, and FK fields to minerals.
  * Version 3: Added filter_presets table for saved filter combinations (v1.2.0).
+ * Version 4: Added currency field to provenances table for multi-currency support (v1.4.1).
  */
 @Database(
     entities = [
@@ -33,7 +35,7 @@ import net.meshcore.mineralog.data.local.migration.MIGRATION_2_3
         PhotoEntity::class,
         FilterPresetEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -56,8 +58,9 @@ abstract class MineraLogDatabase : RoomDatabase() {
                     MineraLogDatabase::class.java,
                     "mineralog_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3) // v1.1 & v1.2: Proper migrations
-                    .fallbackToDestructiveMigration() // Fallback for unhandled migrations
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4) // Proper migrations for schema evolution
+                    // Note: fallbackToDestructiveMigration() has been removed to protect user data
+                    // All migrations must be properly defined before releasing new schema versions
                     .build()
                 INSTANCE = instance
                 instance

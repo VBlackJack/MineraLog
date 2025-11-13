@@ -30,7 +30,13 @@ data class Mineral(
     val weightGr: Float? = null,
     val notes: String? = null,
     val tags: List<String> = emptyList(),
+    // v1.0 status (backward compatibility)
     val status: String = "incomplete",
+    // v1.1 status & lifecycle fields
+    val statusType: String = "in_collection",
+    val statusDetails: String? = null,
+    val qualityRating: Int? = null,
+    val completeness: Int = 0,
     @Serializable(with = InstantSerializer::class)
     val createdAt: Instant = Instant.now(),
     @Serializable(with = InstantSerializer::class)
@@ -53,7 +59,8 @@ data class Provenance(
     val acquiredAt: Instant? = null,
     val source: String? = null,
     val price: Float? = null,
-    val estimatedValue: Float? = null
+    val estimatedValue: Float? = null,
+    val currency: String? = "USD"
 )
 
 @Serializable

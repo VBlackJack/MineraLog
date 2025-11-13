@@ -38,6 +38,9 @@ interface PhotoDao {
     @Query("SELECT * FROM photos WHERE mineralId = :mineralId ORDER BY takenAt DESC")
     suspend fun getByMineralId(mineralId: String): List<PhotoEntity>
 
+    @Query("SELECT * FROM photos WHERE mineralId IN (:mineralIds) ORDER BY mineralId, takenAt DESC")
+    suspend fun getByMineralIds(mineralIds: List<String>): List<PhotoEntity>
+
     @Query("SELECT * FROM photos WHERE mineralId = :mineralId ORDER BY takenAt DESC")
     fun getByMineralIdFlow(mineralId: String): Flow<List<PhotoEntity>>
 

@@ -20,6 +20,7 @@ interface MineralRepository {
     suspend fun delete(id: String)
     suspend fun deleteAll()
     suspend fun getById(id: String): Mineral?
+    suspend fun getByIds(ids: List<String>): List<Mineral>
     fun getByIdFlow(id: String): Flow<Mineral?>
     fun getAllFlow(): Flow<List<Mineral>>
     suspend fun getAll(): List<Mineral>
@@ -64,6 +65,10 @@ class MineralRepositoryImpl(
     }
 
     override suspend fun delete(id: String) {
+        // Delete related entities first to maintain referential integrity
+        provenanceDao.deleteByMineralId(id)
+        storageDao.deleteByMineralId(id)
+        photoDao.deleteByMineralId(id)
         mineralDao.deleteById(id)
     }
 
@@ -82,6 +87,27 @@ class MineralRepositoryImpl(
         return entity.toDomain(provenance, storage, photos)
     }
 
+    override suspend fun getByIds(ids: List<String>): List<Mineral> {
+        if (ids.isEmpty()) return emptyList()
+
+        val entities = mineralDao.getByIds(ids)
+        if (entities.isEmpty()) return emptyList()
+
+        // Batch load all related entities to avoid N+1 problem
+        val mineralIds = entities.map { it.id }
+        val provenances = provenanceDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+        val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+        val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
+
+        return entities.map { entity ->
+            entity.toDomain(
+                provenances[entity.id],
+                storages[entity.id],
+                photos[entity.id] ?: emptyList()
+            )
+        }
+    }
+
     override fun getByIdFlow(id: String): Flow<Mineral?> {
         return combine(
             mineralDao.getByIdFlow(id),
@@ -95,31 +121,59 @@ class MineralRepositoryImpl(
 
     override fun getAllFlow(): Flow<List<Mineral>> {
         return mineralDao.getAllFlow().map { entities ->
+            if (entities.isEmpty()) return@map emptyList()
+
+            // Batch load all related entities to avoid N+1 problem
+            val mineralIds = entities.map { it.id }
+            val provenances = provenanceDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+            val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+            val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
+
             entities.map { entity ->
-                val provenance = provenanceDao.getByMineralId(entity.id)
-                val storage = storageDao.getByMineralId(entity.id)
-                val photos = photoDao.getByMineralId(entity.id)
-                entity.toDomain(provenance, storage, photos)
+                entity.toDomain(
+                    provenances[entity.id],
+                    storages[entity.id],
+                    photos[entity.id] ?: emptyList()
+                )
             }
         }
     }
 
     override suspend fun getAll(): List<Mineral> {
-        return mineralDao.getAll().map { entity ->
-            val provenance = provenanceDao.getByMineralId(entity.id)
-            val storage = storageDao.getByMineralId(entity.id)
-            val photos = photoDao.getByMineralId(entity.id)
-            entity.toDomain(provenance, storage, photos)
+        val entities = mineralDao.getAll()
+        if (entities.isEmpty()) return emptyList()
+
+        // Batch load all related entities to avoid N+1 problem
+        val mineralIds = entities.map { it.id }
+        val provenances = provenanceDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+        val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+        val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
+
+        return entities.map { entity ->
+            entity.toDomain(
+                provenances[entity.id],
+                storages[entity.id],
+                photos[entity.id] ?: emptyList()
+            )
         }
     }
 
     override fun searchFlow(query: String): Flow<List<Mineral>> {
         return mineralDao.searchFlow(query).map { entities ->
+            if (entities.isEmpty()) return@map emptyList()
+
+            // Batch load all related entities to avoid N+1 problem
+            val mineralIds = entities.map { it.id }
+            val provenances = provenanceDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+            val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+            val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
+
             entities.map { entity ->
-                val provenance = provenanceDao.getByMineralId(entity.id)
-                val storage = storageDao.getByMineralId(entity.id)
-                val photos = photoDao.getByMineralId(entity.id)
-                entity.toDomain(provenance, storage, photos)
+                entity.toDomain(
+                    provenances[entity.id],
+                    storages[entity.id],
+                    photos[entity.id] ?: emptyList()
+                )
             }
         }
     }
@@ -141,11 +195,20 @@ class MineralRepositoryImpl(
             hasPhotos = criteria.hasPhotos,
             fluorescent = criteria.fluorescent
         ).map { entities ->
+            if (entities.isEmpty()) return@map emptyList()
+
+            // Batch load all related entities to avoid N+1 problem
+            val mineralIds = entities.map { it.id }
+            val provenances = provenanceDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+            val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+            val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
+
             entities.map { entity ->
-                val provenance = provenanceDao.getByMineralId(entity.id)
-                val storage = storageDao.getByMineralId(entity.id)
-                val photos = photoDao.getByMineralId(entity.id)
-                entity.toDomain(provenance, storage, photos)
+                entity.toDomain(
+                    provenances[entity.id],
+                    storages[entity.id],
+                    photos[entity.id] ?: emptyList()
+                )
             }
         }
     }

@@ -45,5 +45,6 @@ data class ProvenanceEntity(
     val acquiredAt: Instant? = null,
     val source: String? = null, // purchase, exchange, collected, gift, inheritance
     val price: Float? = null, // In local currency
-    val estimatedValue: Float? = null
+    val estimatedValue: Float? = null,
+    val currency: String? = "USD" // ISO 4217 currency code
 )

@@ -41,6 +41,10 @@ fun MineralEntity.toDomain(
         notes = notes,
         tags = tags?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList(),
         status = status,
+        statusType = statusType,
+        statusDetails = statusDetails,
+        qualityRating = qualityRating,
+        completeness = completeness,
         createdAt = createdAt,
         updatedAt = updatedAt,
         provenance = provenance?.toDomain(),
@@ -73,6 +77,10 @@ fun Mineral.toEntity(): MineralEntity {
         notes = notes,
         tags = tags.joinToString(","),
         status = status,
+        statusType = statusType,
+        statusDetails = statusDetails,
+        qualityRating = qualityRating,
+        completeness = completeness,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -90,7 +98,8 @@ fun ProvenanceEntity.toDomain(): Provenance {
         acquiredAt = acquiredAt,
         source = source,
         price = price,
-        estimatedValue = estimatedValue
+        estimatedValue = estimatedValue,
+        currency = currency
     )
 }
 
@@ -106,7 +115,8 @@ fun Provenance.toEntity(): ProvenanceEntity {
         acquiredAt = acquiredAt,
         source = source,
         price = price,
-        estimatedValue = estimatedValue
+        estimatedValue = estimatedValue,
+        currency = currency
     )
 }
 

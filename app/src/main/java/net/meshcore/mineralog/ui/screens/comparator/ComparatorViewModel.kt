@@ -40,10 +40,8 @@ class ComparatorViewModel(
                     return@launch
                 }
 
-                // Load minerals
-                val minerals = mineralIds.mapNotNull { id ->
-                    mineralRepository.getById(id)
-                }
+                // Load minerals using batch query to avoid N+1 problem
+                val minerals = mineralRepository.getByIds(mineralIds)
 
                 if (minerals.size != mineralIds.size) {
                     _uiState.value = ComparatorUiState.Error("Some minerals could not be loaded")

@@ -26,11 +26,17 @@ interface MineralDao {
     @Query("DELETE FROM minerals WHERE id = :id")
     suspend fun deleteById(id: String)
 
+    @Query("DELETE FROM minerals WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<String>)
+
     @Query("DELETE FROM minerals")
     suspend fun deleteAll()
 
     @Query("SELECT * FROM minerals WHERE id = :id")
     suspend fun getById(id: String): MineralEntity?
+
+    @Query("SELECT * FROM minerals WHERE id IN (:ids)")
+    suspend fun getByIds(ids: List<String>): List<MineralEntity>
 
     @Query("SELECT * FROM minerals WHERE id = :id")
     fun getByIdFlow(id: String): Flow<MineralEntity?>

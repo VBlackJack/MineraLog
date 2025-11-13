@@ -127,5 +127,23 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
 }
 
 /**
+ * Migration from version 3 to version 4.
+ *
+ * Changes:
+ * - Add currency column to provenances table for multi-currency support
+ *
+ * v1.4.1 enhancement: Currency tracking for international collections
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // Add currency column with default USD value
+        db.execSQL("""
+            ALTER TABLE provenances
+            ADD COLUMN currency TEXT DEFAULT 'USD'
+        """.trimIndent())
+    }
+}
+
+/**
  * Future migrations will be added here as the schema evolves.
  */

@@ -134,7 +134,9 @@ class HomeViewModel(
 
     fun deleteSelected() {
         viewModelScope.launch {
-            _selectedIds.value.forEach { id ->
+            // Delete all selected minerals efficiently
+            val idsToDelete = _selectedIds.value.toList()
+            idsToDelete.forEach { id ->
                 mineralRepository.delete(id)
             }
             exitSelectionMode()
@@ -146,11 +148,16 @@ class HomeViewModel(
     }
 
     // Export functionality (v1.4.0)
-    fun exportSelectedToCsv(uri: Uri, selectedColumns: Set<String>) {
+    fun exportSelectedToCsv(uri: Uri) {
         viewModelScope.launch {
             _exportState.value = ExportState.Exporting
             try {
                 val mineralsToExport = getSelectedMinerals()
+                if (mineralsToExport.isEmpty()) {
+                    _exportState.value = ExportState.Error("No minerals selected for export")
+                    return@launch
+                }
+
                 val result = backupRepository.exportCsv(uri, mineralsToExport)
 
                 if (result.isSuccess) {
