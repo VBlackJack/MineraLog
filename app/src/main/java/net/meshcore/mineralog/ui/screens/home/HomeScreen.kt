@@ -1,5 +1,8 @@
 package net.meshcore.mineralog.ui.screens.home
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,9 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.meshcore.mineralog.MineraLogApplication
+import net.meshcore.mineralog.R
 import net.meshcore.mineralog.domain.model.Mineral
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,7 +32,8 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             mineralRepository = (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
-            filterPresetRepository = (LocalContext.current.applicationContext as MineraLogApplication).filterPresetRepository
+            filterPresetRepository = (LocalContext.current.applicationContext as MineraLogApplication).filterPresetRepository,
+            backupRepository = (LocalContext.current.applicationContext as MineraLogApplication).backupRepository
         )
     )
 ) {
@@ -39,11 +45,47 @@ fun HomeScreen(
     val selectionMode by viewModel.selectionMode.collectAsState()
     val selectedIds by viewModel.selectedIds.collectAsState()
     val selectionCount by viewModel.selectionCount.collectAsState()
+    val exportState by viewModel.exportState.collectAsState()
 
     var showFilterSheet by remember { mutableStateOf(false) }
     var showBulkActionsSheet by remember { mutableStateOf(false) }
+    var showExportCsvDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // File picker for CSV export
+    val csvExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            // Start export with empty column selection for now (will be customizable in dialog)
+            viewModel.exportSelectedToCsv(selectedUri, emptySet())
+        }
+    }
+
+    // Handle export state changes
+    LaunchedEffect(exportState) {
+        when (exportState) {
+            is ExportState.Success -> {
+                snackbarHostState.showSnackbar(
+                    message = "Exported ${(exportState as ExportState.Success).count} minerals successfully",
+                    duration = SnackbarDuration.Short
+                )
+                viewModel.resetExportState()
+                viewModel.exitSelectionMode()
+            }
+            is ExportState.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = "Export failed: ${(exportState as ExportState.Error).message}",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetExportState()
+            }
+            else -> {}
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             if (selectionMode) {
                 // Selection mode top bar
@@ -221,8 +263,8 @@ fun HomeScreen(
                 viewModel.deleteSelected()
             },
             onExportCsv = {
-                // TODO: Implement CSV export with column selection
-                // This will be implemented in the next step
+                showBulkActionsSheet = false
+                showExportCsvDialog = true
             },
             onCompare = if (selectionCount in 2..3) {
                 {
@@ -233,6 +275,31 @@ fun HomeScreen(
             } else null,
             onDismiss = { showBulkActionsSheet = false }
         )
+    }
+
+    // CSV export dialog
+    if (showExportCsvDialog) {
+        ExportCsvDialog(
+            selectedCount = selectionCount,
+            onDismiss = { showExportCsvDialog = false },
+            onExport = { selectedColumns ->
+                showExportCsvDialog = false
+                // Generate filename with timestamp
+                val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
+                    .format(java.util.Date())
+                csvExportLauncher.launch("mineralog_export_$timestamp.csv")
+            }
+        )
+    }
+
+    // Loading indicator for export
+    if (exportState is ExportState.Exporting) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
     }
 }
 
