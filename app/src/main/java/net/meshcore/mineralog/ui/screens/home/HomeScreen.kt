@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,6 +23,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.LoadState
@@ -74,6 +76,7 @@ fun HomeScreen(
     var selectedCsvUri by remember { mutableStateOf<Uri?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val hapticFeedback = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
 
     // File picker for CSV export
     val csvExportLauncher = rememberLauncherForActivityResult(
@@ -636,7 +639,7 @@ fun HomeScreen(
                 val count = selectionCount
                 viewModel.deleteSelected()
                 // Quick Win #4: Indefinite Undo snackbar with haptic feedback
-                LaunchedEffect(Unit) {
+                coroutineScope.launch {
                     val result = snackbarHostState.showSnackbar(
                         message = "Deleted $count mineral${if (count > 1) "s" else ""}",
                         actionLabel = "Undo",
