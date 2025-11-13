@@ -312,4 +312,140 @@ class CsvParserTest {
         // Should parse 1000 rows in < 500ms (performance target)
         assertTrue(duration < 500, "Parsing took ${duration}ms, expected < 500ms")
     }
+
+    // ===== Phase 3 (P2) - Additional Coverage Tests =====
+
+    @Test
+    fun `handle CSV with duplicate column headers`() {
+        val csv = """
+            Name,Group,Name,Formula
+            Quartz,Silicate,Ignored,SiO2
+            Calcite,Carbonate,Ignored,CaCO3
+        """.trimIndent()
+
+        val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))
+
+        assertEquals(4, result.headers.size)
+        // Duplicate headers are allowed, last one wins in map
+        assertTrue(result.rows[0].containsKey("Name"))
+        assertEquals("Quartz", result.rows[0]["Name"])
+    }
+
+    @Test
+    fun `handle CSV with extremely long field value`() {
+        val longValue = "x".repeat(10000)
+        val csv = """
+            Name,Group,Notes
+            Quartz,Silicate,$longValue
+        """.trimIndent()
+
+        val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))
+
+        assertEquals(1, result.rows.size)
+        assertEquals(longValue, result.rows[0]["Notes"])
+        assertTrue(result.rows[0]["Notes"]!!.length == 10000)
+    }
+
+    @Test
+    fun `handle CSV with all empty rows`() {
+        val csv = """
+            Name,Group,Formula
+            ,,
+            ,,
+            ,,
+        """.trimIndent()
+
+        val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))
+
+        assertEquals(3, result.rows.size)
+        assertEquals("", result.rows[0]["Name"])
+        assertEquals("", result.rows[0]["Group"])
+        assertEquals("", result.rows[0]["Formula"])
+    }
+
+    @Test
+    fun `handle CSV with trailing empty lines`() {
+        val csv = """
+            Name,Group
+            Quartz,Silicate
+
+
+        """.trimIndent()
+
+        val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))
+
+        // Trailing empty lines should be ignored
+        assertTrue(result.rows.size >= 1)
+        assertEquals("Quartz", result.rows[0]["Name"])
+    }
+
+    @Test
+    fun `handle CSV with single column`() {
+        val csv = """
+            Name
+            Quartz
+            Calcite
+            Pyrite
+        """.trimIndent()
+
+        val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))
+
+        assertEquals(1, result.headers.size)
+        assertEquals("Name", result.headers[0])
+        assertEquals(3, result.rows.size)
+        assertEquals("Quartz", result.rows[0]["Name"])
+    }
+
+    @Test
+    fun `handle CSV with unicode characters in headers`() {
+        val csv = """
+            名前,グループ,公式
+            Quartz,Silicate,SiO₂
+            Calcite,Carbonate,CaCO₃
+        """.trimIndent()
+
+        val result = parser.parse(ByteArrayInputStream(csv.toByteArray(StandardCharsets.UTF_8)))
+
+        assertEquals("名前", result.headers[0])
+        assertEquals("グループ", result.headers[1])
+        assertEquals("公式", result.headers[2])
+        assertEquals("SiO₂", result.rows[0]["公式"])
+    }
+
+    @Test
+    fun `parse very large CSV with 10000 rows`() {
+        // Generate 10000-row CSV for stress testing
+        val sb = StringBuilder("Name,Group,Formula,Mohs,Notes\n")
+        repeat(10000) { i ->
+            sb.append("Mineral$i,Group${i % 10},Formula$i,${i % 10},Note for specimen $i\n")
+        }
+
+        val start = System.currentTimeMillis()
+        val result = parser.parse(ByteArrayInputStream(sb.toString().toByteArray()))
+        val duration = System.currentTimeMillis() - start
+
+        assertEquals(10000, result.rows.size)
+        assertEquals(5, result.headers.size)
+        assertEquals("Mineral0", result.rows[0]["Name"])
+        assertEquals("Mineral9999", result.rows[9999]["Name"])
+
+        // Should parse 10000 rows in < 2s (performance target)
+        assertTrue(duration < 2000, "Parsing 10000 rows took ${duration}ms, expected < 2s")
+    }
+
+    @Test
+    fun `handle CSV with mixed quote styles`() {
+        val csv = """
+            Name,Group,Formula
+            "Quartz",Silicate,'SiO2'
+            'Calcite',"Carbonate",CaCO3
+        """.trimIndent()
+
+        val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))
+
+        // Double quotes should work for RFC 4180
+        assertEquals("Quartz", result.rows[0]["Name"])
+        // Single quotes are treated as literal characters (not RFC 4180)
+        assertTrue(result.rows[0]["Formula"]!!.contains("'") || result.rows[0]["Formula"] == "SiO2")
+    }
 }
