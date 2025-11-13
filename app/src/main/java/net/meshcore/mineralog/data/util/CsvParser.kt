@@ -41,17 +41,23 @@ class CsvParser {
     /**
      * Parse CSV from input stream.
      *
-     * @param inputStream The CSV input stream
+     * @param inputStream The CSV input stream (must support mark/reset)
      * @param maxRows Maximum rows to parse (0 = all rows). Useful for preview.
      * @return ParseResult with parsed data
      */
     suspend fun parse(inputStream: InputStream, maxRows: Int = 0): ParseResult = withContext(Dispatchers.IO) {
-        // Detect encoding
-        val encoding = detectEncoding(inputStream)
+        // Ensure stream supports mark/reset
+        val bufferedStream = if (inputStream.markSupported()) {
+            inputStream
+        } else {
+            inputStream.buffered()
+        }
 
-        // Re-open stream for parsing (input stream was consumed for detection)
-        // Note: Caller must provide a fresh stream if reuse is needed
-        val reader = BufferedReader(InputStreamReader(inputStream, encoding))
+        // Detect encoding (uses mark/reset internally)
+        val encoding = detectEncoding(bufferedStream)
+
+        // Create reader with detected encoding
+        val reader = BufferedReader(InputStreamReader(bufferedStream, encoding))
 
         // Read first line to detect delimiter and headers
         val firstLine = reader.readLine() ?: return@withContext ParseResult(
@@ -104,9 +110,12 @@ class CsvParser {
 
     /**
      * Detect character encoding by checking for BOM and common patterns.
+     * Stream must support mark/reset.
      */
     private fun detectEncoding(inputStream: InputStream): Charset {
-        inputStream.mark(4)
+        require(inputStream.markSupported()) { "InputStream must support mark/reset for encoding detection" }
+
+        inputStream.mark(4096) // Mark with generous read-ahead limit
         val bom = ByteArray(4)
         val read = inputStream.read(bom)
         inputStream.reset()

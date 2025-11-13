@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.model.FilterCriteria
 import net.meshcore.mineralog.data.repository.BackupRepository
+import net.meshcore.mineralog.data.repository.CsvImportMode
 import net.meshcore.mineralog.data.repository.FilterPresetRepository
 import net.meshcore.mineralog.data.repository.MineralRepository
 import net.meshcore.mineralog.data.repository.SettingsRepository
@@ -24,6 +25,10 @@ class HomeViewModel(
     // Export state
     private val _exportState = MutableStateFlow<ExportState>(ExportState.Idle)
     val exportState: StateFlow<ExportState> = _exportState.asStateFlow()
+
+    // Import state
+    private val _importState = MutableStateFlow<ImportState>(ImportState.Idle)
+    val importState: StateFlow<ImportState> = _importState.asStateFlow()
 
     // CSV export warning state
     val csvExportWarningShown: StateFlow<Boolean> = settingsRepository.getCsvExportWarningShown()
@@ -190,6 +195,35 @@ class HomeViewModel(
             settingsRepository.setCsvExportWarningShown(true)
         }
     }
+
+    // Import functionality
+    fun importCsvFile(uri: Uri, mode: CsvImportMode) {
+        viewModelScope.launch {
+            _importState.value = ImportState.Importing
+            try {
+                val result = backupRepository.importCsv(uri, mode)
+
+                if (result.isSuccess) {
+                    val importResult = result.getOrThrow()
+                    _importState.value = ImportState.Success(
+                        imported = importResult.imported,
+                        skipped = importResult.skipped,
+                        errors = importResult.errors
+                    )
+                } else {
+                    _importState.value = ImportState.Error(
+                        result.exceptionOrNull()?.message ?: "Unknown error"
+                    )
+                }
+            } catch (e: Exception) {
+                _importState.value = ImportState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
+
+    fun resetImportState() {
+        _importState.value = ImportState.Idle
+    }
 }
 
 sealed class ExportState {
@@ -197,6 +231,13 @@ sealed class ExportState {
     data object Exporting : ExportState()
     data class Success(val count: Int) : ExportState()
     data class Error(val message: String) : ExportState()
+}
+
+sealed class ImportState {
+    data object Idle : ImportState()
+    data object Importing : ImportState()
+    data class Success(val imported: Int, val skipped: Int, val errors: List<String>) : ImportState()
+    data class Error(val message: String) : ImportState()
 }
 
 class HomeViewModelFactory(

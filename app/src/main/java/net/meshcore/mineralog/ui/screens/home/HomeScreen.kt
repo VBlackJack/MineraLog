@@ -47,12 +47,15 @@ fun HomeScreen(
     val selectedIds by viewModel.selectedIds.collectAsState()
     val selectionCount by viewModel.selectionCount.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
+    val importState by viewModel.importState.collectAsState()
     val csvExportWarningShown by viewModel.csvExportWarningShown.collectAsState()
 
     var showFilterSheet by remember { mutableStateOf(false) }
     var showBulkActionsSheet by remember { mutableStateOf(false) }
     var showCsvExportWarningDialog by remember { mutableStateOf(false) }
     var showExportCsvDialog by remember { mutableStateOf(false) }
+    var showImportCsvDialog by remember { mutableStateOf(false) }
+    var selectedCsvUri by remember { mutableStateOf<Uri?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     // File picker for CSV export
@@ -62,6 +65,16 @@ fun HomeScreen(
         uri?.let { selectedUri ->
             // Start export
             viewModel.exportSelectedToCsv(selectedUri)
+        }
+    }
+
+    // File picker for CSV import
+    val csvImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            selectedCsvUri = selectedUri
+            showImportCsvDialog = true
         }
     }
 
@@ -82,6 +95,28 @@ fun HomeScreen(
                     duration = SnackbarDuration.Long
                 )
                 viewModel.resetExportState()
+            }
+            else -> {}
+        }
+    }
+
+    // Handle import state changes
+    LaunchedEffect(importState) {
+        when (importState) {
+            is ImportState.Success -> {
+                val success = importState as ImportState.Success
+                snackbarHostState.showSnackbar(
+                    message = "Imported ${success.imported} minerals. Skipped: ${success.skipped}",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetImportState()
+            }
+            is ImportState.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = "Import failed: ${(importState as ImportState.Error).message}",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetImportState()
             }
             else -> {}
         }
@@ -117,6 +152,10 @@ fun HomeScreen(
                 TopAppBar(
                     title = { Text("MineraLog") },
                     actions = {
+                        // Import CSV button
+                        IconButton(onClick = { csvImportLauncher.launch("text/*") }) {
+                            Icon(Icons.Default.Upload, contentDescription = stringResource(R.string.action_import_csv))
+                        }
                         // Bulk edit button
                         IconButton(onClick = { viewModel.enterSelectionMode() }) {
                             Icon(Icons.Default.Checklist, contentDescription = "Bulk edit")
@@ -312,6 +351,20 @@ fun HomeScreen(
                 val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
                     .format(java.util.Date())
                 csvExportLauncher.launch("mineralog_export_$timestamp.csv")
+            }
+        )
+    }
+
+    // CSV import dialog
+    if (showImportCsvDialog && selectedCsvUri != null) {
+        ImportCsvDialog(
+            csvUri = selectedCsvUri!!,
+            onDismiss = {
+                showImportCsvDialog = false
+                selectedCsvUri = null
+            },
+            onImport = { uri, mode ->
+                viewModel.importCsvFile(uri, mode)
             }
         )
     }
