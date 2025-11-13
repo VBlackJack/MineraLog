@@ -59,14 +59,16 @@ interface MineralDao {
 
     /**
      * Search minerals with pagination support.
+     * Note: Query parameter should be pre-formatted with wildcards (e.g., "%search%")
+     * to prevent SQL injection via LIKE operator concatenation.
      */
     @Query("""
         SELECT * FROM minerals
-        WHERE name LIKE '%' || :query || '%'
-           OR group LIKE '%' || :query || '%'
-           OR formula LIKE '%' || :query || '%'
-           OR notes LIKE '%' || :query || '%'
-           OR tags LIKE '%' || :query || '%'
+        WHERE name LIKE :query
+           OR group LIKE :query
+           OR formula LIKE :query
+           OR notes LIKE :query
+           OR tags LIKE :query
         ORDER BY updatedAt DESC
     """)
     fun searchPaged(query: String): PagingSource<Int, MineralEntity>
@@ -104,13 +106,17 @@ interface MineralDao {
         fluorescent: Boolean? = null
     ): PagingSource<Int, MineralEntity>
 
+    /**
+     * Search minerals with Flow.
+     * Note: Query parameter should be pre-formatted with wildcards (e.g., "%search%")
+     */
     @Query("""
         SELECT * FROM minerals
-        WHERE name LIKE '%' || :query || '%'
-           OR group LIKE '%' || :query || '%'
-           OR formula LIKE '%' || :query || '%'
-           OR notes LIKE '%' || :query || '%'
-           OR tags LIKE '%' || :query || '%'
+        WHERE name LIKE :query
+           OR group LIKE :query
+           OR formula LIKE :query
+           OR notes LIKE :query
+           OR tags LIKE :query
         ORDER BY updatedAt DESC
     """)
     fun searchFlow(query: String): Flow<List<MineralEntity>>
@@ -266,22 +272,24 @@ interface MineralDao {
 
     /**
      * Get count of minerals added this month.
-     * Uses current timestamp to determine the month.
+     * Note: createdAt is stored as milliseconds since epoch (Java/Kotlin standard),
+     * divided by 1000 to convert to seconds for SQLite's unixepoch format.
      */
     @Query("""
         SELECT COUNT(*)
         FROM minerals
-        WHERE strftime('%Y-%m', createdAt / 1000, 'unixepoch') = strftime('%Y-%m', 'now')
+        WHERE strftime('%Y-%m', CAST(createdAt / 1000 AS INTEGER), 'unixepoch') = strftime('%Y-%m', 'now')
     """)
     suspend fun getAddedThisMonth(): Int
 
     /**
      * Get count of minerals added this year.
+     * Note: createdAt is stored as milliseconds since epoch, converted to seconds for SQLite.
      */
     @Query("""
         SELECT COUNT(*)
         FROM minerals
-        WHERE strftime('%Y', createdAt / 1000, 'unixepoch') = strftime('%Y', 'now')
+        WHERE strftime('%Y', CAST(createdAt / 1000 AS INTEGER), 'unixepoch') = strftime('%Y', 'now')
     """)
     suspend fun getAddedThisYear(): Int
 

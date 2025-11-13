@@ -80,8 +80,8 @@ class Argon2Helper(
                 encodedSalt = Base64.encodeToString(actualSalt, Base64.NO_WRAP)
             )
         } finally {
-            // Clear password from memory for security
-            password.fill('0')
+            // Clear password from memory for security (use null character, not '0')
+            password.fill('\u0000')
         }
     }
 
@@ -104,7 +104,7 @@ class Argon2Helper(
         } catch (e: Exception) {
             false
         } finally {
-            password.fill('0')
+            password.fill('\u0000')
         }
     }
 
@@ -154,7 +154,7 @@ class Argon2Helper(
         } catch (e: Exception) {
             return -1 // Error occurred
         } finally {
-            testPassword.fill('0')
+            testPassword.fill('\u0000')
         }
 
         return System.currentTimeMillis() - startTime
