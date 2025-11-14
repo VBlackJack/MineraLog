@@ -248,7 +248,7 @@ class CsvParserTest {
             Name,Group,Formula,Mohs Min,Mohs Max,Status,Status Type
             "Quartz, Clear",Silicate,SiO2,7.0,7.0,complete,in_collection
             Calcite,Carbonate,CaCO3,3.0,3.0,incomplete,in_collection
-            "Pyrite ""Fool's Gold""",Sulfide,FeS2,6.0,6.5,complete,on_loan
+            "Pyrite ${"\"\""}Fool's Gold${"\"\""}",Sulfide,FeS2,6.0,6.5,complete,on_loan
         """.trimIndent()
 
         val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))

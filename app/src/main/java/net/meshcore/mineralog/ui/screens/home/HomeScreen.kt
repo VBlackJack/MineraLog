@@ -180,8 +180,11 @@ fun HomeScreen(
         when (bulkOperationProgress) {
             is BulkOperationProgress.Complete -> {
                 val state = bulkOperationProgress as BulkOperationProgress.Complete
+                val operationName = state.operation.replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString()
+                }
                 snackbarHostState.showSnackbar(
-                    message = "${state.operation.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }} completed: ${state.count} items",
+                    message = "$operationName completed: ${state.count} items",
                     duration = SnackbarDuration.Short
                 )
             }
@@ -366,13 +369,16 @@ fun HomeScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        val operationName = progress.operation.replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString()
+                        }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "${progress.operation.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }} in progress...",
+                                text = "$operationName in progress...",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
@@ -443,12 +449,14 @@ fun HomeScreen(
                                     // Quick Win #2: Different states for empty collection vs. no search results
                                     if (searchQuery.isNotEmpty() || isFilterActive) {
                                         // No search results state
+                                        val noResultsDescription = "No search results found for '$searchQuery'. " +
+                                            "Try different keywords or clear filters to see all minerals."
                                         Column(
                                             horizontalAlignment = Alignment.CenterHorizontally,
                                             modifier = Modifier
                                                 .padding(32.dp)
                                                 .semantics {
-                                                    contentDescription = "No search results found for '$searchQuery'. Try different keywords or clear filters to see all minerals."
+                                                    contentDescription = noResultsDescription
                                                 }
                                         ) {
                                             Icon(
@@ -514,12 +522,15 @@ fun HomeScreen(
                                         }
                                     } else {
                                         // Empty collection state
+                                        val emptyStateDescription = "Empty collection state. Your collection is empty. " +
+                                            "Start building your mineral collection by adding your first specimen. " +
+                                            "Tap the add button below to get started."
                                         Column(
                                             horizontalAlignment = Alignment.CenterHorizontally,
                                             modifier = Modifier
                                                 .padding(32.dp)
                                                 .semantics {
-                                                    contentDescription = "Empty collection state. Your collection is empty. Start building your mineral collection by adding your first specimen. Tap the add button below to get started."
+                                                    contentDescription = emptyStateDescription
                                                 }
                                         ) {
                                             Icon(
@@ -717,17 +728,19 @@ fun HomeScreen(
     }
 
     // CSV import dialog
-    if (showImportCsvDialog && selectedCsvUri != null) {
-        ImportCsvDialog(
-            csvUri = selectedCsvUri!!,
-            onDismiss = {
-                showImportCsvDialog = false
-                selectedCsvUri = null
-            },
-            onImport = { uri, columnMapping, mode ->
-                viewModel.importCsvFile(uri, columnMapping, mode)
-            }
-        )
+    selectedCsvUri?.let { uri ->
+        if (showImportCsvDialog) {
+            ImportCsvDialog(
+                csvUri = uri,
+                onDismiss = {
+                    showImportCsvDialog = false
+                    selectedCsvUri = null
+                },
+                onImport = { csvUri, columnMapping, mode ->
+                    viewModel.importCsvFile(csvUri, columnMapping, mode)
+                }
+            )
+        }
     }
 
     // Loading indicator for export
@@ -785,7 +798,9 @@ fun MineralListItem(
             .semantics {
                 role = Role.Button
                 contentDescription = if (selectionMode) {
-                    "${mineral.name}. ${if (isSelected) "Selected" else "Not selected"}. Tap to ${if (isSelected) "deselect" else "select"}."
+                    val selectedState = if (isSelected) "Selected" else "Not selected"
+                    val action = if (isSelected) "deselect" else "select"
+                    "${mineral.name}. $selectedState. Tap to $action."
                 } else {
                     "${mineral.name}. Tap to view details."
                 }

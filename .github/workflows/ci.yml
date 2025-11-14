@@ -21,29 +21,20 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: false
-          gradle-home-cache-cleanup: true
-
-      - name: Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
 
       - name: Create local.properties
         run: echo "MAPS_API_KEY=dummy_key_for_ci" > local.properties
 
       - name: Run Lint
-        run: ./gradlew lint --no-daemon --stacktrace
+        run: ./gradlew lint --no-daemon --stacktrace --max-workers=2
+        continue-on-error: false
 
       - name: Run Detekt
-        run: ./gradlew detekt --no-daemon --stacktrace
+        run: ./gradlew detekt --no-daemon --stacktrace --max-workers=2
+        continue-on-error: false
 
       - name: Upload lint reports
         if: always()
@@ -75,26 +66,16 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: false
-          gradle-home-cache-cleanup: true
-
-      - name: Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
 
       - name: Create local.properties
         run: echo "MAPS_API_KEY=dummy_key_for_ci" > local.properties
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace --max-workers=2
+        continue-on-error: false
 
       - name: Upload test reports
         if: always()
@@ -130,10 +111,9 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: false
-          gradle-home-cache-cleanup: true
 
       - name: Create local.properties
         run: echo "MAPS_API_KEY=dummy_key_for_ci" > local.properties
@@ -143,16 +123,6 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-
-      - name: Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
 
       - name: AVD cache
         uses: actions/cache@v4
@@ -171,7 +141,7 @@ jobs:
           target: ${{ matrix.api-level >= 30 && 'google_apis' || 'default' }}
           profile: pixel_6
           force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none -memory 4096
           disable-animations: true
           disable-spellchecker: true
           disable-linux-hw-accel: false
@@ -180,10 +150,13 @@ jobs:
           ram-size: 4096M
           script: |
             adb wait-for-device
+            adb shell input keyevent 82
             adb shell settings put global window_animation_scale 0.0
             adb shell settings put global transition_animation_scale 0.0
             adb shell settings put global animator_duration_scale 0.0
-            ./gradlew connectedDebugAndroidTest --no-daemon --stacktrace
+            adb shell settings put global always_finish_activities 0
+            adb shell settings put global stay_on_while_plugged_in 3
+            ./gradlew connectedDebugAndroidTest --no-daemon --stacktrace --max-workers=2
 
       - name: Upload instrumentation test reports
         if: always()
@@ -216,26 +189,15 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: false
-          gradle-home-cache-cleanup: true
-
-      - name: Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
 
       - name: Create local.properties
         run: echo "MAPS_API_KEY=dummy_key_for_ci" > local.properties
 
       - name: Build release APK
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
+        run: ./gradlew assembleRelease --no-daemon --stacktrace --max-workers=2
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

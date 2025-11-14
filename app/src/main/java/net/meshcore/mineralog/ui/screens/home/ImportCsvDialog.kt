@@ -191,9 +191,9 @@ fun ImportCsvDialog(
                         }
                     }
 
-                    parseResult != null -> {
-                        val result = parseResult!!
+                    else -> {
 
+                        parseResult?.let { result ->
                         // File info
                         Card(
                             colors = CardDefaults.cardColors(
@@ -493,6 +493,7 @@ fun ImportCsvDialog(
                                     }
                                 }
                             }
+                        }
                         }
                     }
                 }
