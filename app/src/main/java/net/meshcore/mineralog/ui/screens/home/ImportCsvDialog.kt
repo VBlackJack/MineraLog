@@ -438,7 +438,8 @@ fun ImportCsvDialog(
                                                                     }
                                                                     .padding(vertical = 2.dp, horizontal = 4.dp)
                                                                     .semantics {
-                                                                        contentDescription = "$header: $displayValue Truncated. Tap to expand"
+                                                                        contentDescription = "$header: $displayValue " +
+                                                                            "Truncated. Tap to expand"
                                                                     }
                                                             } else {
                                                                 Modifier.padding(vertical = 2.dp, horizontal = 4.dp)
