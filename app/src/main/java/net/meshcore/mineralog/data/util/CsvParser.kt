@@ -76,13 +76,13 @@ class CsvParser {
         val rows = mutableListOf<Map<String, String>>()
         val errors = mutableListOf<ParseError>()
         var lineNumber = 2 // Line 1 is headers
-        var line: String?
 
-        while (reader.readLine().also { line = it } != null) {
+        while (true) {
+            val line = reader.readLine() ?: break
             if (maxRows > 0 && rows.size >= maxRows) break
 
             try {
-                val values = parseLine(line!!, delimiter)
+                val values = parseLine(line, delimiter)
 
                 // Create map from headers to values
                 val rowMap = mutableMapOf<String, String>()

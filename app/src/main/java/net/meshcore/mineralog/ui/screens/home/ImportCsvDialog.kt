@@ -192,7 +192,7 @@ fun ImportCsvDialog(
                     }
 
                     parseResult != null -> {
-                        val result = parseResult!!
+                        val result = parseResult
 
                         // File info
                         Card(

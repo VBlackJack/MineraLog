@@ -227,17 +227,18 @@ class BackupRepositoryImpl(
                             if (totalCompressedBytes > 0) {
                                 val ratio = totalDecompressedBytes / totalCompressedBytes
                                 if (ratio > MAX_DECOMPRESSION_RATIO) {
-                                    return@withContext Result.failure(
-                                        Exception("Potential ZIP bomb detected: decompression ratio $ratio:1 exceeds limit of $MAX_DECOMPRESSION_RATIO:1")
-                                    )
+                                    val message = "Potential ZIP bomb detected: decompression ratio $ratio:1 " +
+                                        "exceeds limit of $MAX_DECOMPRESSION_RATIO:1"
+                                    return@withContext Result.failure(Exception(message))
                                 }
                             }
 
                             // Check total decompressed size
                             if (totalDecompressedBytes > MAX_DECOMPRESSED_SIZE) {
-                                return@withContext Result.failure(
-                                    Exception("Decompressed size ${totalDecompressedBytes / 1024 / 1024}MB exceeds maximum ${MAX_DECOMPRESSED_SIZE / 1024 / 1024}MB")
-                                )
+                                val decompressedMB = totalDecompressedBytes / 1024 / 1024
+                                val maxMB = MAX_DECOMPRESSED_SIZE / 1024 / 1024
+                                val message = "Decompressed size ${decompressedMB}MB exceeds maximum ${maxMB}MB"
+                                return@withContext Result.failure(Exception(message))
                             }
                         }
 
@@ -269,7 +270,9 @@ class BackupRepositoryImpl(
                     // Security: Validate schema version
                     val schemaVersion = manifest?.get("schemaVersion") as? String
                     if (!validateSchemaVersion(schemaVersion)) {
-                        return@withContext Result.failure(Exception("Incompatible backup schema version: $schemaVersion. Only version 1.0.0 is supported."))
+                        val message = "Incompatible backup schema version: $schemaVersion. " +
+                            "Only version 1.0.0 is supported."
+                        return@withContext Result.failure(Exception(message))
                     }
                     val isEncrypted = manifest?.get("encrypted") as? Boolean ?: false
 
@@ -350,7 +353,8 @@ class BackupRepositoryImpl(
                     writer.write("Crystal System,Specific Gravity,Cleavage,Fracture,")
                     writer.write("Diaphaneity,Habit,Fluorescence,Radioactive,Magnetic,")
                     writer.write("Dimensions (mm),Weight (g),Status,Status Type,Quality Rating,Completeness,")
-                    writer.write("Provenance Country,Provenance Locality,Provenance Site,Provenance Acquired At,Provenance Source,Price,Estimated Value,Currency,")
+                    writer.write("Provenance Country,Provenance Locality,Provenance Site,")
+                    writer.write("Provenance Acquired At,Provenance Source,Price,Estimated Value,Currency,")
                     writer.write("Storage Place,Storage Container,Storage Box,Storage Slot,Notes,Tags\n")
 
                     // Write data rows

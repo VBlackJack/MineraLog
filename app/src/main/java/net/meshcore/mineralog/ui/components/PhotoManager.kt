@@ -166,94 +166,98 @@ fun PhotoManager(
     }
 
     // Photo type dialog
-    if (showPhotoTypeDialog && selectedPhotoForTypeChange != null) {
-        AlertDialog(
-            onDismissRequest = { showPhotoTypeDialog = false },
-            title = { Text("Photo Type") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PhotoTypeOption(
-                        type = "NORMAL",
-                        label = "Normal",
-                        description = "Standard photo",
-                        selected = selectedPhotoForTypeChange?.type == "NORMAL",
-                        onClick = {
-                            onUpdateType(selectedPhotoForTypeChange!!.id, "NORMAL")
-                            showPhotoTypeDialog = false
-                        }
-                    )
-                    PhotoTypeOption(
-                        type = "UV_SW",
-                        label = "UV Shortwave",
-                        description = "Shortwave UV photo",
-                        selected = selectedPhotoForTypeChange?.type == "UV_SW",
-                        onClick = {
-                            onUpdateType(selectedPhotoForTypeChange!!.id, "UV_SW")
-                            showPhotoTypeDialog = false
-                        }
-                    )
-                    PhotoTypeOption(
-                        type = "UV_LW",
-                        label = "UV Longwave",
-                        description = "Longwave UV photo",
-                        selected = selectedPhotoForTypeChange?.type == "UV_LW",
-                        onClick = {
-                            onUpdateType(selectedPhotoForTypeChange!!.id, "UV_LW")
-                            showPhotoTypeDialog = false
-                        }
-                    )
-                    PhotoTypeOption(
-                        type = "MACRO",
-                        label = "Macro",
-                        description = "Close-up macro photo",
-                        selected = selectedPhotoForTypeChange?.type == "MACRO",
-                        onClick = {
-                            onUpdateType(selectedPhotoForTypeChange!!.id, "MACRO")
-                            showPhotoTypeDialog = false
-                        }
-                    )
+    selectedPhotoForTypeChange?.let { photo ->
+        if (showPhotoTypeDialog) {
+            AlertDialog(
+                onDismissRequest = { showPhotoTypeDialog = false },
+                title = { Text("Photo Type") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PhotoTypeOption(
+                            type = "NORMAL",
+                            label = "Normal",
+                            description = "Standard photo",
+                            selected = photo.type == "NORMAL",
+                            onClick = {
+                                onUpdateType(photo.id, "NORMAL")
+                                showPhotoTypeDialog = false
+                            }
+                        )
+                        PhotoTypeOption(
+                            type = "UV_SW",
+                            label = "UV Shortwave",
+                            description = "Shortwave UV photo",
+                            selected = photo.type == "UV_SW",
+                            onClick = {
+                                onUpdateType(photo.id, "UV_SW")
+                                showPhotoTypeDialog = false
+                            }
+                        )
+                        PhotoTypeOption(
+                            type = "UV_LW",
+                            label = "UV Longwave",
+                            description = "Longwave UV photo",
+                            selected = photo.type == "UV_LW",
+                            onClick = {
+                                onUpdateType(photo.id, "UV_LW")
+                                showPhotoTypeDialog = false
+                            }
+                        )
+                        PhotoTypeOption(
+                            type = "MACRO",
+                            label = "Macro",
+                            description = "Close-up macro photo",
+                            selected = photo.type == "MACRO",
+                            onClick = {
+                                onUpdateType(photo.id, "MACRO")
+                                showPhotoTypeDialog = false
+                            }
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showPhotoTypeDialog = false }) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { showPhotoTypeDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 
     // Caption dialog
-    if (showCaptionDialog && selectedPhotoForCaption != null) {
-        AlertDialog(
-            onDismissRequest = { showCaptionDialog = false },
-            title = { Text("Edit Caption") },
-            text = {
-                OutlinedTextField(
-                    value = editingCaption,
-                    onValueChange = { editingCaption = it },
-                    label = { Text("Caption") },
-                    placeholder = { Text("Add a caption for this photo") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 2,
-                    maxLines = 4
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onUpdateCaption(selectedPhotoForCaption!!.id, editingCaption)
-                        showCaptionDialog = false
+    selectedPhotoForCaption?.let { photo ->
+        if (showCaptionDialog) {
+            AlertDialog(
+                onDismissRequest = { showCaptionDialog = false },
+                title = { Text("Edit Caption") },
+                text = {
+                    OutlinedTextField(
+                        value = editingCaption,
+                        onValueChange = { editingCaption = it },
+                        label = { Text("Caption") },
+                        placeholder = { Text("Add a caption for this photo") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 2,
+                        maxLines = 4
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onUpdateCaption(photo.id, editingCaption)
+                            showCaptionDialog = false
+                        }
+                    ) {
+                        Text("Save")
                     }
-                ) {
-                    Text("Save")
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCaptionDialog = false }) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCaptionDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 }
 
