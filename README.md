@@ -5,7 +5,7 @@
 [![Android CI](https://github.com/VBlackJack/MineraLog/workflows/Android%20CI/badge.svg)](https://github.com/VBlackJack/MineraLog/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.0-blue.svg)](https://kotlinlang.org)
-[![Version](https://img.shields.io/badge/Version-1.4.1-brightgreen.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.5.0-brightgreen.svg)](CHANGELOG.md)
 [![Min SDK](https://img.shields.io/badge/Min%20SDK-27-green.svg)](https://developer.android.com/about/versions/oreo)
 [![WCAG 2.1 AA](https://img.shields.io/badge/WCAG%202.1-AA%20Compliant-brightgreen.svg)](ACCESSIBILITY.md)
 
@@ -19,28 +19,30 @@
 
 ### 📸 Photo Management
 - **4 Photo Types**: Normal, UV Shortwave, UV Longwave, Macro
-- **CameraX Integration**: High-quality in-app photography
-- **Gallery Import**: Select from existing photos
-- **EXIF Support**: Preserves metadata
-- **Smart Storage**: Copy to internal storage (configurable) for data safety
+- **CameraX Integration**: High-quality in-app camera with live preview
+- **Photo Gallery**: Grid view with fullscreen swipe viewer
+- **Pinch-to-Zoom**: 1x-5x zoom in fullscreen mode
+- **Photo Type Badges**: Color-coded type indicators
+- **Smart Storage**: App-specific directory (no permissions needed on API 29+)
 
 ### 🗺️ Provenance Tracking
 - **Geographic Origin**: Site, locality, country with coordinates
 - **Acquisition Details**: Date, source (purchase/exchange/collected/gift/inheritance), price, estimated value
-- **Map View**: Interactive map with clustering for specimens from same regions
+- **Multi-Currency Support**: Track prices in different currencies
+- **Map View**: Planned for v1.6 (Google Maps integration)
 
 ### 📦 Storage Organization
 - **Hierarchical System**: Place → Container → Box → Slot
 - **Reverse Search**: "Where is this mineral?" queries
 - **QR Codes**: Generate and scan labels for physical organization
 
-### 🏷️ QR Label Generation
-- **2 Templates**:
-  - 50×30mm: 36 labels per A4 sheet (4×9 grid)
-  - 70×35mm: 24 labels per A4 sheet (3×8 grid)
-- **Customizable Fields**: Name, ID, group, formula, QR code
-- **Deep Links**: Scan to instantly open mineral detail (`mineralapp://mineral/{uuid}`)
-- **PDF Export**: Print or save for later
+### 🏷️ QR Scanning & Labels
+- **QR Code Scanner**: ML Kit barcode scanning with torch support
+- **Deep Links**: `mineralapp://mineral/{uuid}` opens mineral detail instantly
+- **Direct UUID Support**: Also recognizes raw UUIDs
+- **QR Label Generation**: Planned for v1.6
+  - PDF templates (50×30mm, 70×35mm)
+  - Customizable fields
 
 ### 🔍 Search & Filtering
 - **Full-Text Search**: Name, group, formula, notes, tags
@@ -48,17 +50,17 @@
 - **Real-Time**: Debounced search for smooth UX (<300ms latency)
 
 ### 💾 Import/Export
-- **ZIP Format**: Complete backup with photos, encryption support ready (Argon2id + AES-256-GCM)
+- **ZIP Format**: Complete backup with photos
   - **3 Import Modes**: Merge (upsert), Replace (fresh start), Map IDs (conflict resolution)
-  - **Encryption UI**: Coming in v1.5
-- **CSV Format**: Export only (import coming in v1.5)
-  - Spreadsheet-compatible with selective column export
-  - Bulk editing friendly for reimport via ZIP workflow
+  - **Encryption Backend**: Ready (Argon2id + AES-256-GCM), UI planned for v1.6
+- **CSV Format**: Export with selective column selection
+  - CSV import: Planned for v1.6
+  - Spreadsheet-compatible bulk editing workflow
 - **Validation & Error Reporting**: Detailed logs of import issues (ZIP only)
 
 ### 🔒 Security & Privacy
 - **Offline-First**: All data stored locally, no cloud dependency
-- **Encrypted Backups**: Crypto implementation ready (Argon2id KDF + AES-256-GCM cipher, UI integration in v1.5)
+- **Encrypted Backups**: Crypto backend ready (Argon2id KDF + AES-256-GCM cipher), UI planned for v1.6
 - **No Telemetry**: Zero analytics without explicit consent
 - **Storage Access Framework**: Secure file access via Android SAF
 
@@ -146,18 +148,25 @@ Get your Maps API key: [Google Cloud Console](https://console.cloud.google.com/g
 - **[Import/Export Spec](DOCS/import_export_spec.md)**: File format specifications
 - **[Assumptions Log](DOCS/assumptions.md)**: Implementation decisions and rationale
 
-## What's New in 1.4.1
+## What's New in 1.5.0
 
-🚀 **Major performance and quality update!**
+🎉 **Major feature release - Photo Workflows & QR Scanning!**
 
+### New Features
+- **📸 Photo Capture**: CameraX integration with 4 photo types (Normal, UV-SW, UV-LW, Macro)
+- **🖼️ Photo Gallery**: Grid view + fullscreen swipe viewer with pinch-to-zoom (1x-5x)
+- **📷 QR Scanner**: ML Kit barcode scanning with deep links (`mineralapp://mineral/{uuid}`)
+- **🧪 Test Coverage**: Expanded to ~35-40% with comprehensive unit + instrumentation tests
+- **♿ Accessibility**: WCAG 2.1 AA compliant (88/100 score) with full TalkBack support
+- **📊 CI Health**: Comprehensive monitoring with analysis scripts and health reports
+
+### Previous Update (1.4.1)
 - **10x faster** mineral list loading (optimized batch queries)
 - **70% faster** statistics screen (parallel query execution)
-- **Critical bug fixes**: Fixed syntax errors, N+1 query patterns, data integrity issues
-- **Enhanced security**: Comprehensive ProGuard rules, protected user data
-- **Multi-currency support**: Track acquisition prices in different currencies
-- **87 total fixes**: 8 critical, 31 major, 48 minor improvements
+- **Multi-currency support** for provenance tracking
+- **87 bug fixes**: 8 critical, 31 major, 48 minor improvements
 
-See [CHANGELOG.md](CHANGELOG.md) for complete details.
+See [CHANGELOG.md](CHANGELOG.md) for complete version history.
 
 ## PC Tools
 
