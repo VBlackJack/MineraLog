@@ -57,7 +57,7 @@ class MineraLogApplication : Application(), Configuration.Provider {
     }
 
     // Tink AEAD for local encryption (app-level key)
-    private val aead: Aead by lazy {
+    val aead: Aead by lazy {
         AeadConfig.register()
         val keysetHandle = AndroidKeysetManager.Builder()
             .withSharedPref(this, "mineralog_keyset", "mineralog_pref")
@@ -86,6 +86,4 @@ class MineraLogApplication : Application(), Configuration.Provider {
         // Initialize WorkManager
         WorkManager.initialize(this, workManagerConfiguration)
     }
-
-    fun getAead(): Aead = aead
 }
