@@ -5,6 +5,9 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.sqlite.db.SupportSQLiteDatabase
+import net.sqlcipher.database.SQLiteDatabase
+import net.sqlcipher.database.SupportFactory
 import net.meshcore.mineralog.data.local.converter.Converters
 import net.meshcore.mineralog.data.local.dao.FilterPresetDao
 import net.meshcore.mineralog.data.local.dao.MineralDao
@@ -53,14 +56,37 @@ abstract class MineraLogDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): MineraLogDatabase {
             return INSTANCE ?: synchronized(this) {
+                // Initialize SQLCipher native libraries
+                System.loadLibrary("sqlcipher")
+
+                // Get or create database encryption passphrase
+                val passphrase = DatabaseKeyManager.getOrCreatePassphrase(context)
+
+                // Create SupportFactory for SQLCipher encryption
+                val factory = SupportFactory(passphrase)
+
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     MineraLogDatabase::class.java,
                     "mineralog_database"
                 )
+                    .openHelperFactory(factory) // Enable SQLCipher encryption
                     .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4) // Proper migrations for schema evolution
                     // Note: fallbackToDestructiveMigration() has been removed to protect user data
                     // All migrations must be properly defined before releasing new schema versions
+                    .addCallback(object : RoomDatabase.Callback() {
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            // Database created with encryption enabled
+                            android.util.Log.i("MineraLogDB", "Encrypted database created")
+                        }
+
+                        override fun onOpen(db: SupportSQLiteDatabase) {
+                            super.onOpen(db)
+                            // Database opened successfully with encryption
+                            android.util.Log.d("MineraLogDB", "Encrypted database opened")
+                        }
+                    })
                     .build()
                 INSTANCE = instance
                 instance

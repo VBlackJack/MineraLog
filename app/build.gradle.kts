@@ -189,6 +189,7 @@ dependencies {
     // Crypto
     implementation(libs.tink.android)
     implementation(libs.argon2kt)
+    implementation(libs.sqlcipher)
 
     // QR generation
     implementation(libs.zxing.core)

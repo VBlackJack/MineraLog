@@ -60,24 +60,16 @@ class Argon2Helper(
             // Convert password to bytes (UTF-8)
             val passwordBytes = password.concatToString().toByteArray(Charsets.UTF_8)
 
-            // TODO: Fix Argon2kt API compatibility - API has changed
             // Derive key using Argon2id
-            /*
             val derivedKey = argon2.hash(
                 mode = MODE,
                 password = passwordBytes,
                 salt = actualSalt,
                 tCostInIterations = ITERATIONS,
-                mCostInKibibytes = MEMORY_COST_KB,
+                mCostInKibibyte = MEMORY_COST_KB,
                 parallelism = PARALLELISM,
                 hashLengthInBytes = KEY_LENGTH_BYTES
             )
-            */
-
-            // Temporary workaround: return dummy key for compilation
-            val derivedKey = object {
-                fun rawHashAsByteArray() = ByteArray(KEY_LENGTH_BYTES)
-            }
 
             // Clear sensitive data from memory
             passwordBytes.fill(0)

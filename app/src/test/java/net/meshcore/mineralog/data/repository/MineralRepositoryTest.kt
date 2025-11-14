@@ -5,8 +5,10 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.local.dao.MineralDao
 import net.meshcore.mineralog.data.local.dao.PhotoDao
 import net.meshcore.mineralog.data.local.dao.ProvenanceDao
@@ -27,6 +29,7 @@ import java.time.Instant
  */
 class MineralRepositoryTest {
 
+    private lateinit var database: MineraLogDatabase
     private lateinit var mineralDao: MineralDao
     private lateinit var provenanceDao: ProvenanceDao
     private lateinit var storageDao: StorageDao
@@ -35,11 +38,19 @@ class MineralRepositoryTest {
 
     @BeforeEach
     fun setup() {
+        database = mockk(relaxed = true)
         mineralDao = mockk(relaxed = true)
         provenanceDao = mockk(relaxed = true)
         storageDao = mockk(relaxed = true)
         photoDao = mockk(relaxed = true)
-        repository = MineralRepositoryImpl(mineralDao, provenanceDao, storageDao, photoDao)
+
+        // Mock withTransaction to execute the block immediately
+        val transactionLambda = slot<suspend () -> Any?>()
+        coEvery { database.withTransaction(capture(transactionLambda)) } coAnswers {
+            transactionLambda.captured.invoke()
+        }
+
+        repository = MineralRepositoryImpl(database, mineralDao, provenanceDao, storageDao, photoDao)
     }
 
     @Test
