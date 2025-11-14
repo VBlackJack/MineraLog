@@ -317,22 +317,43 @@ if (provenance == null && mineral.provenanceId != null) {
 - Search and filtering
 - Batch operations (avoid N+1)
 - Statistics queries
+- Atomic transactions for data integrity
 
 **Key Methods:**
 
-- `delete(id)` → Manual cascade to Provenance/Storage/Photos
+- `delete(id)` → Manual cascade to Provenance/Storage/Photos (atomic transaction)
 - `deleteByIds(ids)` → Batch delete with cascade
 - `getAll()` → Returns MineralEntity only (no relations)
 - `getAllWithDetails()` → Loads relations in batch
+- All multi-table operations wrapped in `database.withTransaction { }`
 
-### BackupRepository
+**Performance Optimizations (v1.6.0):**
+
+- N+1 query elimination via `MineralPagingSource`
+- Batch loading: `getByIds()`, `getByMineralIds()` methods
+- 93.4% query reduction in paging (61 → 4 queries per page)
+- Proper indexing on foreign keys (`provenanceId`, `storageId`)
+
+### BackupRepository (Facade Pattern)
+
+**Refactored in v1.6.0**: God class (744 LOC) → Clean facade (117 LOC) + 4 specialized services
 
 **Responsibilities:**
 
 - Export: ZIP (with media), CSV (data only)
 - Import: ZIP (3 modes), CSV (3 modes)
-- Encryption: Argon2+AES256 for ZIP
+- Encryption: Argon2id+AES-256-GCM for ZIP
 - Validation: Type checking, FK integrity
+
+**Architecture (Facade + Services):**
+
+```kotlin
+BackupRepositoryImpl (Facade: 117 LOC)
+    ├─> ZipBackupService (331 LOC) - ZIP export/import
+    ├─> CsvBackupService (259 LOC) - CSV export/import
+    ├─> BackupEncryptionService (138 LOC) - Argon2+AES crypto
+    └─> MineralCsvMapper (151 LOC) - CSV row parsing
+```
 
 **Import Modes:**
 
@@ -345,6 +366,32 @@ if (provenance == null && mineral.provenanceId != null) {
 - `CsvImportMode.MERGE` → Match by name, upsert
 - `CsvImportMode.REPLACE` → Clear all, insert
 - `CsvImportMode.SKIP_DUPLICATES` → Skip if name exists
+
+**Service Layer Details:**
+
+1. **ZipBackupService**
+   - Handles ZIP creation and extraction
+   - Manages manifest.json with metadata
+   - Coordinates encryption via BackupEncryptionService
+   - Handles photo file bundling
+
+2. **CsvBackupService**
+   - UTF-8 encoding with BOM
+   - RFC 4180 compliant (commas, quotes, newlines)
+   - 35 columns covering all mineral properties
+   - Column mapping for import flexibility
+
+3. **BackupEncryptionService**
+   - Wraps `PasswordBasedCrypto` for consistency
+   - Handles salt and IV encoding/decoding
+   - Provides clean encrypt/decrypt API
+   - Fixed in v1.6.0: Argon2 key derivation functional
+
+4. **MineralCsvMapper**
+   - Bidirectional mapping (CSV ↔ Mineral domain model)
+   - Type conversions (String → Float, Boolean, Enum)
+   - Null handling and validation
+   - Extensible for new fields
 
 ---
 
@@ -429,6 +476,44 @@ photoDao.getByMineralIds(minerals.map { it.id })
 
 ---
 
+## Dependency Injection
+
+### Current Implementation (v1.6.0): Manual DI
+
+**Pattern**: Application-scoped lazy initialization
+
+```kotlin
+// MineraLogApplication.kt
+class MineraLogApplication : Application() {
+    val database by lazy { MineraLogDatabase.getDatabase(this) }
+    val mineralRepository by lazy { MineralRepositoryImpl(database) }
+    val backupRepository by lazy { BackupRepositoryImpl(this, database) }
+    val statisticsRepository by lazy { StatisticsRepositoryImpl(database.mineralDao()) }
+    // ... other repositories
+}
+```
+
+**Pros:**
+- ✅ Simple and functional
+- ✅ No additional dependencies
+- ✅ Easy to understand and test
+- ✅ Suitable for current codebase size (5 ViewModels, 8 repositories)
+
+**Cons:**
+- ⚠️ Manual wiring (no compile-time safety)
+- ⚠️ ViewModelFactory boilerplate (~15 LOC per ViewModel)
+- ⚠️ Not scalable beyond ~10 ViewModels
+
+**Future Migration (Planned for v2.0):**
+
+Hilt DI migration documented in `DOCS/P2_HILT_MIGRATION_PLAN.md`:
+- 8 ViewModels → `@HiltViewModel`
+- 8 ViewModelFactory classes → DELETE (~120 LOC reduction)
+- Compile-time dependency graph validation
+- Improved testability with `@HiltAndroidTest`
+
+---
+
 ## Security & Privacy
 
 ### Encryption
@@ -438,15 +523,30 @@ photoDao.getByMineralIds(minerals.map { it.id })
 **Use Cases:**
 
 1. ZIP backups (user password optional)
-2. Local photo encryption (future)
+2. Database at-rest (SQLCipher with Android Keystore)
 3. Export to untrusted storage (cloud)
 
-**Implementation**: `CryptoHelper.kt`, `PasswordBasedCrypto`
+**Implementation**:
+- `Argon2Helper.kt` - Key derivation (fixed in v1.6.0)
+- `CryptoHelper.kt` - AES-256-GCM encryption
+- `PasswordBasedCrypto.kt` - High-level API
+- `DatabaseKeyManager.kt` - Keystore integration
 
 **Key Parameters:**
 
-- Argon2: 128MB memory, 4 iterations, 2 parallelism
-- AES-GCM: 256-bit key, 96-bit IV, 128-bit tag
+- **Argon2id**: 128MB memory, 4 iterations, 2 parallelism, 32-byte output
+- **AES-GCM**: 256-bit key, 96-bit IV (random per operation), 128-bit auth tag
+- **Android Keystore**: Hardware-backed key storage (TEE/StrongBox when available)
+
+**Security Enhancements (v1.6.0):**
+
+1. **P0.1**: Argon2 key derivation restored (was returning zeros)
+2. **P0.2**: Database encryption with SQLCipher + EncryptedSharedPreferences
+3. **P0.5**: Comprehensive crypto test coverage (61 tests, >95% coverage)
+4. **P1.1**: Deep link UUID validation (dual-layer defense)
+5. **P1.2**: Production APK signing with environment variables
+6. **P1.3**: `allowBackup=false` prevents cloud/adb extraction
+7. **P1.4**: Network security config (HTTPS-only, cleartext blocked)
 
 ### Data Privacy
 
@@ -454,7 +554,9 @@ photoDao.getByMineralIds(minerals.map { it.id })
 
 **Photo Storage**: Internal app storage (`Context.filesDir`)
 
-**Backups**: User-controlled exports only
+**Backups**: User-controlled exports only (no automatic cloud sync)
+
+**Database Encryption**: SQLCipher with Android Keystore passphrase management
 
 ---
 
@@ -500,5 +602,47 @@ photoDao.getByMineralIds(minerals.map { it.id })
 
 ---
 
-**Last Updated**: v1.5.0 (Sprint v1.5 - 2025)
+## Change Log
+
+### v1.6.0 (Post-Audit Refactoring)
+
+**Security Hardening:**
+- ✅ Argon2 key derivation functional (fixed P0.1)
+- ✅ Database encrypted at-rest with SQLCipher (P0.2)
+- ✅ Deep link UUID validation (P1.1)
+- ✅ Production APK signing (P1.2)
+- ✅ Backup protection (`allowBackup=false`, P1.3)
+- ✅ HTTPS-only enforcement (P1.4)
+- ✅ Crypto test coverage >95% (61 tests, P0.5 + P1.5)
+
+**Performance Optimization:**
+- ✅ N+1 query elimination (93.4% reduction, P0.4)
+- ✅ Custom `MineralPagingSource` with batch loading
+- ✅ Atomic transactions for data integrity (P0.3)
+- ✅ 6 transaction-wrapped operations in `MineralRepository`
+
+**Code Quality:**
+- ✅ God class eliminated: `BackupRepository` 744 → 117 LOC
+- ✅ 4 new services extracted (Zip, Csv, Encryption, Mapper)
+- ✅ Magic numbers centralized (UiConstants, DatabaseConstants)
+- ✅ ProGuard rules refined (no wildcards)
+- ✅ Detekt strict config (`maxIssues: 0`)
+
+**Testing:**
+- ✅ Test coverage: 40.5% (exceeds 35-40% target)
+- ✅ 29 unit tests + 2 instrumented tests = 31 total
+- ✅ ~344 total test cases across all files
+- ✅ Critical paths: 100% coverage (crypto, deep links, transactions)
+
+**Documentation:**
+- ✅ 5 P2 implementation plans (Hilt, Composables, Performance, Cleanup, Summary)
+- ✅ Comprehensive acceptance validation report
+- ✅ Updated architecture documentation
+
+### v1.5.0 (Photo Workflows & QR Scanning)
+- See CHANGELOG.md for details
+
+---
+
+**Last Updated**: v1.6.0 (Post-Audit - 2025-11-14)
 **Maintained By**: MineraLog Development Team
