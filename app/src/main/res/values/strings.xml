@@ -224,7 +224,7 @@
     <string name="csv_export_warning_checkbox">Don\'t show this again</string>
     <string name="csv_export_warning_understand">I Understand</string>
     <string name="import_csv_title">Import from CSV</string>
-    <string name="import_csv_subtitle">%d rows, %d columns</string>
+    <string name="import_csv_subtitle" formatted="false">%d rows, %d columns</string>
     <string name="import_csv_select_file">Select CSV file</string>
     <string name="import_csv_parsing">Parsing CSV file…</string>
     <string name="import_csv_error">Error parsing CSV</string>
@@ -248,7 +248,7 @@
     <string name="import_csv_delimiter">Delimiter: %s</string>
     <string name="import_csv_auto_mapping">Use auto-mapping</string>
     <string name="import_csv_column_mapping">Column Mapping</string>
-    <string name="import_csv_mapped_columns">%d of %d columns mapped</string>
+    <string name="import_csv_mapped_columns" formatted="false">%d of %d columns mapped</string>
     <string name="import_csv_name_required">⚠️ Name column is required for import</string>
     <string name="import_csv_skip_column">(Skip column)</string>
     <string name="import_csv_start">Start Import</string>
@@ -383,7 +383,7 @@
 
     <!-- Accessibility -->
     <string name="acc_mineral_card">Mineral card: %s</string>
-    <string name="acc_photo_thumbnail">Photo thumbnail %d of %d</string>
+    <string name="acc_photo_thumbnail" formatted="false">Photo thumbnail %d of %d</string>
     <string name="acc_loading">Loading content</string>
     <string name="acc_empty_list">Empty list</string>
 
@@ -394,10 +394,10 @@
     <string name="filter_by_group">Filter by Group</string>
     <string name="filter_by_country">Filter by Country</string>
     <string name="filter_by_hardness">Filter by Hardness</string>
-    <string name="filter_hardness_range">Hardness: %.1f - %.1f</string>
+    <string name="filter_hardness_range" formatted="false">Hardness: %.1f - %.1f</string>
     <string name="filter_by_status">Filter by Status</string>
     <string name="filter_by_quality">Filter by Quality</string>
-    <string name="filter_quality_range">Quality: %d - %d stars</string>
+    <string name="filter_quality_range" formatted="false">Quality: %d - %d stars</string>
     <string name="filter_by_photos">Filter by Photos</string>
     <string name="filter_has_photos">Has photos</string>
     <string name="filter_no_photos">No photos</string>

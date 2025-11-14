@@ -65,7 +65,7 @@ interface MineralDao {
     @Query("""
         SELECT * FROM minerals
         WHERE name LIKE :query
-           OR group LIKE :query
+           OR `group` LIKE :query
            OR formula LIKE :query
            OR notes LIKE :query
            OR tags LIKE :query
@@ -113,7 +113,7 @@ interface MineralDao {
     @Query("""
         SELECT * FROM minerals
         WHERE name LIKE :query
-           OR group LIKE :query
+           OR `group` LIKE :query
            OR formula LIKE :query
            OR notes LIKE :query
            OR tags LIKE :query
@@ -123,7 +123,7 @@ interface MineralDao {
 
     @Query("""
         SELECT * FROM minerals
-        WHERE (:group IS NULL OR group = :group)
+        WHERE (:group IS NULL OR `group` = :group)
           AND (:crystalSystem IS NULL OR crystalSystem = :crystalSystem)
           AND (:status IS NULL OR status = :status)
           AND (:mohsMin IS NULL OR mohsMax >= :mohsMin)
@@ -167,7 +167,7 @@ interface MineralDao {
         GROUP BY `group`
         ORDER BY count DESC
     """)
-    suspend fun getGroupDistribution(): Map<String, Int>
+    suspend fun getGroupDistribution(): Map<@MapColumn(columnName = "group") String, @MapColumn(columnName = "count") Int>
 
     /**
      * Get distribution of minerals by country (from provenance).
@@ -176,12 +176,12 @@ interface MineralDao {
     @Query("""
         SELECT p.country, COUNT(*) as count
         FROM minerals m
-        INNER JOIN provenance p ON m.provenanceId = p.id
+        INNER JOIN provenances p ON m.provenanceId = p.id
         WHERE p.country IS NOT NULL
         GROUP BY p.country
         ORDER BY count DESC
     """)
-    suspend fun getCountryDistribution(): Map<String, Int>
+    suspend fun getCountryDistribution(): Map<@MapColumn(columnName = "country") String, @MapColumn(columnName = "count") Int>
 
     /**
      * Get distribution by Mohs hardness ranges.
@@ -208,7 +208,7 @@ interface MineralDao {
         GROUP BY range
         ORDER BY range
     """)
-    suspend fun getHardnessDistribution(): Map<String, Int>
+    suspend fun getHardnessDistribution(): Map<@MapColumn(columnName = "range") String, @MapColumn(columnName = "count") Int>
 
     /**
      * Get distribution by status type.
@@ -219,7 +219,7 @@ interface MineralDao {
         GROUP BY statusType
         ORDER BY count DESC
     """)
-    suspend fun getStatusDistribution(): Map<String, Int>
+    suspend fun getStatusDistribution(): Map<@MapColumn(columnName = "statusType") String, @MapColumn(columnName = "count") Int>
 
     /**
      * Get total estimated value of all minerals.
@@ -251,7 +251,7 @@ interface MineralDao {
     @Query("""
         SELECT m.id, m.name, p.estimatedValue as value, 'USD' as currency
         FROM minerals m
-        INNER JOIN provenance p ON m.provenanceId = p.id
+        INNER JOIN provenances p ON m.provenanceId = p.id
         WHERE p.estimatedValue IS NOT NULL
         ORDER BY p.estimatedValue DESC
         LIMIT 1
@@ -312,7 +312,7 @@ interface MineralDao {
     @Query("""
         SELECT p.country
         FROM minerals m
-        INNER JOIN provenance p ON m.provenanceId = p.id
+        INNER JOIN provenances p ON m.provenanceId = p.id
         WHERE p.country IS NOT NULL
         GROUP BY p.country
         ORDER BY COUNT(*) DESC

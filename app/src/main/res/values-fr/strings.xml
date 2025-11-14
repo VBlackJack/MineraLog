@@ -224,7 +224,7 @@
     <string name="csv_export_warning_checkbox">Ne plus afficher ce message</string>
     <string name="csv_export_warning_understand">J\'ai compris</string>
     <string name="import_csv_title">Importer depuis CSV</string>
-    <string name="import_csv_subtitle">%d lignes, %d colonnes</string>
+    <string name="import_csv_subtitle" formatted="false">%d lignes, %d colonnes</string>
     <string name="import_csv_select_file">Sélectionner le fichier CSV</string>
     <string name="import_csv_parsing">Analyse du fichier CSV…</string>
     <string name="import_csv_error">Erreur d\'analyse du CSV</string>
@@ -248,7 +248,7 @@
     <string name="import_csv_delimiter">Délimiteur : %s</string>
     <string name="import_csv_auto_mapping">Utiliser le mapping automatique</string>
     <string name="import_csv_column_mapping">Mappage des colonnes</string>
-    <string name="import_csv_mapped_columns">%d colonnes mappées sur %d</string>
+    <string name="import_csv_mapped_columns" formatted="false">%d colonnes mappées sur %d</string>
     <string name="import_csv_name_required">⚠️ La colonne Nom est requise pour l\'import</string>
     <string name="import_csv_skip_column">(Ignorer la colonne)</string>
     <string name="import_csv_start">Démarrer l\'import</string>
@@ -383,7 +383,7 @@
 
     <!-- Accessibility -->
     <string name="acc_mineral_card">Fiche minéral : %s</string>
-    <string name="acc_photo_thumbnail">Miniature photo %d sur %d</string>
+    <string name="acc_photo_thumbnail" formatted="false">Miniature photo %d sur %d</string>
     <string name="acc_loading">Chargement du contenu</string>
     <string name="acc_empty_list">Liste vide</string>
 
@@ -394,10 +394,10 @@
     <string name="filter_by_group">Filtrer par groupe</string>
     <string name="filter_by_country">Filtrer par pays</string>
     <string name="filter_by_hardness">Filtrer par dureté</string>
-    <string name="filter_hardness_range">Dureté : %.1f - %.1f</string>
+    <string name="filter_hardness_range" formatted="false">Dureté : %.1f - %.1f</string>
     <string name="filter_by_status">Filtrer par statut</string>
     <string name="filter_by_quality">Filtrer par qualité</string>
-    <string name="filter_quality_range">Qualité : %d - %d étoiles</string>
+    <string name="filter_quality_range" formatted="false">Qualité : %d - %d étoiles</string>
     <string name="filter_by_photos">Filtrer par photos</string>
     <string name="filter_has_photos">Avec photos</string>
     <string name="filter_no_photos">Sans photos</string>
