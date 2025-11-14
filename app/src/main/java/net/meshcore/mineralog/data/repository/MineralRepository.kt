@@ -4,13 +4,16 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.local.dao.MineralDao
 import net.meshcore.mineralog.data.local.dao.PhotoDao
 import net.meshcore.mineralog.data.local.dao.ProvenanceDao
 import net.meshcore.mineralog.data.local.dao.StorageDao
+import net.meshcore.mineralog.data.local.paging.MineralPagingSource
 import net.meshcore.mineralog.data.mapper.*
 import net.meshcore.mineralog.data.model.FilterCriteria
 import net.meshcore.mineralog.domain.model.Mineral
@@ -57,27 +60,28 @@ interface MineralRepository {
 }
 
 class MineralRepositoryImpl(
+    private val database: MineraLogDatabase,
     private val mineralDao: MineralDao,
     private val provenanceDao: ProvenanceDao,
     private val storageDao: StorageDao,
     private val photoDao: PhotoDao
 ) : MineralRepository {
 
-    override suspend fun insert(mineral: Mineral): String {
+    override suspend fun insert(mineral: Mineral): String = database.withTransaction {
         mineralDao.insert(mineral.toEntity())
         mineral.provenance?.let { provenanceDao.insert(it.toEntity()) }
         mineral.storage?.let { storageDao.insert(it.toEntity()) }
         mineral.photos.forEach { photoDao.insert(it.toEntity()) }
-        return mineral.id
+        mineral.id
     }
 
-    override suspend fun update(mineral: Mineral) {
+    override suspend fun update(mineral: Mineral) = database.withTransaction {
         mineralDao.update(mineral.toEntity())
         mineral.provenance?.let { provenanceDao.insert(it.toEntity()) }
         mineral.storage?.let { storageDao.insert(it.toEntity()) }
     }
 
-    override suspend fun delete(id: String) {
+    override suspend fun delete(id: String) = database.withTransaction {
         // Delete related entities first to maintain referential integrity
         provenanceDao.deleteByMineralId(id)
         storageDao.deleteByMineralId(id)
@@ -88,14 +92,16 @@ class MineralRepositoryImpl(
     override suspend fun deleteByIds(ids: List<String>) {
         if (ids.isEmpty()) return
 
-        // Batch delete related entities first to maintain referential integrity
-        provenanceDao.deleteByMineralIds(ids)
-        storageDao.deleteByMineralIds(ids)
-        photoDao.deleteByMineralIds(ids)
-        mineralDao.deleteByIds(ids)
+        database.withTransaction {
+            // Batch delete related entities first to maintain referential integrity
+            provenanceDao.deleteByMineralIds(ids)
+            storageDao.deleteByMineralIds(ids)
+            photoDao.deleteByMineralIds(ids)
+            mineralDao.deleteByIds(ids)
+        }
     }
 
-    override suspend fun deleteAll() {
+    override suspend fun deleteAll() = database.withTransaction {
         mineralDao.deleteAll()
         provenanceDao.deleteAll()
         storageDao.deleteAll()
@@ -273,6 +279,7 @@ class MineralRepositoryImpl(
     }
 
     // ========== Paging 3 Support (v1.5.0) ==========
+    // Optimized with batch loading to eliminate N+1 query problem
 
     override fun getAllPaged(): Flow<PagingData<Mineral>> {
         return Pager(
@@ -281,16 +288,16 @@ class MineralRepositoryImpl(
                 enablePlaceholders = true,
                 prefetchDistance = 5
             ),
-            pagingSourceFactory = { mineralDao.getAllPaged() }
-        ).flow.map { pagingData ->
-            pagingData.map { entity ->
-                // Load related entities individually for each paged item
-                val provenance = provenanceDao.getByMineralId(entity.id)
-                val storage = storageDao.getByMineralId(entity.id)
-                val photos = photoDao.getByMineralId(entity.id)
-                entity.toDomain(provenance, storage, photos)
+            pagingSourceFactory = {
+                MineralPagingSource(
+                    mineralDao = mineralDao,
+                    provenanceDao = provenanceDao,
+                    storageDao = storageDao,
+                    photoDao = photoDao,
+                    basePagingSource = mineralDao.getAllPaged()
+                )
             }
-        }
+        ).flow
     }
 
     override fun searchPaged(query: String): Flow<PagingData<Mineral>> {
@@ -302,16 +309,16 @@ class MineralRepositoryImpl(
                 enablePlaceholders = true,
                 prefetchDistance = 5
             ),
-            pagingSourceFactory = { mineralDao.searchPaged(formattedQuery) }
-        ).flow.map { pagingData ->
-            pagingData.map { entity ->
-                // Load related entities individually for each paged item
-                val provenance = provenanceDao.getByMineralId(entity.id)
-                val storage = storageDao.getByMineralId(entity.id)
-                val photos = photoDao.getByMineralId(entity.id)
-                entity.toDomain(provenance, storage, photos)
+            pagingSourceFactory = {
+                MineralPagingSource(
+                    mineralDao = mineralDao,
+                    provenanceDao = provenanceDao,
+                    storageDao = storageDao,
+                    photoDao = photoDao,
+                    basePagingSource = mineralDao.searchPaged(formattedQuery)
+                )
             }
-        }
+        ).flow
     }
 
     override fun filterAdvancedPaged(criteria: FilterCriteria): Flow<PagingData<Mineral>> {
@@ -327,27 +334,25 @@ class MineralRepositoryImpl(
                 prefetchDistance = 5
             ),
             pagingSourceFactory = {
-                mineralDao.filterAdvancedPaged(
-                    groups = criteria.groups.takeIf { it.isNotEmpty() },
-                    countries = criteria.countries.takeIf { it.isNotEmpty() },
-                    mohsMin = criteria.mohsMin,
-                    mohsMax = criteria.mohsMax,
-                    statusTypes = criteria.statusTypes.takeIf { it.isNotEmpty() },
-                    qualityMin = criteria.qualityMin,
-                    qualityMax = criteria.qualityMax,
-                    hasPhotos = criteria.hasPhotos,
-                    fluorescent = criteria.fluorescent
+                MineralPagingSource(
+                    mineralDao = mineralDao,
+                    provenanceDao = provenanceDao,
+                    storageDao = storageDao,
+                    photoDao = photoDao,
+                    basePagingSource = mineralDao.filterAdvancedPaged(
+                        groups = criteria.groups.takeIf { it.isNotEmpty() },
+                        countries = criteria.countries.takeIf { it.isNotEmpty() },
+                        mohsMin = criteria.mohsMin,
+                        mohsMax = criteria.mohsMax,
+                        statusTypes = criteria.statusTypes.takeIf { it.isNotEmpty() },
+                        qualityMin = criteria.qualityMin,
+                        qualityMax = criteria.qualityMax,
+                        hasPhotos = criteria.hasPhotos,
+                        fluorescent = criteria.fluorescent
+                    )
                 )
             }
-        ).flow.map { pagingData ->
-            pagingData.map { entity ->
-                // Load related entities individually for each paged item
-                val provenance = provenanceDao.getByMineralId(entity.id)
-                val storage = storageDao.getByMineralId(entity.id)
-                val photos = photoDao.getByMineralId(entity.id)
-                entity.toDomain(provenance, storage, photos)
-            }
-        }
+        ).flow
     }
 
     // Quick Win #8: Get all unique tags for autocomplete (v1.7.0)
