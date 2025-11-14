@@ -125,7 +125,8 @@ fun TooltipDropdownField(
                         .fillMaxWidth()
                         .menuAnchor()
                         .semantics {
-                            contentDescription = "$label dropdown. Current value: ${value.ifEmpty { "none" }}. Tap to select from ${options.size} options."
+                            contentDescription = "$label dropdown. Current value: ${value.ifEmpty { "none" }}. " +
+                                "Tap to select from ${options.size} options."
                         },
                     trailingIcon = {
                         Row {

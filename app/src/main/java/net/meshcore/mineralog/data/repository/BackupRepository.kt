@@ -26,8 +26,16 @@ import java.util.zip.ZipOutputStream
 interface BackupRepository {
     suspend fun exportZip(uri: Uri, password: CharArray? = null): Result<Unit>
     suspend fun exportCsv(uri: Uri, minerals: List<Mineral>): Result<Unit>
-    suspend fun importZip(uri: Uri, password: CharArray? = null, mode: ImportMode = ImportMode.MERGE): Result<ImportResult>
-    suspend fun importCsv(uri: Uri, columnMapping: Map<String, String>? = null, mode: CsvImportMode = CsvImportMode.MERGE): Result<ImportResult>
+    suspend fun importZip(
+        uri: Uri,
+        password: CharArray? = null,
+        mode: ImportMode = ImportMode.MERGE
+    ): Result<ImportResult>
+    suspend fun importCsv(
+        uri: Uri,
+        columnMapping: Map<String, String>? = null,
+        mode: CsvImportMode = CsvImportMode.MERGE
+    ): Result<ImportResult>
     suspend fun createBackup(password: CharArray? = null): Result<File>
     suspend fun restoreBackup(file: File, password: CharArray? = null): Result<Unit>
 }
@@ -161,7 +169,13 @@ class BackupRepositoryImpl(
             var skipped = 0
 
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                val fileSize = context.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.SIZE), null, null, null)?.use { cursor ->
+                val fileSize = context.contentResolver.query(
+                    uri,
+                    arrayOf(android.provider.OpenableColumns.SIZE),
+                    null,
+                    null,
+                    null
+                )?.use { cursor ->
                     if (cursor.moveToFirst()) cursor.getLong(0) else 0L
                 } ?: 0L
 

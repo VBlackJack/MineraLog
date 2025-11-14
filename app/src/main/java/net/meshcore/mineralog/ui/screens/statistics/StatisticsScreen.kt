@@ -116,7 +116,8 @@ private fun StatisticsContent(
                 modifier = Modifier
                     .padding(32.dp)
                     .semantics {
-                        contentDescription = "No statistics available. Your collection is empty. Add minerals to see statistics and analytics."
+                        contentDescription = "No statistics available. Your collection is empty. " +
+                            "Add minerals to see statistics and analytics."
                     }
             ) {
                 Text(
@@ -162,7 +163,13 @@ private fun StatisticsContent(
                 )
                 MetricRow(
                     "Fully Documented",
-                    "${statistics.fullyDocumentedCount} (${if (statistics.totalMinerals > 0) (statistics.fullyDocumentedCount * 100 / statistics.totalMinerals) else 0}%)"
+                    "${statistics.fullyDocumentedCount} (${
+                        if (statistics.totalMinerals > 0) {
+                            (statistics.fullyDocumentedCount * 100 / statistics.totalMinerals)
+                        } else {
+                            0
+                        }
+                    }%)"
                 )
             }
         }
