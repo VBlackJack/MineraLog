@@ -202,7 +202,7 @@ fun SettingsScreen(
 
             // Export backup
             SettingsActionItem(
-                icon = Icons.Default.Upload,
+                icon = Icons.Default.CloudUpload,
                 title = stringResource(R.string.action_backup),
                 subtitle = "Export all data with encryption",
                 onClick = {

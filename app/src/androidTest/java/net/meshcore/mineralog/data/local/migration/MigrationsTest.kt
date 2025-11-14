@@ -6,6 +6,9 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import net.meshcore.mineralog.data.local.MineraLogDatabase
+import net.meshcore.mineralog.data.local.migration.MIGRATION_1_2
+import net.meshcore.mineralog.data.local.migration.MIGRATION_2_3
+import net.meshcore.mineralog.data.local.migration.MIGRATION_3_4
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before

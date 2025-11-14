@@ -210,7 +210,7 @@ fun HomeScreen(
                     actions = {
                         if (selectionCount < minerals.size) {
                             IconButton(onClick = { viewModel.selectAll() }) {
-                                Icon(Icons.Default.SelectAll, contentDescription = "Select all")
+                                Icon(Icons.Default.DoneAll, contentDescription = "Select all")
                             }
                         }
                         if (selectionCount > 0) {
@@ -227,11 +227,11 @@ fun HomeScreen(
                     actions = {
                         // Import CSV button
                         IconButton(onClick = { csvImportLauncher.launch("text/*") }) {
-                            Icon(Icons.Default.Upload, contentDescription = stringResource(R.string.action_import_csv))
+                            Icon(Icons.Default.CloudUpload, contentDescription = stringResource(R.string.action_import_csv))
                         }
                         // Bulk edit button
                         IconButton(onClick = { viewModel.enterSelectionMode() }) {
-                            Icon(Icons.Default.Checklist, contentDescription = "Bulk edit")
+                            Icon(Icons.Default.Ballot, contentDescription = "Bulk edit")
                         }
                         IconButton(onClick = onStatisticsClick) {
                             Icon(Icons.Default.BarChart, contentDescription = "Statistics")
@@ -452,7 +452,7 @@ fun HomeScreen(
                                                 }
                                         ) {
                                             Icon(
-                                                Icons.Default.SearchOff,
+                                                Icons.Default.ManageSearch,
                                                 contentDescription = null,
                                                 modifier = Modifier.size(64.dp),
                                                 tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
@@ -502,7 +502,7 @@ fun HomeScreen(
                                                         onClick = { viewModel.clearFilter() }
                                                     ) {
                                                         Icon(
-                                                            Icons.Default.FilterListOff,
+                                                            Icons.Default.FilterAltOff,
                                                             contentDescription = null,
                                                             modifier = Modifier.size(18.dp)
                                                         )
@@ -523,7 +523,7 @@ fun HomeScreen(
                                                 }
                                         ) {
                                             Icon(
-                                                Icons.Default.Inventory,
+                                                Icons.Default.Inventory2,
                                                 contentDescription = null,
                                                 modifier = Modifier.size(64.dp),
                                                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
