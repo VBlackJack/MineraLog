@@ -27,7 +27,7 @@ interface BackupRepository {
     suspend fun exportZip(uri: Uri, password: CharArray? = null): Result<Unit>
     suspend fun exportCsv(uri: Uri, minerals: List<Mineral>): Result<Unit>
     suspend fun importZip(uri: Uri, password: CharArray? = null, mode: ImportMode = ImportMode.MERGE): Result<ImportResult>
-    suspend fun importCsv(uri: Uri, mode: CsvImportMode = CsvImportMode.MERGE): Result<ImportResult>
+    suspend fun importCsv(uri: Uri, columnMapping: Map<String, String>? = null, mode: CsvImportMode = CsvImportMode.MERGE): Result<ImportResult>
     suspend fun createBackup(password: CharArray? = null): Result<File>
     suspend fun restoreBackup(file: File, password: CharArray? = null): Result<Unit>
 }
@@ -436,7 +436,7 @@ class BackupRepositoryImpl(
         }
     }
 
-    override suspend fun importCsv(uri: Uri, mode: CsvImportMode): Result<ImportResult> = withContext(Dispatchers.IO) {
+    override suspend fun importCsv(uri: Uri, columnMapping: Map<String, String>?, mode: CsvImportMode): Result<ImportResult> = withContext(Dispatchers.IO) {
         try {
             val errors = mutableListOf<String>()
             var imported = 0
@@ -455,8 +455,8 @@ class BackupRepositoryImpl(
                     return@withContext Result.failure(Exception("CSV file has no headers"))
                 }
 
-                // Auto-map headers to domain fields
-                val columnMapping = net.meshcore.mineralog.data.util.CsvColumnMapper.mapHeaders(parseResult.headers)
+                // Use provided column mapping or auto-map headers to domain fields
+                val mapping = columnMapping ?: net.meshcore.mineralog.data.util.CsvColumnMapper.mapHeaders(parseResult.headers)
 
                 // Get existing minerals for name-based lookups
                 val existingMinerals = database.mineralDao().getAll()
@@ -475,7 +475,7 @@ class BackupRepositoryImpl(
                     // Process each row
                     parseResult.rows.forEachIndexed { index, row ->
                         try {
-                            val mineral = parseMineralFromCsvRow(row, columnMapping)
+                            val mineral = parseMineralFromCsvRow(row, mapping)
 
                             // Validate required fields
                             if (mineral.name.isBlank()) {

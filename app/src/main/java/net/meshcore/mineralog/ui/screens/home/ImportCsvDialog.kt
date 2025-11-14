@@ -45,7 +45,7 @@ import net.meshcore.mineralog.data.util.CsvParser
 fun ImportCsvDialog(
     csvUri: Uri,
     onDismiss: () -> Unit,
-    onImport: (Uri, CsvImportMode) -> Unit
+    onImport: (Uri, Map<String, String>, CsvImportMode) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -54,6 +54,11 @@ fun ImportCsvDialog(
     var selectedMode by remember { mutableStateOf(CsvImportMode.MERGE) }
     var isLoading by remember { mutableStateOf(true) }
     var parseError by remember { mutableStateOf<String?>(null) }
+
+    // Column mapping state
+    var columnMapping by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var useAutoMapping by remember { mutableStateOf(true) }
+    var showMappingSection by remember { mutableStateOf(false) }
 
     // Quick Win #4: Cell value dialog for truncated content
     var selectedCellValue by remember { mutableStateOf<String?>(null) }
@@ -74,6 +79,8 @@ fun ImportCsvDialog(
 
             if (result != null) {
                 parseResult = result
+                // Initialize with auto-mapping
+                columnMapping = CsvColumnMapper.mapHeaders(result.headers)
             } else {
                 parseError = "Failed to open CSV file"
             }
@@ -222,21 +229,107 @@ fun ImportCsvDialog(
 
                                 // Mapping stats
                                 val unmappedCount = result.headers.size - columnMapping.size
-                                if (unmappedCount > 0) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Info,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.import_csv_unmapped, unmappedCount),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.primary
+                                val mappedCount = columnMapping.size
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = if (columnMapping.values.contains("name")) Icons.Default.CheckCircle else Icons.Default.Info,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = if (columnMapping.values.contains("name")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.import_csv_mapped_columns, mappedCount, result.headers.size),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                if (!columnMapping.values.contains("name")) {
+                                    Text(
+                                        text = stringResource(R.string.import_csv_name_required),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        }
+
+                        // Auto-mapping toggle
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.import_csv_auto_mapping),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Switch(
+                                checked = useAutoMapping,
+                                onCheckedChange = { enabled ->
+                                    useAutoMapping = enabled
+                                    if (enabled) {
+                                        // Re-apply auto mapping
+                                        columnMapping = CsvColumnMapper.mapHeaders(result.headers)
+                                    }
+                                }
+                            )
+                        }
+
+                        // Column mapping section (collapsible)
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { showMappingSection = !showMappingSection }
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.import_csv_column_mapping),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = if (showMappingSection) "▼" else "▶",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                            }
+                        }
+
+                        // Column mapping details (when expanded)
+                        if (showMappingSection) {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = MaterialTheme.shapes.small
+                            ) {
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(max = 300.dp)
+                                        .padding(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    items(result.headers) { csvHeader ->
+                                        ColumnMappingRow(
+                                            csvHeader = csvHeader,
+                                            currentMapping = columnMapping[csvHeader],
+                                            onMappingChange = { newMapping ->
+                                                columnMapping = if (newMapping == null) {
+                                                    columnMapping - csvHeader
+                                                } else {
+                                                    columnMapping + (csvHeader to newMapping)
+                                                }
+                                                // Disable auto-mapping when manual changes are made
+                                                useAutoMapping = false
+                                            }
                                         )
                                     }
                                 }
@@ -409,10 +502,10 @@ fun ImportCsvDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    onImport(csvUri, selectedMode)
+                    onImport(csvUri, columnMapping, selectedMode)
                     onDismiss()
                 },
-                enabled = !isLoading && parseError == null && parseResult != null
+                enabled = !isLoading && parseError == null && parseResult != null && columnMapping.values.contains("name")
             ) {
                 Text(stringResource(R.string.import_csv_start))
             }
@@ -423,4 +516,116 @@ fun ImportCsvDialog(
             }
         }
     )
+}
+
+/**
+ * Row component for mapping a CSV column to a Mineral field.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ColumnMappingRow(
+    csvHeader: String,
+    currentMapping: String?,
+    onMappingChange: (String?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    // Available mineral fields for mapping
+    val availableFields = remember {
+        listOf(
+            "name", "group", "formula", "crystalSystem",
+            "mohsMin", "mohsMax", "mohs", "cleavage", "fracture",
+            "luster", "streak", "diaphaneity", "habit",
+            "specificGravity", "fluorescence", "magnetic", "radioactive",
+            "dimensionsMm", "weightGr", "status", "statusType",
+            "qualityRating", "completeness", "notes", "tags",
+            "prov_country", "prov_locality", "prov_site",
+            "prov_latitude", "prov_longitude", "prov_source",
+            "prov_price", "prov_estimatedValue", "prov_currency",
+            "storage_place", "storage_container", "storage_box", "storage_slot"
+        )
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // CSV column name
+        Text(
+            text = csvHeader,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.weight(1f)
+        )
+
+        // Arrow
+        Text(
+            text = "→",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        // Mapping dropdown
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+            modifier = Modifier.weight(1f)
+        ) {
+            OutlinedTextField(
+                value = currentMapping ?: "(Skip)",
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                textStyle = MaterialTheme.typography.bodySmall,
+                singleLine = true
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                // Skip option
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "(Skip column)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    onClick = {
+                        onMappingChange(null)
+                        expanded = false
+                    }
+                )
+
+                HorizontalDivider()
+
+                // Field options
+                availableFields.forEach { field ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = field,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = if (field == currentMapping) FontWeight.Bold else FontWeight.Normal,
+                                color = if (field == "name") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        onClick = {
+                            onMappingChange(field)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
 }

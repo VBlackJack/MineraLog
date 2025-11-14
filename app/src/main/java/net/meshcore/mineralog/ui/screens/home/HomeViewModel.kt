@@ -277,11 +277,11 @@ class HomeViewModel(
     }
 
     // Import functionality
-    fun importCsvFile(uri: Uri, mode: CsvImportMode) {
+    fun importCsvFile(uri: Uri, columnMapping: Map<String, String>, mode: CsvImportMode) {
         viewModelScope.launch {
             _importState.value = ImportState.Importing
             try {
-                val result = backupRepository.importCsv(uri, mode)
+                val result = backupRepository.importCsv(uri, columnMapping, mode)
 
                 if (result.isSuccess) {
                     val importResult = result.getOrThrow()
