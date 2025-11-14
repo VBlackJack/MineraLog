@@ -20,6 +20,10 @@ import net.meshcore.mineralog.ui.screens.statistics.StatisticsScreen
 import net.meshcore.mineralog.ui.screens.statistics.StatisticsViewModel
 import net.meshcore.mineralog.ui.screens.comparator.ComparatorScreen
 import net.meshcore.mineralog.ui.screens.comparator.ComparatorViewModel
+import net.meshcore.mineralog.ui.screens.qr.QrScannerScreen
+import net.meshcore.mineralog.ui.screens.camera.CameraCaptureScreen
+import net.meshcore.mineralog.ui.screens.gallery.PhotoGalleryScreen
+import net.meshcore.mineralog.ui.screens.gallery.FullscreenPhotoViewerScreen
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -30,11 +34,21 @@ sealed class Screen(val route: String) {
     data object Edit : Screen("edit/{mineralId}") {
         fun createRoute(mineralId: String) = "edit/$mineralId"
     }
+    data object Camera : Screen("camera/{mineralId}") {
+        fun createRoute(mineralId: String) = "camera/$mineralId"
+    }
+    data object PhotoGallery : Screen("gallery/{mineralId}") {
+        fun createRoute(mineralId: String) = "gallery/$mineralId"
+    }
+    data object PhotoFullscreen : Screen("photo/{photoId}") {
+        fun createRoute(photoId: String) = "photo/$photoId"
+    }
     data object Settings : Screen("settings")
     data object Statistics : Screen("statistics")
     data object Compare : Screen("compare/{mineralIds}") {
         fun createRoute(mineralIds: List<String>) = "compare/${mineralIds.joinToString(",")}"
     }
+    data object QrScanner : Screen("qr_scanner")
 }
 
 @Composable
@@ -72,6 +86,9 @@ fun MineraLogNavHost(
                 },
                 onCompareClick = { mineralIds ->
                     navController.navigate(Screen.Compare.createRoute(mineralIds))
+                },
+                onQrScanClick = {
+                    navController.navigate(Screen.QrScanner.route)
                 }
             )
         }
@@ -88,6 +105,9 @@ fun MineraLogNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 onEditClick = { id ->
                     navController.navigate(Screen.Edit.createRoute(id))
+                },
+                onCameraClick = { id ->
+                    navController.navigate(Screen.Camera.createRoute(id))
                 }
             )
         }
@@ -155,6 +175,66 @@ fun MineraLogNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 viewModel = viewModel
             )
+        }
+
+        composable(Screen.QrScanner.route) {
+            QrScannerScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onQrCodeScanned = { mineralId ->
+                    navController.popBackStack()
+                    navController.navigate(Screen.Detail.createRoute(mineralId))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.Camera.route,
+            arguments = listOf(
+                navArgument("mineralId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val mineralId = backStackEntry.arguments?.getString("mineralId") ?: return@composable
+            val application = LocalContext.current.applicationContext as MineraLogApplication
+
+            CameraCaptureScreen(
+                mineralId = mineralId,
+                onPhotoCaptured = { uri, photoType ->
+                    // TODO: Save photo to repository
+                    navController.popBackStack()
+                },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.PhotoGallery.route,
+            arguments = listOf(
+                navArgument("mineralId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val mineralId = backStackEntry.arguments?.getString("mineralId") ?: return@composable
+
+            PhotoGalleryScreen(
+                mineralId = mineralId,
+                onNavigateBack = { navController.popBackStack() },
+                onPhotoClick = { photoId ->
+                    navController.navigate(Screen.PhotoFullscreen.createRoute(photoId))
+                },
+                onCameraClick = { id ->
+                    navController.navigate(Screen.Camera.createRoute(id))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.PhotoFullscreen.route,
+            arguments = listOf(
+                navArgument("photoId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val photoId = backStackEntry.arguments?.getString("photoId") ?: return@composable
+            // TODO: Get mineralId from photoId - for now, navigate back
+            navController.popBackStack()
         }
     }
 }

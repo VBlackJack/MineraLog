@@ -32,6 +32,7 @@ fun MineralDetailScreen(
     mineralId: String,
     onNavigateBack: () -> Unit,
     onEditClick: (String) -> Unit = {},
+    onCameraClick: (String) -> Unit = {},
     viewModel: MineralDetailViewModel = viewModel(
         factory = MineralDetailViewModelFactory(
             mineralId,
@@ -51,6 +52,21 @@ fun MineralDetailScreen(
                     }
                 },
                 actions = {
+                    // M2: Camera button for photo capture
+                    IconButton(
+                        onClick = { onCameraClick(mineralId) },
+                        enabled = mineral != null
+                    ) {
+                        Icon(
+                            Icons.Default.CameraAlt,
+                            contentDescription = "Take photo",
+                            tint = if (mineral != null) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                            }
+                        )
+                    }
                     // Quick Win #1: Edit button for quick access
                     IconButton(
                         onClick = { onEditClick(mineralId) },
