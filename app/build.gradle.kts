@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -30,10 +33,10 @@ android {
         }
 
         // Read Google Maps API key from local.properties
-        val localProperties = org.gradle.api.Project.rootProject.file("local.properties")
-        val properties = java.util.Properties()
+        val localProperties = rootProject.file("local.properties")
+        val properties = Properties()
         if (localProperties.exists()) {
-            properties.load(java.io.FileInputStream(localProperties))
+            properties.load(FileInputStream(localProperties))
         }
         val mapsApiKey = properties.getProperty("MAPS_API_KEY", "")
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
