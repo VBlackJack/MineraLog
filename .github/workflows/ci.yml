@@ -40,10 +40,12 @@ jobs:
         run: echo "MAPS_API_KEY=dummy_key_for_ci" > local.properties
 
       - name: Run Lint
-        run: ./gradlew lint --no-daemon --stacktrace
+        run: ./gradlew lint --no-daemon --stacktrace --max-workers=2
+        continue-on-error: false
 
       - name: Run Detekt
-        run: ./gradlew detekt --no-daemon --stacktrace
+        run: ./gradlew detekt --no-daemon --stacktrace --max-workers=2
+        continue-on-error: false
 
       - name: Upload lint reports
         if: always()
@@ -94,7 +96,8 @@ jobs:
         run: echo "MAPS_API_KEY=dummy_key_for_ci" > local.properties
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace --max-workers=2
+        continue-on-error: false
 
       - name: Upload test reports
         if: always()
@@ -171,7 +174,7 @@ jobs:
           target: ${{ matrix.api-level >= 30 && 'google_apis' || 'default' }}
           profile: pixel_6
           force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none -memory 4096
           disable-animations: true
           disable-spellchecker: true
           disable-linux-hw-accel: false
@@ -180,10 +183,13 @@ jobs:
           ram-size: 4096M
           script: |
             adb wait-for-device
+            adb shell input keyevent 82
             adb shell settings put global window_animation_scale 0.0
             adb shell settings put global transition_animation_scale 0.0
             adb shell settings put global animator_duration_scale 0.0
-            ./gradlew connectedDebugAndroidTest --no-daemon --stacktrace
+            adb shell settings put global always_finish_activities 0
+            adb shell settings put global stay_on_while_plugged_in 3
+            ./gradlew connectedDebugAndroidTest --no-daemon --stacktrace --max-workers=2
 
       - name: Upload instrumentation test reports
         if: always()
@@ -235,7 +241,7 @@ jobs:
         run: echo "MAPS_API_KEY=dummy_key_for_ci" > local.properties
 
       - name: Build release APK
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
+        run: ./gradlew assembleRelease --no-daemon --stacktrace --max-workers=2
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
