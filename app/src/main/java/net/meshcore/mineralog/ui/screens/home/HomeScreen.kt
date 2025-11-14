@@ -29,6 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import kotlinx.coroutines.launch
 import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.R
 import net.meshcore.mineralog.domain.model.Mineral
