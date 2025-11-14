@@ -38,6 +38,7 @@ fun SettingsScreen(
     val language by viewModel.language.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
     val importState by viewModel.importState.collectAsState()
+    val csvImportState by viewModel.csvImportState.collectAsState()
 
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -66,6 +67,44 @@ fun SettingsScreen(
             pendingImportUri = it
             // Try import without password first
             viewModel.importBackup(it, password = null)
+        }
+    }
+
+    // File picker for CSV import
+    val csvImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            // Import CSV with auto-detected column mapping
+            viewModel.importCsv(it)
+        }
+    }
+
+    // Handle CSV import state changes
+    LaunchedEffect(csvImportState) {
+        when (csvImportState) {
+            is CsvImportState.Success -> {
+                val result = (csvImportState as CsvImportState.Success).result
+                val message = if (result.errors.isEmpty()) {
+                    "✅ CSV imported: ${result.imported} minerals"
+                } else {
+                    "⚠️ CSV imported: ${result.imported} minerals, ${result.skipped} skipped with errors"
+                }
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetCsvImportState()
+            }
+            is CsvImportState.Error -> {
+                val errorMessage = (csvImportState as CsvImportState.Error).message
+                snackbarHostState.showSnackbar(
+                    message = "CSV import failed: $errorMessage",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetCsvImportState()
+            }
+            else -> {}
         }
     }
 
@@ -212,13 +251,23 @@ fun SettingsScreen(
                 }
             )
 
-            // Import backup
+            // Import backup (ZIP)
             SettingsActionItem(
                 icon = Icons.Default.Download,
                 title = stringResource(R.string.action_restore),
-                subtitle = "Restore from encrypted backup",
+                subtitle = "Restore from encrypted backup (ZIP)",
                 onClick = {
                     zipImportLauncher.launch("application/zip")
+                }
+            )
+
+            // Import CSV
+            SettingsActionItem(
+                icon = Icons.Default.UploadFile,
+                title = "Import CSV",
+                subtitle = "Import minerals from CSV spreadsheet",
+                onClick = {
+                    csvImportLauncher.launch("text/csv")
                 }
             )
 
@@ -381,7 +430,9 @@ fun SettingsScreen(
     }
 
     // Loading indicator
-    if (exportState is BackupExportState.Exporting || importState is BackupImportState.Importing) {
+    if (exportState is BackupExportState.Exporting ||
+        importState is BackupImportState.Importing ||
+        csvImportState is CsvImportState.Importing) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center

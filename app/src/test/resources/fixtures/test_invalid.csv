@@ -1,0 +1,21 @@
+Name,Group,Formula,Crystal System,Mohs Min,Mohs Max,Country,Locality,Latitude,Longitude,Specific Gravity,Weight (g),Quality Rating,Completeness,Notes
+,Silicates,SiO₂,Hexagonal,7.0,7.0,Brazil,Minas Gerais,-19.9227,-43.9450,2.65,85.5,5,100,Missing name - should fail
+Calcite,Carbonates,CaCO₃,Trigonal,3.0,3.0,Mexico,Chihuahua,25.0,-105.0,2.71,120.0,5,100,Valid row
+Pyrite,Sulfides,FeS₂,Cubic,15.0,16.0,Spain,La Rioja,42.0,-2.5,5.02,215.0,4,95,Mohs hardness > 10.0 - should fail
+Fluorite,Halides,CaF₂,InvalidSystem,4.0,4.0,China,Hunan,25.5833,113.0833,3.18,180.0,5,100,Invalid crystal system (validation may skip)
+Amethyst,Silicates,SiO₂,Hexagonal,7.0,7.0,Uruguay,Artigas,-30.4000,-57.6000,2.65,980.0,5,100,Valid row
+Malachite,Carbonates,Cu₂CO₃(OH)₂,Monoclinic,3.5,4.0,Congo,Katanga,95.0,27.6011,3.80,350.0,4,90,Latitude > 90.0 - should fail
+Galena,Sulfides,PbS,Cubic,2.5,2.5,USA,Missouri,37.5833,-90.5000,7.58,340.0,3,80,Valid row
+Azurite,Carbonates,Cu₃(CO₃)₂(OH)₂,Monoclinic,3.5,4.0,Morocco,Touissit,34.4167,200.0,3.77,65.0,5,100,Longitude > 180.0 - should fail
+Hematite,Oxides,Fe₂O₃,Trigonal,5.5,6.5,USA,Minnesota,47.4472,-92.4272,5.26,150.0,4,85,Valid row
+Celestine,Sulfates,SrSO₄,Orthorhombic,8.0,3.5,Madagascar,Mahajanga,-15.7167,46.3167,3.96,450.0,5,100,Mohs Min > Mohs Max - should fail
+Rhodochrosite,Carbonates,MnCO₃,Trigonal,3.5,4.0,Argentina,Catamarca,-28.4167,-66.3333,3.60,220.0,5,100,Valid row
+Amazonite,Silicates,KAlSi₃O₈,Triclinic,6.0,6.5,USA,Colorado,39.0833,-105.2500,2.56,280.0,4,90,Valid row
+Labradorite,Silicates,(Ca;Na)(Al;Si)₄O₈,Triclinic,6.0,6.5,Canada,Labrador,54.2167,-58.0000,2.70,320.0,5,95,Valid row (semicolons in formula OK)
+Aragonite,Carbonates,CaCO₃,Orthorhombic,3.5,4.0,Spain,Molina de Aragón,40.8500,-1.8833,2.94,180.0,4,85,Valid row
+Wulfenite,Molybdates,PbMoO₄,Tetragonal,3.0,3.0,USA,Arizona,33.2167,-113.3167,6.81,52.0,5,100,Valid row
+Vanadinite,Vanadates,Pb₅(VO₄)₃Cl,Hexagonal,-2.0,3.0,Morocco,Mibladen,32.7167,-4.9833,6.95,95.0,5,95,Negative Mohs hardness - should fail
+Stibnite,Sulfides,Sb₂S₃,Orthorhombic,2.0,2.0,China,Hunan,27.7333,111.4500,4.63,85.0,4,80,Valid row
+Smithsonite,Carbonates,ZnCO₃,Trigonal,4.0,4.5,Namibia,Tsumeb,-19.2333,17.7167,4.43,175.0,5,90,Valid row
+Garnet,Silicates,Fe₃Al₂(SiO₄)₃,Cubic,7.0,7.5,USA,Alaska,56.4667,-132.3833,4.05,28.0,4,95,Valid row
+Tourmaline,Silicates,Complex,Trigonal,7.0,7.5,Brazil,Minas Gerais,-19.0333,-43.5167,3.10,42.0,4,85,Valid row

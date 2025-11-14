@@ -11,7 +11,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.repository.BackupRepository
+import net.meshcore.mineralog.data.repository.CsvImportMode
 import net.meshcore.mineralog.data.repository.ImportMode
+import net.meshcore.mineralog.data.repository.ImportResult
 import net.meshcore.mineralog.data.repository.SettingsRepository
 
 sealed class BackupExportState {
@@ -29,6 +31,13 @@ sealed class BackupImportState {
     data class PasswordRequired(val uri: Uri) : BackupImportState()
 }
 
+sealed class CsvImportState {
+    data object Idle : CsvImportState()
+    data object Importing : CsvImportState()
+    data class Success(val result: ImportResult) : CsvImportState()
+    data class Error(val message: String) : CsvImportState()
+}
+
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
     private val backupRepository: BackupRepository
@@ -39,6 +48,9 @@ class SettingsViewModel(
 
     private val _importState = MutableStateFlow<BackupImportState>(BackupImportState.Idle)
     val importState: StateFlow<BackupImportState> = _importState.asStateFlow()
+
+    private val _csvImportState = MutableStateFlow<CsvImportState>(CsvImportState.Idle)
+    val csvImportState: StateFlow<CsvImportState> = _csvImportState.asStateFlow()
 
     val language: StateFlow<String> = settingsRepository.getLanguage()
         .stateIn(
@@ -129,6 +141,38 @@ class SettingsViewModel(
 
     fun resetImportState() {
         _importState.value = BackupImportState.Idle
+    }
+
+    /**
+     * Import minerals from CSV file.
+     *
+     * @param uri URI of the CSV file
+     * @param columnMapping Optional manual column mapping (null = auto-detect)
+     * @param mode Import mode (MERGE/REPLACE/SKIP_DUPLICATES)
+     */
+    fun importCsv(
+        uri: Uri,
+        columnMapping: Map<String, String>? = null,
+        mode: CsvImportMode = CsvImportMode.MERGE
+    ) {
+        viewModelScope.launch {
+            _csvImportState.value = CsvImportState.Importing
+
+            val result = backupRepository.importCsv(uri, columnMapping, mode)
+
+            _csvImportState.value = result.fold(
+                onSuccess = { importResult ->
+                    CsvImportState.Success(importResult)
+                },
+                onFailure = { error ->
+                    CsvImportState.Error(error.message ?: "CSV import failed")
+                }
+            )
+        }
+    }
+
+    fun resetCsvImportState() {
+        _csvImportState.value = CsvImportState.Idle
     }
 }
 
