@@ -87,7 +87,7 @@ fun BulkActionsBottomSheet(
                     },
                     leadingContent = {
                         Icon(
-                            Icons.Default.Compare,
+                            Icons.Default.CompareArrows,
                             contentDescription = null
                         )
                     },
@@ -153,7 +153,7 @@ fun BulkActionsBottomSheet(
                     },
                     leadingContent = {
                         Icon(
-                            Icons.Default.QrCode2,
+                            Icons.Default.QrCodeScanner,
                             contentDescription = null
                         )
                     },
