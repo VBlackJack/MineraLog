@@ -80,7 +80,7 @@ fun ImportCsvDialog(
             if (result != null) {
                 parseResult = result
                 // Initialize with auto-mapping
-                columnMappingState.value = CsvColumnMapper.mapHeaders(result.headers)
+                columnMappingState.value = CsvColumnMapper.mapHeaders(parseResult.headers)
             } else {
                 parseError = "Failed to open CSV file"
             }
@@ -192,7 +192,6 @@ fun ImportCsvDialog(
                     }
 
                     parseResult != null -> {
-                        val result = parseResult
 
                         // File info
                         Card(
@@ -205,29 +204,29 @@ fun ImportCsvDialog(
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Text(
-                                    text = stringResource(R.string.import_csv_detected, result.headers.size),
+                                    text = stringResource(R.string.import_csv_detected, parseResult.headers.size),
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
-                                    text = stringResource(R.string.import_csv_encoding, result.encoding.name()),
+                                    text = stringResource(R.string.import_csv_encoding, parseResult.encoding.name()),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                                 Text(
                                     text = stringResource(
                                         R.string.import_csv_delimiter,
-                                        when (result.delimiter) {
+                                        when (parseResult.delimiter) {
                                             ',' -> "Comma (,)"
                                             ';' -> "Semicolon (;)"
                                             '\t' -> "Tab"
-                                            else -> result.delimiter.toString()
+                                            else -> parseResult.delimiter.toString()
                                         }
                                     ),
                                     style = MaterialTheme.typography.bodySmall
                                 )
 
                                 // Mapping stats
-                                val unmappedCount = result.headers.size - columnMappingState.value.size
+                                val unmappedCount = parseResult.headers.size - columnMappingState.value.size
                                 val mappedCount = columnMappingState.value.size
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -240,7 +239,7 @@ fun ImportCsvDialog(
                                         tint = if (columnMappingState.value.values.contains("name")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
                                     )
                                     Text(
-                                        text = stringResource(R.string.import_csv_mapped_columns, mappedCount, result.headers.size),
+                                        text = stringResource(R.string.import_csv_mapped_columns, mappedCount, parseResult.headers.size),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.primary
                                     )
@@ -272,7 +271,7 @@ fun ImportCsvDialog(
                                     useAutoMappingState.value = enabled
                                     if (enabled) {
                                         // Re-apply auto mapping
-                                        columnMappingState.value = CsvColumnMapper.mapHeaders(result.headers)
+                                        columnMappingState.value = CsvColumnMapper.mapHeaders(parseResult.headers)
                                     }
                                 }
                             )
@@ -316,7 +315,7 @@ fun ImportCsvDialog(
                                         .padding(8.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    items(result.headers) { csvHeader ->
+                                    items(parseResult.headers) { csvHeader ->
                                         ColumnMappingRow(
                                             csvHeader = csvHeader,
                                             currentMapping = columnMappingState.value[csvHeader],
@@ -378,7 +377,7 @@ fun ImportCsvDialog(
                             )
 
                             Text(
-                                text = stringResource(R.string.import_csv_preview_rows, result.rows.size),
+                                text = stringResource(R.string.import_csv_preview_rows, parseResult.rows.size),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -398,7 +397,7 @@ fun ImportCsvDialog(
                                     // Headers
                                     item {
                                         Text(
-                                            text = result.headers.joinToString(" | "),
+                                            text = parseResult.headers.joinToString(" | "),
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary
@@ -407,12 +406,12 @@ fun ImportCsvDialog(
                                     }
 
                                     // Data rows - Quick Win #4: Clickable cells for truncated content
-                                    items(result.rows) { row ->
+                                    items(parseResult.rows) { row ->
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                                         ) {
-                                            result.headers.forEachIndexed { index, header ->
+                                            parseResult.headers.forEachIndexed { index, header ->
                                                 val cellValue = row[header] ?: ""
                                                 val isTruncated = cellValue.length > 20
                                                 val displayValue = if (isTruncated) cellValue.take(20) + "…" else cellValue
@@ -442,7 +441,7 @@ fun ImportCsvDialog(
                                                     )
                                                 }
 
-                                                if (index < result.headers.size - 1) {
+                                                if (index < parseResult.headers.size - 1) {
                                                     Text(" | ", style = MaterialTheme.typography.bodySmall)
                                                 }
                                             }
@@ -453,7 +452,7 @@ fun ImportCsvDialog(
                         }
 
                         // Errors/Warnings
-                        if (result.errors.isNotEmpty()) {
+                        if (parseResult.errors.isNotEmpty()) {
                             Card(
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.errorContainer
@@ -477,14 +476,14 @@ fun ImportCsvDialog(
                                             tint = MaterialTheme.colorScheme.error
                                         )
                                         Text(
-                                            text = stringResource(R.string.import_csv_errors, result.errors.size),
+                                            text = stringResource(R.string.import_csv_errors, parseResult.errors.size),
                                             style = MaterialTheme.typography.bodySmall,
                                             fontWeight = FontWeight.Medium,
                                             color = MaterialTheme.colorScheme.onErrorContainer
                                         )
                                     }
 
-                                    result.errors.take(3).forEach { error ->
+                                    parseResult.errors.take(3).forEach { error ->
                                         Text(
                                             text = "• ${error.message}",
                                             style = MaterialTheme.typography.bodySmall,
