@@ -78,8 +78,8 @@ interface MineralDao {
      */
     @Query("""
         SELECT m.* FROM minerals m
-        LEFT JOIN provenance p ON m.provenanceId = p.id
-        WHERE (:groups IS NULL OR m.group IN (:groups))
+        LEFT JOIN provenances p ON m.provenanceId = p.id
+        WHERE (:groups IS NULL OR m.`group` IN (:groups))
           AND (:countries IS NULL OR p.country IN (:countries))
           AND (:mohsMin IS NULL OR m.mohsMax >= :mohsMin)
           AND (:mohsMax IS NULL OR m.mohsMin <= :mohsMax)
@@ -144,7 +144,7 @@ interface MineralDao {
     @Query("SELECT COUNT(*) FROM minerals")
     fun getCountFlow(): Flow<Int>
 
-    @Query("SELECT DISTINCT group FROM minerals WHERE group IS NOT NULL ORDER BY group")
+    @Query("SELECT DISTINCT `group` FROM minerals WHERE `group` IS NOT NULL ORDER BY `group`")
     fun getDistinctGroupsFlow(): Flow<List<String>>
 
     @Query("SELECT DISTINCT crystalSystem FROM minerals WHERE crystalSystem IS NOT NULL ORDER BY crystalSystem")
@@ -161,10 +161,10 @@ interface MineralDao {
      * Returns map of group name to count.
      */
     @Query("""
-        SELECT group, COUNT(*) as count
+        SELECT `group`, COUNT(*) as count
         FROM minerals
-        WHERE group IS NOT NULL
-        GROUP BY group
+        WHERE `group` IS NOT NULL
+        GROUP BY `group`
         ORDER BY count DESC
     """)
     suspend fun getGroupDistribution(): Map<String, Int>
@@ -228,7 +228,7 @@ interface MineralDao {
     @Query("""
         SELECT COALESCE(SUM(p.estimatedValue), 0.0)
         FROM minerals m
-        LEFT JOIN provenance p ON m.provenanceId = p.id
+        LEFT JOIN provenances p ON m.provenanceId = p.id
         WHERE p.estimatedValue IS NOT NULL
     """)
     suspend fun getTotalValue(): Double
@@ -239,7 +239,7 @@ interface MineralDao {
     @Query("""
         SELECT COALESCE(AVG(p.estimatedValue), 0.0)
         FROM minerals m
-        LEFT JOIN provenance p ON m.provenanceId = p.id
+        LEFT JOIN provenances p ON m.provenanceId = p.id
         WHERE p.estimatedValue IS NOT NULL
     """)
     suspend fun getAverageValue(): Double
@@ -297,10 +297,10 @@ interface MineralDao {
      * Get most common group (by count).
      */
     @Query("""
-        SELECT group
+        SELECT `group`
         FROM minerals
-        WHERE group IS NOT NULL
-        GROUP BY group
+        WHERE `group` IS NOT NULL
+        GROUP BY `group`
         ORDER BY COUNT(*) DESC
         LIMIT 1
     """)
@@ -328,8 +328,8 @@ interface MineralDao {
      */
     @Query("""
         SELECT m.* FROM minerals m
-        LEFT JOIN provenance p ON m.provenanceId = p.id
-        WHERE (:groups IS NULL OR m.group IN (:groups))
+        LEFT JOIN provenances p ON m.provenanceId = p.id
+        WHERE (:groups IS NULL OR m.`group` IN (:groups))
           AND (:countries IS NULL OR p.country IN (:countries))
           AND (:mohsMin IS NULL OR m.mohsMax >= :mohsMin)
           AND (:mohsMax IS NULL OR m.mohsMin <= :mohsMax)
