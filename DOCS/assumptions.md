@@ -833,4 +833,152 @@ Following v1.2.1 patch, implemented two major user-requested features: advanced 
 
 ---
 
-*Last Updated: 2025-11-13 (v1.3.0 Release)*
+## Date: 2025-11-14
+
+### P0 Security & Performance Fixes
+
+**Context:** Critical fixes identified in comprehensive security and performance audit.
+
+#### P0.1 - Argon2 Key Derivation Restoration
+
+**Issue:** Argon2Helper.kt lines 78-80 returned `ByteArray(32)` all-zeros instead of actual key derivation. API was commented out due to breaking change in Argon2kt 1.3.0.
+
+**Decision:**
+- Restored `argon2.hash()` call with corrected parameter name
+- Changed `mCostInKibibytes` to `mCostInKibibyte` (singular) per Argon2kt 1.3.0 API
+- Verified return type `Argon2KtResult.rawHashAsByteArray()` matches expected signature
+- Kept existing security parameters: 128MB memory, 4 iterations, parallelism 2, 32-byte output
+
+**Rationale:**
+- All encrypted backups were vulnerable with all-zero keys
+- Argon2kt 1.3.0 API is stable and backward compatible
+- No library downgrade needed
+
+**Impact:**
+- Backups now properly encrypted with derived keys
+- No data migration required (new backups will use correct derivation)
+- Existing broken backups remain undecryptable (acceptable - no production users yet)
+
+#### P0.2 - Room Database Encryption with SQLCipher
+
+**Issue:** Database stored PII (prices, geolocation, names) in plaintext at-rest.
+
+**Decision:**
+- Added SQLCipher 4.5.4 dependency (latest stable, widely audited)
+- Created `DatabaseKeyManager` using Android Keystore for passphrase generation
+- Passphrase stored encrypted in `EncryptedSharedPreferences` with AES-256-GCM MasterKey
+- Passphrase generation: 32-byte SecureRandom with hardware-backed Keystore fallback
+- Database wrapped with `SupportFactory(passphrase)` via `.openHelperFactory()`
+
+**Migration Strategy:**
+- **New installs:** Database created encrypted from scratch
+- **Existing installs (v1.5.0+):** Next app update will trigger migration:
+  1. App opens unencrypted DB (existing)
+  2. Reads all data into memory
+  3. Closes and deletes old DB
+  4. Creates new encrypted DB
+  5. Writes data back
+  6. Migration happens transparently on first launch post-update
+- **Rollback:** Not supported (encrypted DB incompatible with older versions)
+
+**Rationale:**
+- SQLCipher is industry-standard for Android Room encryption
+- Android Keystore provides hardware-backed key protection (TEE/StrongBox)
+- EncryptedSharedPreferences prevents passphrase leakage
+- Transparent migration acceptable for pre-production app
+
+**Known Limitations:**
+- SQLCipher adds ~5-10ms latency per query (acceptable for offline-first app)
+- Database file size increases ~3% due to encryption metadata
+- No key rotation mechanism (not required for MVP)
+
+#### P0.3 - Database Transaction Atomicity
+
+**Issue:** MineralRepository insert/update/delete operations lacked atomic transactions, risking orphaned related entities (provenance, storage, photos).
+
+**Decision:**
+- Wrapped all multi-table write operations with `database.withTransaction { }`
+- Modified `MineralRepositoryImpl` constructor to accept `MineraLogDatabase` instance
+- Applied to: `insert()`, `update()`, `delete()`, `deleteByIds()`, `deleteAll()`
+- Updated `MineraLogApplication.kt` to pass database instance to repository
+
+**Rationale:**
+- Room's `@Transaction` annotation only works for DAOs, not repository layer
+- Manual `withTransaction` provides explicit control and clearer intent
+- All related entities inserted/updated/deleted atomically or not at all
+- Prevents data corruption on crashes/errors mid-operation
+
+**Impact:**
+- Zero risk of orphaned provenance/storage/photos
+- Slight performance improvement (batched commits)
+- No breaking changes to API
+
+#### P0.4 - Paging N+1 Query Elimination
+
+**Issue:** Paging implementation loaded related entities individually per item, causing N+1 queries (61 queries per 20-item page).
+
+**Decision:**
+- Created `MineralPagingSource` custom PagingSource wrapper
+- Architecture:
+  1. Load page of N minerals (1 query)
+  2. Extract all mineral IDs
+  3. Batch load provenances for all IDs (1 query)
+  4. Batch load storages for all IDs (1 query)
+  5. Batch load photos for all IDs (1 query)
+  6. Associate via `associateBy { it.mineralId }` and `groupBy { it.mineralId }`
+  7. Map to domain models with pre-loaded data
+- Total: 4 queries per page (constant, regardless of page size)
+
+**Performance Impact:**
+- **Before:** 1 + 3N queries (61 for N=20)
+- **After:** 4 queries (constant)
+- **Reduction:** 93.4% for typical 20-item page
+- **Load time:** Estimated 3000ms → <300ms (10x faster)
+
+**Rationale:**
+- Room's built-in PagingSource doesn't support batch loading
+- Custom wrapper preserves Room's paging invalidation mechanism
+- `associateBy` O(N) lookup is negligible compared to 60 database queries
+- Pattern scales to 100+ item pages without degradation
+
+**Trade-offs:**
+- Slightly more complex code (extra indirection layer)
+- Loads all related entities for page (even if not displayed), but still far cheaper than N+1
+
+#### P0.5 - Crypto Module Test Coverage
+
+**Issue:** `Argon2Helper.kt` and `CryptoHelper.kt` had zero unit tests despite handling critical security operations.
+
+**Decision:**
+- Created `Argon2HelperTest.kt` with 28 tests covering:
+  * Key derivation correctness (length, non-zero, determinism)
+  * Salt generation (uniqueness, length, randomness)
+  * Password verification (correct/incorrect/case-sensitive)
+  * Edge cases (empty password, long password, unicode, special chars)
+  * Memory safety (`KeyDerivationResult.clear()` zeros sensitive data)
+  * Password strength assessment (WEAK/FAIR/GOOD/STRONG)
+
+- Created `CryptoHelperTest.kt` with 33 tests covering:
+  * AES-GCM round-trip encryption/decryption
+  * IV uniqueness and randomness (12-byte GCM standard)
+  * Authentication tag verification (tampered ciphertext/IV/key rejected)
+  * Key size validation (256-bit required)
+  * Empty plaintext, large data, binary data handling
+  * Base64 encoding/decoding
+  * Package/unpackage operations
+  * Non-deterministic encryption (same plaintext → different ciphertext)
+
+**Coverage Target:**
+- Argon2Helper: >95% line coverage (28 tests)
+- CryptoHelper: >95% line coverage (33 tests)
+- PasswordBasedCrypto: Already covered (23 tests, integration layer)
+
+**Rationale:**
+- Security-critical code requires exhaustive testing
+- Tests document expected behavior and security properties
+- Catches regressions on library upgrades (e.g., Argon2kt API changes)
+- Validates crypto primitives work correctly across Android versions
+
+---
+
+*Last Updated: 2025-11-14 (P0 Security & Performance Fixes)*
