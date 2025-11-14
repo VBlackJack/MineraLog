@@ -71,9 +71,9 @@
   "$defs": {
     "mineral": {
       "type": "object",
-      "required": ["uuid", "name", "createdAt", "updatedAt"],
+      "required": ["id", "name", "createdAt", "updatedAt"],
       "properties": {
-        "uuid": {
+        "id": {
           "type": "string",
           "format": "uuid",
           "description": "Unique identifier (preserved across exports)"
@@ -265,36 +265,32 @@
     },
     "provenance": {
       "type": "object",
-      "required": ["uuid", "mineralId"],
+      "required": ["id", "mineralId"],
       "properties": {
-        "uuid": {
+        "id": {
           "type": "string",
-          "format": "uuid"
+          "format": "uuid",
+          "description": "Unique identifier for provenance record"
         },
         "mineralId": {
           "type": "string",
           "format": "uuid",
           "description": "Reference to mineral record"
         },
+        "site": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Specific site/mine where specimen was found"
+        },
         "locality": {
           "type": "string",
           "maxLength": 200,
-          "description": "Specific locality/mine/region"
+          "description": "Specific locality/region"
         },
         "country": {
           "type": "string",
-          "pattern": "^[A-Z]{2}$",
-          "description": "ISO 3166-1 alpha-2 country code"
-        },
-        "acquisitionDate": {
-          "type": "string",
-          "format": "date",
-          "description": "Date acquired (ISO 8601)"
-        },
-        "source": {
-          "type": "string",
-          "maxLength": 200,
-          "description": "Source (dealer, field collection, gift, etc.)"
+          "maxLength": 100,
+          "description": "Country name"
         },
         "latitude": {
           "type": "number",
@@ -307,43 +303,75 @@
           "minimum": -180,
           "maximum": 180,
           "description": "Geographic longitude in decimal degrees"
+        },
+        "acquiredAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO-8601 timestamp when specimen was acquired"
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Acquisition source (dealer, field collection, gift, etc.)"
+        },
+        "price": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Purchase price in specified currency"
+        },
+        "estimatedValue": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Estimated value in specified currency"
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "description": "ISO 4217 currency code (e.g., USD, EUR, GBP)",
+          "default": "USD"
         }
       }
     },
     "storageLocation": {
       "type": "object",
-      "required": ["uuid"],
+      "required": ["id", "mineralId"],
       "properties": {
-        "uuid": {
+        "id": {
           "type": "string",
-          "format": "uuid"
+          "format": "uuid",
+          "description": "Unique identifier for storage location"
         },
-        "location": {
+        "mineralId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Reference to mineral record"
+        },
+        "place": {
           "type": "string",
           "maxLength": 100,
           "description": "Primary location (room, building, etc.)"
         },
+        "container": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Container identifier (cabinet, display case)"
+        },
         "box": {
           "type": "string",
           "maxLength": 50,
-          "description": "Box or container identifier"
-        },
-        "drawer": {
-          "type": "string",
-          "maxLength": 50,
-          "description": "Drawer identifier"
+          "description": "Box or drawer identifier"
         },
         "slot": {
           "type": "string",
           "maxLength": 50,
-          "description": "Slot or position within drawer"
+          "description": "Slot or position within box"
         },
-        "qrCode": {
+        "qrContent": {
           "type": "string",
           "maxLength": 200,
-          "description": "QR code data for location"
+          "description": "QR code content for physical label"
         },
-        "nfcTag": {
+        "nfcTagId": {
           "type": "string",
           "maxLength": 200,
           "description": "NFC tag identifier"
@@ -352,21 +380,27 @@
     },
     "photo": {
       "type": "object",
-      "required": ["uuid", "filename", "type"],
+      "required": ["id", "mineralId", "fileName", "type"],
       "properties": {
-        "uuid": {
+        "id": {
           "type": "string",
-          "format": "uuid"
+          "format": "uuid",
+          "description": "Unique identifier for photo"
         },
-        "filename": {
+        "mineralId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Reference to mineral record"
+        },
+        "fileName": {
           "type": "string",
           "pattern": "^media/[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+\\.(jpg|jpeg|png|webp)$",
-          "description": "Path to photo file within ZIP archive"
+          "description": "Path to photo file relative to app files directory"
         },
         "type": {
           "type": "string",
-          "enum": ["normal", "uv_sw", "uv_lw", "macro", "context"],
-          "description": "Photo type (normal, UV shortwave, UV longwave, macro, context)"
+          "enum": ["NORMAL", "UV_SW", "UV_LW", "MACRO"],
+          "description": "Photo type: NORMAL (standard), UV_SW (UV shortwave), UV_LW (UV longwave), MACRO (close-up)"
         },
         "caption": {
           "type": "string",
@@ -376,7 +410,7 @@
         "takenAt": {
           "type": "string",
           "format": "date-time",
-          "description": "Timestamp when photo was taken"
+          "description": "ISO-8601 timestamp when photo was taken"
         }
       }
     }
