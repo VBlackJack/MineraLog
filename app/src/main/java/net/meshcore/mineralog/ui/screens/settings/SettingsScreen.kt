@@ -36,6 +36,7 @@ fun SettingsScreen(
     )
 ) {
     val copyPhotos by viewModel.copyPhotosToInternal.collectAsState()
+    val encryptByDefault by viewModel.encryptByDefault.collectAsState()
     val language by viewModel.language.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
     val importState by viewModel.importState.collectAsState()
@@ -47,6 +48,7 @@ fun SettingsScreen(
     var showDecryptDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showImportResultDialog by remember { mutableStateOf(false) }
+    var showEncryptWarningDialog by remember { mutableStateOf(false) }
     var lastImportResult by remember { mutableStateOf<net.meshcore.mineralog.data.repository.ImportResult?>(null) }
     var decryptAttempts by remember { mutableStateOf(3) }
     var pendingExportUri by remember { mutableStateOf<Uri?>(null) }
@@ -309,6 +311,47 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
+            // Encrypt by default setting
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        if (!encryptByDefault) {
+                            // Show warning dialog before enabling
+                            showEncryptWarningDialog = true
+                        } else {
+                            viewModel.setEncryptByDefault(false)
+                        }
+                    }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Encrypt backups by default",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "Protect all exported backups with encryption",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = encryptByDefault,
+                    onCheckedChange = { enabled ->
+                        if (enabled) {
+                            // Show warning dialog before enabling
+                            showEncryptWarningDialog = true
+                        } else {
+                            viewModel.setEncryptByDefault(false)
+                        }
+                    }
+                )
+            }
+
+            HorizontalDivider()
+
             // About - Quick Win #5
             SettingsItem(
                 title = "About",
@@ -435,6 +478,63 @@ fun SettingsScreen(
             onDismiss = {
                 showImportResultDialog = false
                 lastImportResult = null
+            }
+        )
+    }
+
+    // Encrypt by default warning dialog
+    if (showEncryptWarningDialog) {
+        AlertDialog(
+            onDismissRequest = { showEncryptWarningDialog = false },
+            icon = {
+                Icon(
+                    Icons.Default.Lock,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.tertiary
+                )
+            },
+            title = {
+                Text("Enable Encryption by Default?")
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "When enabled, all exported backups will be encrypted with a password.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "⚠️ Important: Password recovery is impossible. Store your passwords securely!",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.setEncryptByDefault(true)
+                        showEncryptWarningDialog = false
+                    }
+                ) {
+                    Text("Enable")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEncryptWarningDialog = false }) {
+                    Text("Cancel")
+                }
             }
         )
     }
