@@ -723,8 +723,8 @@ fun HomeScreen(
                 showImportCsvDialog = false
                 selectedCsvUri = null
             },
-            onImport = { uri, mode ->
-                viewModel.importCsvFile(uri, mode)
+            onImport = { uri, columnMapping, mode ->
+                viewModel.importCsvFile(uri, columnMapping, mode)
             }
         )
     }
