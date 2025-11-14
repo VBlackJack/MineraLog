@@ -178,62 +178,386 @@
 
 ---
 
-## **Session Handoff**
+## **Session Handoff — Prompts Structurés**
 
-### **Next Session Prompt (M1 Sprint Plan)**
+### **📋 Instructions Générales**
+
+Pour chaque session de sprint, copier-coller le prompt XML correspondant ci-dessous. À la fin de chaque sprint, le document de session doit générer le prompt pour le sprint suivant.
+
+**Progression:** M1 → M2 → RC → (optionnel) Rétrospective
+
+---
+
+### **🎯 Sprint M1: Data & Security**
+
+#### **Prompt Session M1**
 
 ```xml
 <task_description>
-  <persona>Tech Lead + Sprint Planner</persona>
-  <task>Créer le plan de sprint M1 détaillé (5-7 tâches) et lancer l'implémentation.</task>
-  <milestone>M1: Data & Security (10j)</milestone>
-  <items>#1 CSV Import UI, #2 Encryption UI, #3 Import validation, #7 Error handling</items>
+  <persona>Tech Lead + Sprint Engineer</persona>
+  <task>Implémenter le sprint M1 (Data & Security) avec 4 items prioritaires.</task>
+  <milestone>M1: Data & Security</milestone>
+  <duration>10 jours (semaines 1-2)</duration>
+  <items>
+    <item id="1">CSV Import UI + column mapping (M, 5-6j)</item>
+    <item id="2">Encryption UI (password dialogs + settings toggle) (S, 2-3j)</item>
+    <item id="3">Import validation + error reporting détaillé (S, 2-3j, dépend de #1)</item>
+    <item id="7">Error handling systématique (snackbars, retry) (S, 2j)</item>
+  </items>
 </task_description>
 
 <context_data>
-  Base: DOCS/ROADMAP_3-6_WEEKS.md, backend crypto prêt (PasswordBasedCrypto.kt), BackupRepository.importZip() partiellement implémenté.
+  <roadmap>DOCS/ROADMAP_3-6_WEEKS.md</roadmap>
+  <changelog>CHANGELOG.md (version actuelle: 1.4.1)</changelog>
+  <architecture>ARCHITECTURE.md</architecture>
+  <backend_ready>
+    <file>app/src/main/java/net/meshcore/mineralog/data/crypto/PasswordBasedCrypto.kt</file>
+    <file>app/src/main/java/net/meshcore/mineralog/data/repository/BackupRepository.kt (importZip partiellement implémenté)</file>
+    <file>app/src/main/java/net/meshcore/mineralog/data/util/CsvParser.kt</file>
+  </backend_ready>
+  <existing_ui>
+    <file>app/src/main/java/net/meshcore/mineralog/ui/screens/home/ImportCsvDialog.kt (basic structure)</file>
+    <file>app/src/main/java/net/meshcore/mineralog/ui/screens/home/EncryptPasswordDialog.kt (stub)</file>
+    <file>app/src/main/java/net/meshcore/mineralog/ui/screens/home/DecryptPasswordDialog.kt (stub)</file>
+  </existing_ui>
 </context_data>
 
 <detailed_instructions>
-  <steps>
-    <step n="1">Décomposer items M1 en 5-7 tâches techniques (2-3h chacune).</step>
-    <step n="2">Identifier risques techniques (permissions SAF, crypto edge cases, CSV encoding).</step>
-    <step n="3">Créer fixtures de test (3 CSV samples: basique, complexe, invalide).</step>
-    <step n="4">Implémenter dans l'ordre: ImportCsvDialog UI → column mapping logic → validation → encryption dialogs.</step>
-    <step n="5">Tests: unit tests pour CsvParser validation, instrumentation pour dialogs.</step>
-  </steps>
+  <phase name="Planning (1h)">
+    <step n="1">Lire DOCS/ROADMAP_3-6_WEEKS.md section M1</step>
+    <step n="2">Décomposer 4 items en 7-9 tâches techniques (2-4h chacune)</step>
+    <step n="3">Identifier dépendances: #3 après #1, #7 en parallèle</step>
+    <step n="4">Lister risques: CSV encodings (UTF-8/Latin1), SAF permissions, crypto edge cases</step>
+    <step n="5">Créer checklist M1 (8 critères de done de la roadmap)</step>
+  </phase>
 
-  <rules>
-    <rule id="R1">Maintenir CI green (lint, detekt, tests avant chaque commit).</rule>
-    <rule id="R2">Chaque tâche = 1 commit avec tests.</rule>
-    <rule id="R3">User feedback obligatoire (snackbar/toast sur chaque opération).</rule>
-  </rules>
+  <phase name="Fixtures (2h)">
+    <step n="6">Créer 3 CSV samples en app/src/test/resources/:
+      - valid_basic.csv (10 rows, colonnes standard)
+      - valid_complex.csv (100 rows, tous champs, UTF-8 avec accents)
+      - invalid_malformed.csv (erreurs: hardness>10, dates invalides, missing required fields)
+    </step>
+    <step n="7">Créer 1 ZIP encrypted test en app/src/test/resources/:
+      - backup_encrypted.zip (password: "Test1234!", 5 minerals)
+    </step>
+  </phase>
+
+  <phase name="Implementation (6-7j)">
+    <step n="8">Item #2 (Quick Win): Encryption UI
+      - Implémenter EncryptPasswordDialog (password + confirm + strength meter)
+      - Implémenter DecryptPasswordDialog (password + error state)
+      - Ajouter Settings toggle "Encrypt backups" (DataStore)
+      - Intégrer dans HomeViewModel.exportZip() et importZip()
+      - Tests: PasswordStrengthTest, encryption round-trip test
+    </step>
+    <step n="9">Item #7 (Foundation): Error handling
+      - Créer sealed class OperationResult&lt;T&gt; (Success, Error avec message)
+      - Wrapper toutes opérations async (import, export, delete)
+      - Snackbar component réutilisable avec retry action
+      - Tests: error state propagation
+    </step>
+    <step n="10">Item #1: CSV Import UI
+      - Implémenter SAF file picker dans ImportCsvDialog
+      - Ajouter column mapping UI (auto-detect + manual override)
+      - Preview 5 premières lignes avant import
+      - Progress indicator pendant import
+      - Tests: UI state machine, column mapping logic
+    </step>
+    <step n="11">Item #3: Import validation
+      - Implémenter CsvValidator avec règles (hardness 1-10, required fields, date formats)
+      - Error reporting détaillé (ligne + colonne + erreur)
+      - UI: afficher erreurs dans scrollable list
+      - Option: continuer avec rows valides ou abort
+      - Tests: validation rules (15+ test cases)
+    </step>
+  </phase>
+
+  <phase name="Testing (1-2j)">
+    <step n="12">Unit tests:
+      - CsvParserTest (encodings, malformed)
+      - CsvValidatorTest (15 validation rules)
+      - PasswordBasedCryptoTest (round-trip)
+      - BackupRepositoryTest (import with validation)
+    </step>
+    <step n="13">Instrumentation tests:
+      - ImportCsvDialogTest (file picker, column mapping)
+      - EncryptPasswordDialogTest (strength meter, validation)
+      - End-to-end: export encrypted → import decrypted
+    </step>
+  </phase>
+
+  <phase name="Validation M1 (1j)">
+    <step n="14">Vérifier 8 critères de done M1 (voir roadmap)</step>
+    <step n="15">Mesurer KPIs:
+      - Import success rate ≥95% (tester 5 CSV)
+      - Encryption round-trip success rate = 100%
+      - Zero silent failures (vérifier logs)
+    </step>
+    <step n="16">CI green check (lint, detekt, tests)</step>
+    <step n="17">Créer DOCS/M1_SPRINT_SUMMARY.md avec résultats</step>
+  </phase>
 </detailed_instructions>
 
+<rules>
+  <rule id="R1">Maintenir CI green — lint, detekt, tests avant chaque commit</rule>
+  <rule id="R2">Chaque item = 1+ commits avec tests unitaires</rule>
+  <rule id="R3">User feedback obligatoire — snackbar/toast sur toute opération async</rule>
+  <rule id="R4">Pas de scope creep — si hors M1 items, créer ticket pour M2/RC</rule>
+  <rule id="R5">Documentation — commenter edge cases, documenter validation rules</rule>
+</rules>
+
 <output_format>
-  <format>
-    <response>
-      <sprint_plan>[7 tâches avec estimation, dépendances, risques]</sprint_plan>
-      <test_fixtures>[3 CSV samples + 1 encrypted ZIP]</test_fixtures>
-      <implementation_order>[séquence commits avec tests]</implementation_order>
-    </response>
-  </format>
+  <deliverables>
+    <deliverable>DOCS/M1_SPRINT_SUMMARY.md — résultats sprint, KPIs, blockers résolus</deliverable>
+    <deliverable>7-9 commits sur branch claude/sprint-m1-*</deliverable>
+    <deliverable>Test coverage +5-10% (20% → 25-30%)</deliverable>
+    <deliverable>3 CSV fixtures + 1 ZIP encrypted en test/resources</deliverable>
+    <deliverable>Prompt session M2 (copier template ci-dessous)</deliverable>
+  </deliverables>
+</output_format>
+
+<next_session_prompt>
+  À la fin du sprint M1, générer le prompt M2 en remplaçant:
+  - milestone: "M2: Photo Workflows"
+  - items: #4 (Photo capture), #5 (Gallery viewer), #6 (QR scan), #8 (Tests)
+  - context_data: ajouter résultats M1 (KPIs atteints, blockers)
+  - deliverables: DOCS/M2_SPRINT_SUMMARY.md
+</next_session_prompt>
+```
+
+---
+
+### **📸 Sprint M2: Photo Workflows**
+
+#### **Prompt Session M2** (à utiliser après M1)
+
+```xml
+<task_description>
+  <persona>Tech Lead + Sprint Engineer</persona>
+  <task>Implémenter le sprint M2 (Photo Workflows) avec 4 items.</task>
+  <milestone>M2: Photo Workflows</milestone>
+  <duration>10 jours (semaines 3-4)</duration>
+  <items>
+    <item id="4">Photo capture UI (CameraX Composable) (M, 4-5j)</item>
+    <item id="5">Photo gallery viewer (swipe, fullscreen) (S, 3j, dépend de #4)</item>
+    <item id="6">QR code scanning + deep links (S, 2-3j)</item>
+    <item id="8">Tests coverage → 40% (Repository, ViewModel, UI) (M, 4-5j, parallèle)</item>
+  </items>
+</task_description>
+
+<context_data>
+  <roadmap>DOCS/ROADMAP_3-6_WEEKS.md</roadmap>
+  <m1_results>DOCS/M1_SPRINT_SUMMARY.md — KPIs M1, lessons learned</m1_results>
+  <changelog>CHANGELOG.md (version actuelle: 1.4.1, passer à 1.5.0-rc1 après M2)</changelog>
+  <backend_ready>
+    <file>app/src/main/java/net/meshcore/mineralog/ui/components/PhotoManager.kt (partial)</file>
+    <file>app/src/main/java/net/meshcore/mineralog/data/local/entity/PhotoEntity.kt</file>
+    <file>app/src/main/java/net/meshcore/mineralog/data/local/dao/PhotoDao.kt</file>
+  </backend_ready>
+  <dependencies>
+    <dependency>CameraX 1.4.1 (déjà dans build.gradle)</dependency>
+    <dependency>ML Kit Barcode Scanning (déjà dans build.gradle)</dependency>
+    <dependency>Coil 2.7.0 pour image loading (déjà dans build.gradle)</dependency>
+  </dependencies>
+</context_data>
+
+<detailed_instructions>
+  <phase name="Planning (1h)">
+    <step n="1">Lire DOCS/ROADMAP_3-6_WEEKS.md section M2</step>
+    <step n="2">Review M1 results — identifier risques/patterns à éviter</step>
+    <step n="3">Décomposer 4 items en 8-10 tâches techniques</step>
+    <step n="4">Identifier risques: CameraX permissions Android 14, storage permissions, QR scan latency</step>
+  </phase>
+
+  <phase name="Implementation (7-8j)">
+    <step n="5">Item #6 (Quick Win): QR Scanning
+      - Créer QrScannerScreen composable (ML Kit integration)
+      - Implémenter deep link handler (mineralapp://mineral/{uuid})
+      - Ajouter route navigation + AndroidManifest intent-filter
+      - Tests: QR decode, deep link routing
+    </step>
+    <step n="6">Item #4: Photo Capture
+      - Créer CameraXComposable avec preview + capture button
+      - Gérer permissions (CAMERA, WRITE_EXTERNAL_STORAGE si API<29)
+      - Photo type selector (Normal/UV SW/UV LW/Macro)
+      - Intégrer dans MineralDetailScreen
+      - Tests: permission flow, capture success
+    </step>
+    <step n="7">Item #5: Gallery Viewer
+      - Créer PhotoGridView (LazyVerticalGrid 3 colonnes)
+      - FullscreenPhotoViewer avec HorizontalPager (swipe)
+      - Zoom/pinch gestures (optional si temps)
+      - Delete photo action
+      - Tests: grid layout, swipe navigation
+    </step>
+    <step n="8">Item #8: Test Coverage
+      - Ajouter 40+ unit tests (Repositories, ViewModels)
+      - Ajouter 10+ instrumentation tests (UI flows critiques)
+      - Viser 40% coverage global (JaCoCo report)
+    </step>
+  </phase>
+
+  <phase name="Validation M2 (1j)">
+    <step n="9">Vérifier 7 critères de done M2 (voir roadmap)</step>
+    <step n="10">Mesurer KPIs:
+      - Photo capture réussie sur API 27 & 35
+      - QR scan latency < 500ms
+      - Test coverage ≥ 30% (cible intermédiaire)
+    </step>
+    <step n="11">Créer DOCS/M2_SPRINT_SUMMARY.md</step>
+  </phase>
+</detailed_instructions>
+
+<rules>
+  <rule id="R1">Maintenir CI green (hérité de M1)</rule>
+  <rule id="R2">Permissions: graceful degradation si refusées</rule>
+  <rule id="R3">Performance: photo capture < 2s, QR scan < 500ms</rule>
+  <rule id="R4">Accessibility: CameraX avec contentDescription, QR scan avec haptic feedback</rule>
+</rules>
+
+<output_format>
+  <deliverables>
+    <deliverable>DOCS/M2_SPRINT_SUMMARY.md</deliverable>
+    <deliverable>8-10 commits sur branch claude/sprint-m2-*</deliverable>
+    <deliverable>Test coverage 30-35%</deliverable>
+    <deliverable>Prompt session RC (copier template ci-dessous)</deliverable>
+  </deliverables>
+</output_format>
+
+<next_session_prompt>
+  À la fin du sprint M2, générer le prompt RC en remplaçant:
+  - milestone: "RC: Polish & Release Candidate"
+  - items: #8 (finir coverage 40%), #9 (CI monitoring), polish pass
+  - context_data: ajouter résultats M1+M2
+</next_session_prompt>
+```
+
+---
+
+### **✨ Sprint RC: Polish & Release Candidate**
+
+#### **Prompt Session RC** (à utiliser après M2)
+
+```xml
+<task_description>
+  <persona>Tech Lead + QA Engineer</persona>
+  <task>Finaliser RC v1.5.0 avec quality gates et polish.</task>
+  <milestone>RC: Polish & Release Candidate</milestone>
+  <duration>8 jours (semaines 5-6)</duration>
+  <focus>Quality, stabilité, documentation, release prep</focus>
+</task_description>
+
+<context_data>
+  <roadmap>DOCS/ROADMAP_3-6_WEEKS.md</roadmap>
+  <m1_results>DOCS/M1_SPRINT_SUMMARY.md</m1_results>
+  <m2_results>DOCS/M2_SPRINT_SUMMARY.md</m2_results>
+  <changelog>CHANGELOG.md (préparer v1.5.0)</changelog>
+</context_data>
+
+<detailed_instructions>
+  <phase name="Test Coverage Finalization (3j)">
+    <step n="1">Compléter coverage 40%:
+      - Ajouter tests manquants (ViewModels, edge cases)
+      - Instrumentation tests pour flows critiques
+      - JaCoCo report validation
+    </step>
+  </phase>
+
+  <phase name="CI Monitoring (1j)">
+    <step n="2">Implémenter CI dashboard (item #9):
+      - Script analyse build times (parse GitHub Actions logs)
+      - Identifier flaky tests (run history analysis)
+      - Rapport dans DOCS/CI_HEALTH_REPORT.md
+    </step>
+  </phase>
+
+  <phase name="Accessibility Audit (1j)">
+    <step n="3">TalkBack testing sur 5 screens:
+      - HomeScreen, AddMineralScreen, MineralDetailScreen, SettingsScreen, StatisticsScreen
+      - Corriger semantic properties manquantes
+      - Vérifier touch targets 48×48dp
+    </step>
+  </phase>
+
+  <phase name="Polish Pass (2j)">
+    <step n="4">Bug fixes P1/P2 identifiés en M1/M2</step>
+    <step n="5">UI polish: animations, empty states, loading states</step>
+    <step n="6">Performance: profiling, optimizations si nécessaire</step>
+  </phase>
+
+  <phase name="Release Prep (1j)">
+    <step n="7">Mettre à jour README (features = implemented only)</step>
+    <step n="8">CHANGELOG.md v1.5.0 complet</step>
+    <step n="9">Version bump 1.4.1 → 1.5.0 (versionCode 7 → 8)</step>
+    <step n="10">Release APK signé (si prod keystore dispo, sinon debug)</step>
+  </phase>
+
+  <phase name="Validation RC (1j)">
+    <step n="11">Vérifier 8 critères de done RC (voir roadmap)</step>
+    <step n="12">Mesurer KPIs RC:
+      - CI green streak ≥ 10 runs
+      - Manual QA checklist 100%
+      - Accessibility score ≥ 85
+    </step>
+    <step n="13">Créer DOCS/RC_VALIDATION_REPORT.md</step>
+  </phase>
+</detailed_instructions>
+
+<rules>
+  <rule id="R1">Zero P0 bugs avant release</rule>
+  <rule id="R2">Documentation à jour (README = reality)</rule>
+  <rule id="R3">CI doit être stable (≥95% green rate)</rule>
+</rules>
+
+<output_format>
+  <deliverables>
+    <deliverable>DOCS/RC_VALIDATION_REPORT.md</deliverable>
+    <deliverable>CHANGELOG.md v1.5.0</deliverable>
+    <deliverable>README.md mis à jour</deliverable>
+    <deliverable>Release APK v1.5.0</deliverable>
+    <deliverable>Tag git v1.5.0</deliverable>
+  </deliverables>
 </output_format>
 ```
 
-### **Proposed Follow-Up Actions**
+---
 
-| Action | Effort | Priorité | Rationale |
-|--------|--------|----------|-----------|
-| **Plan de sprint M1** (tâches, tests, risques) | **S** (3h) | **P0** | Débloquer implémentation immédiate |
-| **Design technique** import validation (edge cases CSV) | **M** (5h) | P0 | Item le plus risqué (encodings, malformed CSV) |
-| **Checklist QA/CI** pour M1 (20 scénarios) | **S** (2h) | P1 | Éviter régression CI |
-| **Fixtures de test** (3 CSV + 1 ZIP encrypted) | **S** (2h) | P0 | Nécessaire pour dev + tests |
-| **Spike** CameraX permissions Android 14 | **M** (4h) | P2 | Préparer M2, anticiper blocage |
+### **📊 Suivi Inter-Sprints**
+
+À la fin de chaque sprint, créer un document `DOCS/MX_SPRINT_SUMMARY.md` avec:
+
+```markdown
+# Sprint MX Summary
+
+**Milestone:** MX: [Nom]
+**Dates:** YYYY-MM-DD → YYYY-MM-DD
+**Items complétés:** #1, #2, #3...
+
+## KPIs Atteints
+- [KPI 1]: [Valeur] (cible: [X])
+- [KPI 2]: [Valeur] (cible: [Y])
+
+## Commits
+- [hash] [message]
+- ...
+
+## Blockers Résolus
+- [Blocker 1]: [Solution]
+
+## Lessons Learned
+- [Lesson 1]
+- [Lesson 2]
+
+## Risques Identifiés pour MX+1
+- [Risque 1]: [Mitigation]
+
+## Prompt Session Suivante
+[Copier le prompt du sprint suivant ici]
+```
 
 ---
 
 **Document généré le:** 2025-11-14
 **Auteur:** Claude Code (Product Strategist + Tech Lead)
 **Durée analyse:** 1 session
-**Prochaine étape:** Lancer sprint M1
+**Prochaine étape:** Lancer sprint M1 avec prompt ci-dessus
