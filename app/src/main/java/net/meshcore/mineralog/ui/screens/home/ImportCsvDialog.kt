@@ -233,11 +233,20 @@ fun ImportCsvDialog(
                                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    val hasNameMapping = columnMappingState.value.values.contains("name")
                                     Icon(
-                                        imageVector = if (columnMappingState.value.values.contains("name")) Icons.Default.CheckCircle else Icons.Default.Info,
+                                        imageVector = if (hasNameMapping) {
+                                            Icons.Default.CheckCircle
+                                        } else {
+                                            Icons.Default.Info
+                                        },
                                         contentDescription = null,
                                         modifier = Modifier.size(16.dp),
-                                        tint = if (columnMappingState.value.values.contains("name")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                                        tint = if (hasNameMapping) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.secondary
+                                        }
                                     )
                                     Text(
                                         text = stringResource(R.string.import_csv_mapped_columns, mappedCount, result.headers.size),
@@ -429,7 +438,8 @@ fun ImportCsvDialog(
                                                                     }
                                                                     .padding(vertical = 2.dp, horizontal = 4.dp)
                                                                     .semantics {
-                                                                        contentDescription = "$header: $displayValue Truncated. Tap to expand"
+                                                                        contentDescription = "$header: $displayValue " +
+                                                                            "Truncated. Tap to expand"
                                                                     }
                                                             } else {
                                                                 Modifier.padding(vertical = 2.dp, horizontal = 4.dp)

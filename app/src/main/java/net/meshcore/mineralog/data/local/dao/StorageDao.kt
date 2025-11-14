@@ -64,6 +64,9 @@ interface StorageDao {
     @Query("SELECT DISTINCT container FROM storage WHERE container IS NOT NULL AND (:place IS NULL OR place = :place) ORDER BY container")
     fun getDistinctContainersFlow(place: String? = null): Flow<List<String>>
 
-    @Query("SELECT DISTINCT box FROM storage WHERE box IS NOT NULL AND (:place IS NULL OR place = :place) AND (:container IS NULL OR container = :container) ORDER BY box")
+    @Query(
+        "SELECT DISTINCT box FROM storage WHERE box IS NOT NULL AND " +
+            "(:place IS NULL OR place = :place) AND (:container IS NULL OR container = :container) ORDER BY box"
+    )
     fun getDistinctBoxesFlow(place: String? = null, container: String? = null): Flow<List<String>>
 }

@@ -1,5 +1,6 @@
 package net.meshcore.mineralog.data.util
 
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -18,7 +19,7 @@ class CsvParserTest {
     private val parser = CsvParser()
 
     @Test
-    fun `parse simple CSV with comma delimiter`() {
+    fun `parse simple CSV with comma delimiter`() = runTest {
         val csv = """
             Name,Group,Formula
             Quartz,Silicate,SiO2
@@ -36,7 +37,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `parse CSV with semicolon delimiter`() {
+    fun `parse CSV with semicolon delimiter`() = runTest {
         val csv = """
             Name;Group;Formula
             Quartz;Silicate;SiO2
@@ -51,7 +52,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `parse CSV with tab delimiter`() {
+    fun `parse CSV with tab delimiter`() = runTest {
         val csv = "Name\tGroup\tFormula\nQuartz\tSilicate\tSiO2"
 
         val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))
@@ -61,7 +62,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `parse CSV with quoted fields containing commas`() {
+    fun `parse CSV with quoted fields containing commas`() = runTest {
         val csv = """
             Name,Group,Notes
             "Quartz, Clear",Silicate,"Beautiful, transparent crystal"
@@ -75,7 +76,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `parse CSV with quoted fields containing newlines`() {
+    fun `parse CSV with quoted fields containing newlines`() = runTest {
         val csv = """
             Name,Notes
             Quartz,"Multi-line
@@ -91,7 +92,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `parse CSV with escaped quotes (double quotes)`() {
+    fun `parse CSV with escaped quotes (double quotes)`() = runTest {
         val csv = """
             Name,Notes
             Quartz,"This is a ""quoted"" word"
@@ -104,7 +105,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `detect UTF-8 encoding`() {
+    fun `detect UTF-8 encoding`() = runTest {
         val csv = "Name,Group\nQuartz,Silicate"
         val bytes = csv.toByteArray(StandardCharsets.UTF_8)
 
@@ -114,7 +115,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `detect UTF-8 with BOM`() {
+    fun `detect UTF-8 with BOM`() = runTest {
         val bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
         val csv = "Name,Group\nQuartz,Silicate"
         val bytes = bom + csv.toByteArray(StandardCharsets.UTF_8)
@@ -126,7 +127,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle empty CSV`() {
+    fun `handle empty CSV`() = runTest {
         val csv = ""
 
         val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))
@@ -136,7 +137,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle CSV with only headers`() {
+    fun `handle CSV with only headers`() = runTest {
         val csv = "Name,Group,Formula"
 
         val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))
@@ -146,7 +147,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle empty fields`() {
+    fun `handle empty fields`() = runTest {
         val csv = """
             Name,Group,Formula
             Quartz,,SiO2
@@ -161,7 +162,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle rows with different number of fields`() {
+    fun `handle rows with different number of fields`() = runTest {
         val csv = """
             Name,Group,Formula
             Quartz,Silicate,SiO2
@@ -179,7 +180,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `parse with maxRows limit`() {
+    fun `parse with maxRows limit`() = runTest {
         val csv = """
             Name,Group
             Quartz,Silicate
@@ -196,7 +197,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle whitespace around fields`() {
+    fun `handle whitespace around fields`() = runTest {
         val csv = """
             Name,Group,Formula
             " Quartz ",  Silicate  , SiO2
@@ -212,7 +213,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `detect most common delimiter when ambiguous`() {
+    fun `detect most common delimiter when ambiguous`() = runTest {
         val csv = """
             Name,Group;Formula
             Quartz,Silicate;SiO2
@@ -226,7 +227,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `collect errors for malformed rows`() {
+    fun `collect errors for malformed rows`() = runTest {
         val csv = """
             Name,Group,Formula
             Quartz,Silicate,SiO2
@@ -243,7 +244,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `parse real-world mineralog export`() {
+    fun `parse real-world mineralog export`() = runTest {
         val csv = """
             Name,Group,Formula,Mohs Min,Mohs Max,Status,Status Type
             "Quartz, Clear",Silicate,SiO2,7.0,7.0,complete,in_collection
@@ -262,7 +263,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `parse with French locale (semicolon delimiter)`() {
+    fun `parse with French locale (semicolon delimiter)`() = runTest {
         val csv = """
             Nom;Groupe;Formule
             Quartz;Silicate;SiO2
@@ -277,7 +278,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle CRLF line endings (Windows)`() {
+    fun `handle CRLF line endings (Windows)`() = runTest {
         val csv = "Name,Group\r\nQuartz,Silicate\r\nCalcite,Carbonate\r\n"
 
         val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))
@@ -288,7 +289,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle LF line endings (Unix)`() {
+    fun `handle LF line endings (Unix)`() = runTest {
         val csv = "Name,Group\nQuartz,Silicate\nCalcite,Carbonate\n"
 
         val result = parser.parse(ByteArrayInputStream(csv.toByteArray()))
@@ -297,7 +298,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `parse large CSV efficiently`() {
+    fun `parse large CSV efficiently`() = runTest {
         // Generate 1000-row CSV
         val sb = StringBuilder("Name,Group,Formula\n")
         repeat(1000) { i ->
@@ -316,7 +317,7 @@ class CsvParserTest {
     // ===== Phase 3 (P2) - Additional Coverage Tests =====
 
     @Test
-    fun `handle CSV with duplicate column headers`() {
+    fun `handle CSV with duplicate column headers`() = runTest {
         val csv = """
             Name,Group,Name,Formula
             Quartz,Silicate,Ignored,SiO2
@@ -332,7 +333,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle CSV with extremely long field value`() {
+    fun `handle CSV with extremely long field value`() = runTest {
         val longValue = "x".repeat(10000)
         val csv = """
             Name,Group,Notes
@@ -347,7 +348,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle CSV with all empty rows`() {
+    fun `handle CSV with all empty rows`() = runTest {
         val csv = """
             Name,Group,Formula
             ,,
@@ -364,7 +365,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle CSV with trailing empty lines`() {
+    fun `handle CSV with trailing empty lines`() = runTest {
         val csv = """
             Name,Group
             Quartz,Silicate
@@ -380,7 +381,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle CSV with single column`() {
+    fun `handle CSV with single column`() = runTest {
         val csv = """
             Name
             Quartz
@@ -397,7 +398,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle CSV with unicode characters in headers`() {
+    fun `handle CSV with unicode characters in headers`() = runTest {
         val csv = """
             名前,グループ,公式
             Quartz,Silicate,SiO₂
@@ -413,7 +414,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `parse very large CSV with 10000 rows`() {
+    fun `parse very large CSV with 10000 rows`() = runTest {
         // Generate 10000-row CSV for stress testing
         val sb = StringBuilder("Name,Group,Formula,Mohs,Notes\n")
         repeat(10000) { i ->
@@ -434,7 +435,7 @@ class CsvParserTest {
     }
 
     @Test
-    fun `handle CSV with mixed quote styles`() {
+    fun `handle CSV with mixed quote styles`() = runTest {
         val csv = """
             Name,Group,Formula
             "Quartz",Silicate,'SiO2'
