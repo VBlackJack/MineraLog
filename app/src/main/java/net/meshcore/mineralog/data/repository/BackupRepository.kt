@@ -497,17 +497,17 @@ class BackupRepositoryImpl(
                     // Process each row
                     parseResult.rows.forEachIndexed { index, row ->
                         try {
-                            val mineral = parseMineralFromCsvRow(row, mapping)
+                            // Parse mineral first to get the name
+                            val parsedMineral = parseMineralFromCsvRow(
+                                row = row,
+                                columnMapping = mapping,
+                                existingMineral = null
+                            )
 
-                            // Validate required fields
-                            if (mineral.name.isBlank()) {
-                                errors.add("Row ${index + 2}: Name is required")
-                                skipped++
-                                return@forEachIndexed
-                            }
+                            // Check for existing mineral by name
+                            val existing = existingByName[parsedMineral.name.lowercase()]
 
                             // Check for duplicates based on mode
-                            val existing = existingByName[mineral.name.lowercase()]
                             when (mode) {
                                 CsvImportMode.SKIP_DUPLICATES -> {
                                     if (existing != null) {
@@ -516,14 +516,38 @@ class BackupRepositoryImpl(
                                     }
                                 }
                                 CsvImportMode.MERGE -> {
-                                    // Use existing ID if found, otherwise generate new
-                                    if (existing != null) {
-                                        // Update logic will be handled by upsert
-                                    }
+                                    // Will reuse existing ID below
                                 }
                                 CsvImportMode.REPLACE -> {
                                     // Already cleared, just insert
                                 }
+                            }
+
+                            // For MERGE mode, reuse existing IDs if found
+                            val mineral = if (mode == CsvImportMode.MERGE && existing != null) {
+                                // Load related entities for existing mineral
+                                val existingProvenance = database.provenanceDao().getByMineralId(existing.id)
+                                val existingStorage = database.storageDao().getByMineralId(existing.id)
+                                val existingPhotos = database.photoDao().getByMineralId(existing.id)
+
+                                parseMineralFromCsvRow(
+                                    row = row,
+                                    columnMapping = mapping,
+                                    existingMineral = existing.toDomain(
+                                        existingProvenance?.toDomain(),
+                                        existingStorage?.toDomain(),
+                                        existingPhotos.map { it.toDomain() }
+                                    )
+                                )
+                            } else {
+                                parsedMineral
+                            }
+
+                            // Validate required fields
+                            if (mineral.name.isBlank()) {
+                                errors.add("Row ${index + 2}: Name is required")
+                                skipped++
+                                return@forEachIndexed
                             }
 
                             // Insert or update mineral
@@ -556,10 +580,15 @@ class BackupRepositoryImpl(
 
     /**
      * Parse a Mineral object from a CSV row using column mapping.
+     *
+     * @param row The CSV row data
+     * @param columnMapping Mapping of CSV headers to domain fields
+     * @param existingMineral If provided (MERGE mode), reuse its ID and related entity IDs
      */
     private fun parseMineralFromCsvRow(
         row: Map<String, String>,
-        columnMapping: Map<String, String>
+        columnMapping: Map<String, String>,
+        existingMineral: Mineral?
     ): Mineral {
         // Helper to get mapped value
         fun getMapped(domainField: String): String? {
@@ -584,8 +613,8 @@ class BackupRepositoryImpl(
             return value in listOf("true", "yes", "1", "y", "oui")
         }
 
-        // Generate IDs
-        val mineralId = java.util.UUID.randomUUID().toString()
+        // Generate IDs - reuse existing if provided (MERGE mode)
+        val mineralId = existingMineral?.id ?: java.util.UUID.randomUUID().toString()
 
         // Parse basic mineral fields
         val name = getMapped("name") ?: throw IllegalArgumentException("Name is required")
@@ -620,7 +649,7 @@ class BackupRepositoryImpl(
             }
 
             net.meshcore.mineralog.domain.model.Provenance(
-                id = java.util.UUID.randomUUID().toString(),
+                id = existingMineral?.provenance?.id ?: java.util.UUID.randomUUID().toString(),
                 mineralId = mineralId,
                 country = getMapped("prov_country"),
                 locality = getMapped("prov_locality"),
@@ -638,7 +667,7 @@ class BackupRepositoryImpl(
         val hasStorage = listOf("storage_place", "storage_container", "storage_box", "storage_slot").any { getMapped(it) != null }
         val storage = if (hasStorage) {
             net.meshcore.mineralog.domain.model.Storage(
-                id = java.util.UUID.randomUUID().toString(),
+                id = existingMineral?.storage?.id ?: java.util.UUID.randomUUID().toString(),
                 mineralId = mineralId,
                 place = getMapped("storage_place"),
                 container = getMapped("storage_container"),
