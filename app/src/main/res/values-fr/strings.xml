@@ -209,7 +209,6 @@
     <string name="bulk_selected">%d sélectionné(s)</string>
     <string name="bulk_action_move">Déplacer vers stockage</string>
     <string name="bulk_action_tag">Ajouter des étiquettes</string>
-    <string name="bulk_action_delete">Supprimer</string>
     <string name="bulk_action_export">Exporter</string>
     <string name="bulk_confirm_delete">Supprimer %d minéraux ?</string>
     <string name="bulk_confirm_delete_message">Cette action est irréversible.</string>

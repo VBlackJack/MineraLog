@@ -209,7 +209,6 @@
     <string name="bulk_selected">%d selected</string>
     <string name="bulk_action_move">Move to Storage</string>
     <string name="bulk_action_tag">Add Tags</string>
-    <string name="bulk_action_delete">Delete</string>
     <string name="bulk_action_export">Export</string>
     <string name="bulk_confirm_delete">Delete %d minerals?</string>
     <string name="bulk_confirm_delete_message">This action cannot be undone.</string>
