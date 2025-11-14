@@ -66,6 +66,13 @@ class SettingsViewModel(
             initialValue = true
         )
 
+    val encryptByDefault: StateFlow<Boolean> = settingsRepository.getEncryptByDefault()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
     fun setLanguage(lang: String) {
         viewModelScope.launch {
             settingsRepository.setLanguage(lang)
@@ -75,6 +82,12 @@ class SettingsViewModel(
     fun setCopyPhotos(copy: Boolean) {
         viewModelScope.launch {
             settingsRepository.setCopyPhotosToInternalStorage(copy)
+        }
+    }
+
+    fun setEncryptByDefault(encrypt: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setEncryptByDefault(encrypt)
         }
     }
 

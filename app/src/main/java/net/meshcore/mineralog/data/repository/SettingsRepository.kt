@@ -20,6 +20,8 @@ interface SettingsRepository {
     suspend fun setCopyPhotosToInternalStorage(copy: Boolean)
     fun getCsvExportWarningShown(): Flow<Boolean>
     suspend fun setCsvExportWarningShown(shown: Boolean)
+    fun getEncryptByDefault(): Flow<Boolean>
+    suspend fun setEncryptByDefault(encrypt: Boolean)
 
     // Draft auto-save functionality
     fun getDraftName(): Flow<String>
@@ -56,6 +58,7 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val COPY_PHOTOS = booleanPreferencesKey("copy_photos_to_internal")
         val CSV_EXPORT_WARNING_SHOWN = booleanPreferencesKey("csv_export_warning_shown")
+        val ENCRYPT_BY_DEFAULT = booleanPreferencesKey("encrypt_by_default")
 
         // Draft keys
         val DRAFT_NAME = stringPreferencesKey("draft_name")
@@ -117,6 +120,18 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
     override suspend fun setCsvExportWarningShown(shown: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Keys.CSV_EXPORT_WARNING_SHOWN] = shown
+        }
+    }
+
+    override fun getEncryptByDefault(): Flow<Boolean> {
+        return context.dataStore.data.map { preferences ->
+            preferences[Keys.ENCRYPT_BY_DEFAULT] ?: false
+        }
+    }
+
+    override suspend fun setEncryptByDefault(encrypt: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.ENCRYPT_BY_DEFAULT] = encrypt
         }
     }
 
