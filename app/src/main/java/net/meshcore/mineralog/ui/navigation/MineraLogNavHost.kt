@@ -2,7 +2,9 @@ package net.meshcore.mineralog.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -40,8 +42,8 @@ sealed class Screen(val route: String) {
     data object PhotoGallery : Screen("gallery/{mineralId}") {
         fun createRoute(mineralId: String) = "gallery/$mineralId"
     }
-    data object PhotoFullscreen : Screen("photo/{photoId}") {
-        fun createRoute(photoId: String) = "photo/$photoId"
+    data object PhotoFullscreen : Screen("photo/{mineralId}/{photoId}") {
+        fun createRoute(mineralId: String, photoId: String) = "photo/$mineralId/$photoId"
     }
     data object Settings : Screen("settings")
     data object Statistics : Screen("statistics")
@@ -196,11 +198,30 @@ fun MineraLogNavHost(
             val mineralId = backStackEntry.arguments?.getString("mineralId") ?: return@composable
             val application = LocalContext.current.applicationContext as MineraLogApplication
 
+            val viewModelScope = rememberCoroutineScope()
+
             CameraCaptureScreen(
                 mineralId = mineralId,
                 onPhotoCaptured = { uri, photoType ->
-                    // TODO: Save photo to repository
-                    navController.popBackStack()
+                    // Save photo to repository
+                    viewModelScope.launch {
+                        try {
+                            val fileName = uri.lastPathSegment ?: "photo_${System.currentTimeMillis()}.jpg"
+                            val photo = net.meshcore.mineralog.domain.model.Photo(
+                                id = java.util.UUID.randomUUID().toString(),
+                                mineralId = mineralId,
+                                type = photoType.name,
+                                caption = null,
+                                takenAt = java.time.Instant.now(),
+                                fileName = fileName
+                            )
+                            application.mineralRepository.insertPhoto(photo)
+                        } catch (e: Exception) {
+                            android.util.Log.e("Navigation", "Failed to save photo", e)
+                        } finally {
+                            navController.popBackStack()
+                        }
+                    }
                 },
                 onNavigateBack = { navController.popBackStack() }
             )
@@ -218,7 +239,7 @@ fun MineraLogNavHost(
                 mineralId = mineralId,
                 onNavigateBack = { navController.popBackStack() },
                 onPhotoClick = { photoId ->
-                    navController.navigate(Screen.PhotoFullscreen.createRoute(photoId))
+                    navController.navigate(Screen.PhotoFullscreen.createRoute(mineralId, photoId))
                 },
                 onCameraClick = { id ->
                     navController.navigate(Screen.Camera.createRoute(id))
@@ -229,12 +250,18 @@ fun MineraLogNavHost(
         composable(
             route = Screen.PhotoFullscreen.route,
             arguments = listOf(
+                navArgument("mineralId") { type = NavType.StringType },
                 navArgument("photoId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
+            val mineralId = backStackEntry.arguments?.getString("mineralId") ?: return@composable
             val photoId = backStackEntry.arguments?.getString("photoId") ?: return@composable
-            // TODO: Get mineralId from photoId - for now, navigate back
-            navController.popBackStack()
+
+            FullscreenPhotoViewerScreen(
+                mineralId = mineralId,
+                initialPhotoId = photoId,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }
