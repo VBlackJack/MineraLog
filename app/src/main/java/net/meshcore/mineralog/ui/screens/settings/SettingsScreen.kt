@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.R
+import net.meshcore.mineralog.ui.components.ImportResultDialog
 import net.meshcore.mineralog.ui.screens.home.DecryptPasswordDialog
 import net.meshcore.mineralog.ui.screens.home.EncryptPasswordDialog
 
@@ -45,6 +46,8 @@ fun SettingsScreen(
     var showEncryptDialog by remember { mutableStateOf(false) }
     var showDecryptDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showImportResultDialog by remember { mutableStateOf(false) }
+    var lastImportResult by remember { mutableStateOf<net.meshcore.mineralog.data.repository.ImportResult?>(null) }
     var decryptAttempts by remember { mutableStateOf(3) }
     var pendingExportUri by remember { mutableStateOf<Uri?>(null) }
     var pendingImportUri by remember { mutableStateOf<Uri?>(null) }
@@ -85,15 +88,11 @@ fun SettingsScreen(
         when (csvImportState) {
             is CsvImportState.Success -> {
                 val result = (csvImportState as CsvImportState.Success).result
-                val message = if (result.errors.isEmpty()) {
-                    "✅ CSV imported: ${result.imported} minerals"
-                } else {
-                    "⚠️ CSV imported: ${result.imported} minerals, ${result.skipped} skipped with errors"
-                }
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Long
-                )
+                lastImportResult = result
+
+                // Show dialog with detailed results
+                showImportResultDialog = true
+
                 viewModel.resetCsvImportState()
             }
             is CsvImportState.Error -> {
@@ -425,6 +424,17 @@ fun SettingsScreen(
                 pendingImportUri?.let { uri ->
                     viewModel.importBackup(uri, password)
                 }
+            }
+        )
+    }
+
+    // Import result dialog (for CSV import with detailed results)
+    if (showImportResultDialog && lastImportResult != null) {
+        ImportResultDialog(
+            result = lastImportResult!!,
+            onDismiss = {
+                showImportResultDialog = false
+                lastImportResult = null
             }
         )
     }
