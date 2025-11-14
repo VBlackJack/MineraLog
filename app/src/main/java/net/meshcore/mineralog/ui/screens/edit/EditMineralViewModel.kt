@@ -108,7 +108,7 @@ class EditMineralViewModel(
         viewModelScope.launch {
             _updateState.value = UpdateMineralState.Loading
             try {
-                mineralRepository.getMineralFlow(mineralId).collect { mineral ->
+                mineralRepository.getByIdFlow(mineralId).collect { mineral ->
                     if (mineral != null) {
                         originalMineral = mineral
                         _name.value = mineral.name

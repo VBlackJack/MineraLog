@@ -40,6 +40,9 @@ fun PhotoManager(
     var selectedPhotoForCaption by remember { mutableStateOf<PhotoItem?>(null) }
     var editingCaption by remember { mutableStateOf("") }
 
+    // Get context at composable scope
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     // Gallery picker
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -79,7 +82,7 @@ fun PhotoManager(
                     // Create temp file for camera
                     val photoFile = File(photosDir, "temp_${System.currentTimeMillis()}.jpg")
                     val photoUri = androidx.core.content.FileProvider.getUriForFile(
-                        androidx.compose.ui.platform.LocalContext.current,
+                        context,
                         "net.meshcore.mineralog.fileprovider",
                         photoFile
                     )

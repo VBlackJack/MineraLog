@@ -56,8 +56,8 @@ fun ImportCsvDialog(
     var parseError by remember { mutableStateOf<String?>(null) }
 
     // Column mapping state
-    var columnMapping by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var useAutoMapping by remember { mutableStateOf(true) }
+    val columnMappingState = remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    val useAutoMappingState = remember { mutableStateOf(true) }
     var showMappingSection by remember { mutableStateOf(false) }
 
     // Quick Win #4: Cell value dialog for truncated content
@@ -80,7 +80,7 @@ fun ImportCsvDialog(
             if (result != null) {
                 parseResult = result
                 // Initialize with auto-mapping
-                columnMapping = CsvColumnMapper.mapHeaders(result.headers)
+                columnMappingState.value = CsvColumnMapper.mapHeaders(result.headers)
             } else {
                 parseError = "Failed to open CSV file"
             }
@@ -193,7 +193,6 @@ fun ImportCsvDialog(
 
                     parseResult != null -> {
                         val result = parseResult!!
-                        val columnMapping = CsvColumnMapper.mapHeaders(result.headers)
 
                         // File info
                         Card(
@@ -228,17 +227,17 @@ fun ImportCsvDialog(
                                 )
 
                                 // Mapping stats
-                                val unmappedCount = result.headers.size - columnMapping.size
-                                val mappedCount = columnMapping.size
+                                val unmappedCount = result.headers.size - columnMappingState.value.size
+                                val mappedCount = columnMappingState.value.size
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
-                                        imageVector = if (columnMapping.values.contains("name")) Icons.Default.CheckCircle else Icons.Default.Info,
+                                        imageVector = if (columnMappingState.value.values.contains("name")) Icons.Default.CheckCircle else Icons.Default.Info,
                                         contentDescription = null,
                                         modifier = Modifier.size(16.dp),
-                                        tint = if (columnMapping.values.contains("name")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                                        tint = if (columnMappingState.value.values.contains("name")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
                                     )
                                     Text(
                                         text = stringResource(R.string.import_csv_mapped_columns, mappedCount, result.headers.size),
@@ -246,7 +245,7 @@ fun ImportCsvDialog(
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 }
-                                if (!columnMapping.values.contains("name")) {
+                                if (!columnMappingState.value.values.contains("name")) {
                                     Text(
                                         text = stringResource(R.string.import_csv_name_required),
                                         style = MaterialTheme.typography.bodySmall,
@@ -268,12 +267,12 @@ fun ImportCsvDialog(
                                 fontWeight = FontWeight.Medium
                             )
                             Switch(
-                                checked = useAutoMapping,
+                                checked = useAutoMappingState.value,
                                 onCheckedChange = { enabled ->
-                                    useAutoMapping = enabled
+                                    useAutoMappingState.value = enabled
                                     if (enabled) {
                                         // Re-apply auto mapping
-                                        columnMapping = CsvColumnMapper.mapHeaders(result.headers)
+                                        columnMappingState.value = CsvColumnMapper.mapHeaders(result.headers)
                                     }
                                 }
                             )
@@ -320,15 +319,15 @@ fun ImportCsvDialog(
                                     items(result.headers) { csvHeader ->
                                         ColumnMappingRow(
                                             csvHeader = csvHeader,
-                                            currentMapping = columnMapping[csvHeader],
+                                            currentMapping = columnMappingState.value[csvHeader],
                                             onMappingChange = { newMapping ->
-                                                columnMapping = if (newMapping == null) {
-                                                    columnMapping - csvHeader
+                                                columnMappingState.value = if (newMapping == null) {
+                                                    columnMappingState.value - csvHeader
                                                 } else {
-                                                    columnMapping + (csvHeader to newMapping)
+                                                    columnMappingState.value + (csvHeader to newMapping)
                                                 }
                                                 // Disable auto-mapping when manual changes are made
-                                                useAutoMapping = false
+                                                useAutoMappingState.value = false
                                             }
                                         )
                                     }
@@ -502,10 +501,10 @@ fun ImportCsvDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    onImport(csvUri, columnMapping, selectedMode)
+                    onImport(csvUri, columnMappingState.value, selectedMode)
                     onDismiss()
                 },
-                enabled = !isLoading && parseError == null && parseResult != null && columnMapping.values.contains("name")
+                enabled = !isLoading && parseError == null && parseResult != null && columnMappingState.value.values.contains("name")
             ) {
                 Text(stringResource(R.string.import_csv_start))
             }
