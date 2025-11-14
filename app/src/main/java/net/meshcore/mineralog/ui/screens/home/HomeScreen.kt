@@ -42,6 +42,7 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     onStatisticsClick: () -> Unit = {},
     onCompareClick: (List<String>) -> Unit = {},
+    onQrScanClick: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             context = LocalContext.current.applicationContext,
@@ -228,6 +229,10 @@ fun HomeScreen(
                 TopAppBar(
                     title = { Text("MineraLog") },
                     actions = {
+                        // QR Scanner button
+                        IconButton(onClick = onQrScanClick) {
+                            Icon(Icons.Default.QrCodeScanner, contentDescription = "Scan QR code")
+                        }
                         // Import CSV button
                         IconButton(onClick = { csvImportLauncher.launch("text/*") }) {
                             Icon(Icons.Default.CloudUpload, contentDescription = stringResource(R.string.action_import_csv))

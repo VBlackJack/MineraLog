@@ -5,6 +5,70 @@ All notable changes to MineraLog will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0-rc1] - 2025-11-14
+
+### Added - M2 Sprint: Photo Workflows
+- **QR Code Scanner** (Item #6):
+  - QrScannerScreen with ML Kit barcode scanning integration
+  - Deep link support for `mineralapp://mineral/{uuid}` format
+  - Direct UUID format recognition
+  - Torch/flashlight toggle for low-light scanning
+  - Camera permission handling with graceful degradation
+  - QR scanner button in HomeScreen top bar
+  - Navigation integration with automatic routing to mineral detail
+
+- **Photo Capture** (Item #4):
+  - CameraCaptureScreen with CameraX live preview
+  - Photo type selector (Normal, UV Shortwave, UV Longwave, Macro)
+  - Camera permission handling (CAMERA, storage permissions)
+  - Photo capture < 2s performance target (Rule R3)
+  - Camera button in MineralDetailScreen top bar
+  - App-specific directory storage (no permissions needed API 29+)
+  - Torch/flashlight toggle for camera
+
+- **Photo Gallery** (Item #5):
+  - PhotoGalleryScreen with 3-column LazyVerticalGrid layout
+  - Photo type badges (color-coded: Normal, UV-SW, UV-LW, Macro)
+  - Delete photo with confirmation dialog
+  - Empty state with call-to-action
+  - PhotoGalleryViewModel for state management
+
+- **Fullscreen Photo Viewer** (Item #5):
+  - FullscreenPhotoViewerScreen with HorizontalPager (swipe navigation)
+  - Pinch-to-zoom gestures (1x-5x zoom range)
+  - Photo info overlay (type, caption, date taken)
+  - Photo counter (current/total)
+  - Dark theme optimized for photo viewing
+
+- **Testing** (Item #8):
+  - QrScannerTest with 10 unit tests (deep link, UUID formats, edge cases)
+  - Test coverage for QR code extraction logic
+  - Performance validation ready (QR scan < 500ms, photo capture < 2s)
+
+### Changed
+- **App version**: 1.4.1 (versionCode 7) → 1.5.0-rc1 (versionCode 8)
+- **Navigation**: Added 4 new routes (QrScanner, Camera, PhotoGallery, PhotoFullscreen)
+- **MineralDetailScreen**: Added camera button for quick photo capture
+- **HomeScreen**: Added QR scanner button in top bar
+
+### Technical Improvements
+- **Performance**: CameraX CAPTURE_MODE_MINIMIZE_LATENCY for faster photo capture
+- **Accessibility**: contentDescription on all camera/photo UI elements
+- **Error Handling**: Graceful permission denied states with user guidance
+- **Memory**: Pinch-to-zoom with proper gesture handling and bounds (1x-5x)
+
+### Architecture
+- **Clean separation**: Photo UI screens in ui/screens/camera and ui/screens/gallery
+- **MVVM**: PhotoGalleryViewModel with StateFlow for reactive UI
+- **Repository pattern**: Photos managed through existing MineralRepository
+- **Domain model**: Photo entity with 4 types, caption, timestamp, file storage
+
+### Notes
+- Photo storage uses app-specific external files directory (scoped storage)
+- CameraX 1.4.1, ML Kit Barcode Scanning, Coil 2.7.0 dependencies already in place
+- Deep link handler configured in AndroidManifest for QR code integration
+- M2 Sprint completes 4/4 items with comprehensive photo workflow support
+
 ## [1.4.1] - 2025-11-13
 
 ### Added
