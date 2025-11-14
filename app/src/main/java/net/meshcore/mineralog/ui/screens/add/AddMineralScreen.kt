@@ -28,6 +28,8 @@ import net.meshcore.mineralog.ui.components.TooltipTextField
 import net.meshcore.mineralog.ui.components.TooltipDropdownField
 import net.meshcore.mineralog.ui.components.MineralFieldTooltips
 import net.meshcore.mineralog.ui.components.MineralFieldValues
+import net.meshcore.mineralog.ui.components.PhotoManager
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,8 +56,16 @@ fun AddMineralScreen(
     val crystalSystem by viewModel.crystalSystem.collectAsState()
     val tags by viewModel.tags.collectAsState() // Quick Win #8
     val tagSuggestions by viewModel.tagSuggestions.collectAsState() // Quick Win #8
+    val photos by viewModel.photos.collectAsState()
     val saveState by viewModel.saveState.collectAsState()
     val draftSavedIndicator by viewModel.draftSavedIndicator.collectAsState()
+
+    val context = LocalContext.current
+    val photosDir = remember {
+        File(context.filesDir, "photos").apply {
+            if (!exists()) mkdirs()
+        }
+    }
 
     val isSaving = saveState is SaveMineralState.Saving
     val hasUnsavedChanges = name.isNotBlank() || group.isNotBlank() || formula.isNotBlank() ||
@@ -69,9 +79,10 @@ fun AddMineralScreen(
     val saveAction: () -> Unit = {
         if (name.isNotBlank() && !isSaving) {
             focusManager.clearFocus()
-            viewModel.saveMineral { mineralId ->
-                onMineralAdded(mineralId)
-            }
+            viewModel.saveMineral(
+                onSuccess = { mineralId -> onMineralAdded(mineralId) },
+                photosDir = photosDir
+            )
         }
     }
 
@@ -143,9 +154,10 @@ fun AddMineralScreen(
 
                     TextButton(
                         onClick = {
-                            viewModel.saveMineral { mineralId ->
-                                onMineralAdded(mineralId)
-                            }
+                            viewModel.saveMineral(
+                                onSuccess = { mineralId -> onMineralAdded(mineralId) },
+                                photosDir = photosDir
+                            )
                         },
                         enabled = name.isNotBlank() && !isSaving
                     ) {
@@ -393,6 +405,32 @@ fun AddMineralScreen(
                     }
                 }
             }
+
+            // Photos Section
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            Text(
+                text = "Photos",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Text(
+                text = "Add photos from gallery or camera. Support for Normal, UV, and Macro photos.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            PhotoManager(
+                photos = photos,
+                onAddFromGallery = { uri -> viewModel.addPhoto(uri) },
+                onTakePhoto = { uri -> viewModel.addPhoto(uri) },
+                onRemovePhoto = { photoId -> viewModel.removePhoto(photoId) },
+                onUpdateCaption = { photoId, caption -> viewModel.updatePhotoCaption(photoId, caption) },
+                onUpdateType = { photoId, type -> viewModel.updatePhotoType(photoId, type) },
+                photosDir = photosDir,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

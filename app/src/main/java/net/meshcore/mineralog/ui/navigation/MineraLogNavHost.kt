@@ -14,6 +14,7 @@ import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.ui.screens.home.HomeScreen
 import net.meshcore.mineralog.ui.screens.detail.MineralDetailScreen
 import net.meshcore.mineralog.ui.screens.add.AddMineralScreen
+import net.meshcore.mineralog.ui.screens.edit.EditMineralScreen
 import net.meshcore.mineralog.ui.screens.settings.SettingsScreen
 import net.meshcore.mineralog.ui.screens.statistics.StatisticsScreen
 import net.meshcore.mineralog.ui.screens.statistics.StatisticsViewModel
@@ -25,6 +26,9 @@ sealed class Screen(val route: String) {
     data object Add : Screen("add")
     data object Detail : Screen("detail/{mineralId}") {
         fun createRoute(mineralId: String) = "detail/$mineralId"
+    }
+    data object Edit : Screen("edit/{mineralId}") {
+        fun createRoute(mineralId: String) = "edit/$mineralId"
     }
     data object Settings : Screen("settings")
     data object Statistics : Screen("statistics")
@@ -81,7 +85,27 @@ fun MineraLogNavHost(
             val mineralId = backStackEntry.arguments?.getString("mineralId") ?: return@composable
             MineralDetailScreen(
                 mineralId = mineralId,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onEditClick = { id ->
+                    navController.navigate(Screen.Edit.createRoute(id))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.Edit.route,
+            arguments = listOf(
+                navArgument("mineralId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val mineralId = backStackEntry.arguments?.getString("mineralId") ?: return@composable
+            EditMineralScreen(
+                mineralId = mineralId,
+                onNavigateBack = { navController.popBackStack() },
+                onMineralUpdated = { id ->
+                    navController.popBackStack()
+                    navController.navigate(Screen.Detail.createRoute(id))
+                }
             )
         }
 
