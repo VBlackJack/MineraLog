@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.detekt)
+    jacoco
 }
 
 android {
@@ -48,21 +49,35 @@ android {
             // Uses default debug keystore
         }
 
-        // Release signing - requires keystore configuration
-        // TODO: Configure release signing with proper keystore before production release
+        // Release signing with proper keystore
+        // Configured via environment variables for security
         // See: https://developer.android.com/studio/publish/app-signing
         create("release") {
-            // For now, use debug signing. Replace with production keystore before release:
-            // storeFile = file(System.getenv("RELEASE_KEYSTORE_PATH") ?: "release.keystore")
-            // storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
-            // keyAlias = System.getenv("RELEASE_KEY_ALIAS")
-            // keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            val keystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+            val keystorePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+            val keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+            val keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
 
-            // Temporarily use debug signing (NOT FOR PRODUCTION!)
-            storeFile = signingConfigs.getByName("debug").storeFile
-            storePassword = signingConfigs.getByName("debug").storePassword
-            keyAlias = signingConfigs.getByName("debug").keyAlias
-            keyPassword = signingConfigs.getByName("debug").keyPassword
+            if (keystorePath != null && keystorePassword != null && keyAlias != null && keyPassword != null) {
+                // Production signing with secure keystore
+                storeFile = file(keystorePath)
+                storePassword = keystorePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+
+                // Enable v1 and v2 signing for compatibility
+                enableV1Signing = true
+                enableV2Signing = true
+            } else {
+                // Fallback to debug signing for local development
+                // WARNING: This is NOT suitable for production releases!
+                println("WARNING: Release keystore not configured. Using debug keystore.")
+                println("Set RELEASE_KEYSTORE_PATH, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS, and RELEASE_KEY_PASSWORD")
+                storeFile = signingConfigs.getByName("debug").storeFile
+                storePassword = signingConfigs.getByName("debug").storePassword
+                this.keyAlias = signingConfigs.getByName("debug").keyAlias
+                this.keyPassword = signingConfigs.getByName("debug").keyPassword
+            }
         }
     }
 
@@ -240,4 +255,120 @@ detekt {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+// JaCoCo configuration for code coverage
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+
+    val fileFilter = listOf(
+        // Exclude generated files
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*",
+        // Exclude Android framework
+        "androidx/**/*.*",
+        // Exclude data binding
+        "**/*DataBinding*.*",
+        "**/*Binding*.*",
+        // Exclude DI
+        "**/*_Factory.*",
+        "**/*_MembersInjector.*",
+        "**/Dagger*.*",
+        "**/*Module.*",
+        "**/*Component.*",
+        // Exclude Room generated
+        "**/*_Impl.*",
+        // Exclude Compose generated
+        "**/*\$\$*.*"
+    )
+
+    val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+
+    val mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories.setFrom(files(mainSrc))
+    classDirectories.setFrom(files(debugTree))
+    executionData.setFrom(fileTree(project.buildDir) {
+        include("jacoco/testDebugUnitTest.exec")
+    })
+}
+
+tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+    dependsOn("testDebugUnitTest")
+
+    val fileFilter = listOf(
+        // Exclude generated files
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*",
+        // Exclude Android framework
+        "androidx/**/*.*",
+        // Exclude data binding
+        "**/*DataBinding*.*",
+        "**/*Binding*.*",
+        // Exclude DI
+        "**/*_Factory.*",
+        "**/*_MembersInjector.*",
+        "**/Dagger*.*",
+        "**/*Module.*",
+        "**/*Component.*",
+        // Exclude Room generated
+        "**/*_Impl.*",
+        // Exclude Compose generated
+        "**/*\$\$*.*"
+    )
+
+    val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+
+    classDirectories.setFrom(files(debugTree))
+    executionData.setFrom(fileTree(project.buildDir) {
+        include("jacoco/testDebugUnitTest.exec")
+    })
+
+    violationRules {
+        rule {
+            // Global minimum coverage: 60%
+            limit {
+                minimum = "0.60".toBigDecimal()
+            }
+        }
+
+        rule {
+            // ViewModels should have higher coverage: 70%
+            element = "CLASS"
+            includes = listOf(
+                "net.meshcore.mineralog.ui.screens.*.*.SettingsViewModel",
+                "net.meshcore.mineralog.ui.screens.*.*.EditMineralViewModel"
+            )
+            limit {
+                minimum = "0.70".toBigDecimal()
+            }
+        }
+    }
+}
+
+// Make build task depend on coverage verification
+tasks.named("check") {
+    dependsOn("jacocoTestCoverageVerification")
 }

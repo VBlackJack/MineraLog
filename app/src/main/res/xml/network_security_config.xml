@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Disable cleartext (HTTP) traffic for all domains -->
+    <!-- This prevents man-in-the-middle attacks by requiring HTTPS only -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust system certificate store -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!--
+    Note: MineraLog is primarily an offline-first app.
+    Network connectivity is only used for:
+    - Google Maps API (HTTPS)
+    - Potential future cloud sync features (must use HTTPS)
+
+    No cleartext (HTTP) traffic is allowed.
+    -->
+
+    <!-- Debug configuration - can be overridden for local testing if needed -->
+    <!-- To allow localhost HTTP for debugging, uncomment:
+    <debug-overrides>
+        <domain-config cleartextTrafficPermitted="true">
+            <domain includeSubdomains="true">localhost</domain>
+            <domain includeSubdomains="true">127.0.0.1</domain>
+            <domain includeSubdomains="true">10.0.2.2</domain>
+        </domain-config>
+    </debug-overrides>
+    -->
+</network-security-config>

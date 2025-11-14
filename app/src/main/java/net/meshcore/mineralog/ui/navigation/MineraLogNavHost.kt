@@ -1,5 +1,6 @@
 package net.meshcore.mineralog.ui.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -26,6 +27,7 @@ import net.meshcore.mineralog.ui.screens.qr.QrScannerScreen
 import net.meshcore.mineralog.ui.screens.camera.CameraCaptureScreen
 import net.meshcore.mineralog.ui.screens.gallery.PhotoGalleryScreen
 import net.meshcore.mineralog.ui.screens.gallery.FullscreenPhotoViewerScreen
+import java.util.UUID
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -60,10 +62,17 @@ fun MineraLogNavHost(
     startDestination: String = Screen.Home.route,
     deepLinkMineralId: String? = null
 ) {
-    // Handle deep link
+    // Handle deep link with UUID validation (defense-in-depth)
     LaunchedEffect(deepLinkMineralId) {
         deepLinkMineralId?.let { id ->
-            navController.navigate(Screen.Detail.createRoute(id))
+            try {
+                // Double-check UUID validity before navigation
+                UUID.fromString(id)
+                navController.navigate(Screen.Detail.createRoute(id))
+            } catch (e: IllegalArgumentException) {
+                // Log security event and ignore invalid navigation
+                Log.w("NavHost", "Invalid deep link navigation rejected: $id", e)
+            }
         }
     }
 

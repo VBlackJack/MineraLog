@@ -77,6 +77,12 @@ jobs:
         run: ./gradlew testDebugUnitTest --no-daemon --stacktrace --max-workers=2
         continue-on-error: false
 
+      - name: Generate coverage report
+        run: ./gradlew jacocoTestReport --no-daemon --stacktrace --max-workers=2
+
+      - name: Verify coverage threshold
+        run: ./gradlew jacocoTestCoverageVerification --no-daemon --stacktrace --max-workers=2
+
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -85,13 +91,21 @@ jobs:
           path: '**/build/reports/tests/'
           retention-days: 14
 
-      - name: Upload coverage
+      - name: Upload coverage reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-reports
           path: '**/build/reports/jacoco/'
           retention-days: 14
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          fail_ci_if_error: false
+          verbose: true
 
   instrumentation-test:
     name: Instrumentation Tests
@@ -196,8 +210,27 @@ jobs:
       - name: Create local.properties
         run: echo "MAPS_API_KEY=dummy_key_for_ci" > local.properties
 
+      - name: Decode release keystore
+        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+          echo "Release keystore decoded successfully"
+
       - name: Build release APK
+        env:
+          RELEASE_KEYSTORE_PATH: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' && 'release.keystore' || '' }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: ./gradlew assembleRelease --no-daemon --stacktrace --max-workers=2
+
+      - name: Verify APK signature
+        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
+          echo "Verifying signature for: $APK_PATH"
+          jarsigner -verify -verbose -certs "$APK_PATH"
+          echo "✓ APK signature verified"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -205,3 +238,7 @@ jobs:
           name: release-apk
           path: app/build/outputs/apk/release/*.apk
           retention-days: 30
+
+      - name: Cleanup keystore
+        if: always()
+        run: rm -f release.keystore
