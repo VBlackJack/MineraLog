@@ -24,6 +24,7 @@ class MineraLogApplication : Application(), Configuration.Provider {
     // Repositories
     val mineralRepository: MineralRepository by lazy {
         MineralRepositoryImpl(
+            database = database,
             mineralDao = database.mineralDao(),
             provenanceDao = database.provenanceDao(),
             storageDao = database.storageDao(),
