@@ -14,6 +14,7 @@ import java.util.UUID
     tableName = "minerals",
     indices = [
         Index(value = ["name"]),
+        Index(value = ["type"]), // v2.0 - mineral type (SIMPLE/AGGREGATE)
         Index(value = ["group"]),
         Index(value = ["crystalSystem"]),
         Index(value = ["status"]), // v1.0 compat
@@ -32,22 +33,48 @@ data class MineralEntity(
 
     // Basic info
     val name: String,
+
+    /**
+     * Type of mineral entry (SIMPLE or AGGREGATE).
+     * - SIMPLE: Single mineral with homogeneous properties (stored in SimplePropertiesEntity)
+     * - AGGREGATE: Mineral aggregate/rock with multiple components (stored in MineralComponentEntity)
+     *
+     * Added in v2.0.0 to support mineral aggregates.
+     * Default is "SIMPLE" for backward compatibility with v1.x data.
+     */
+    val type: String = "SIMPLE", // MineralType enum value: "SIMPLE", "AGGREGATE", "ROCK"
+
+    // Properties for SIMPLE type (deprecated for AGGREGATE type, use SimplePropertiesEntity instead)
+    // These fields are kept for backward compatibility with v1.x but should only be used for type=SIMPLE
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val group: String? = null,
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val formula: String? = null,
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val crystalSystem: String? = null, // Triclinic, Monoclinic, Orthorhombic, Tetragonal, Trigonal, Hexagonal, Cubic
 
-    // Physical properties
+    // Physical properties (deprecated for AGGREGATE type, use SimplePropertiesEntity for SIMPLE or MineralComponentEntity for AGGREGATE)
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val mohsMin: Float? = null, // 1.0 - 10.0
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val mohsMax: Float? = null, // 1.0 - 10.0
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val cleavage: String? = null,
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val fracture: String? = null,
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val luster: String? = null, // Metallic, Vitreous, Pearly, Resinous, Silky, Greasy, Dull
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val streak: String? = null,
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val diaphaneity: String? = null, // Transparent, Translucent, Opaque
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val habit: String? = null,
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val specificGravity: Float? = null,
 
     // Special properties
+    @Deprecated("For type=SIMPLE, use SimplePropertiesEntity; For type=AGGREGATE, use MineralComponentEntity")
     val fluorescence: String? = null, // Format: "LW:blue,SW:green" or "none"
     val magnetic: Boolean = false,
     val radioactive: Boolean = false,

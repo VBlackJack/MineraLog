@@ -48,6 +48,39 @@ interface MineralDao {
     @Query("SELECT * FROM minerals ORDER BY updatedAt DESC")
     suspend fun getAll(): List<MineralEntity>
 
+    // ========== v2.0 - Mineral Type Queries ==========
+
+    /**
+     * Get all simple minerals (non-aggregates).
+     */
+    @Query("SELECT * FROM minerals WHERE type = 'SIMPLE' ORDER BY name ASC")
+    fun getAllSimpleMinerals(): Flow<List<MineralEntity>>
+
+    /**
+     * Get all aggregates.
+     */
+    @Query("SELECT * FROM minerals WHERE type = 'AGGREGATE' ORDER BY name ASC")
+    fun getAllAggregates(): Flow<List<MineralEntity>>
+
+    /**
+     * Get minerals by type(s).
+     * @param types List of mineral types ("SIMPLE", "AGGREGATE", "ROCK")
+     */
+    @Query("SELECT * FROM minerals WHERE type IN (:types) ORDER BY name ASC")
+    fun getMineralsByType(types: List<String>): Flow<List<MineralEntity>>
+
+    /**
+     * Get minerals by type (paged).
+     */
+    @Query("SELECT * FROM minerals WHERE type IN (:types) ORDER BY updatedAt DESC")
+    fun getMineralsByTypePaged(types: List<String>): PagingSource<Int, MineralEntity>
+
+    /**
+     * Count minerals by type.
+     */
+    @Query("SELECT COUNT(*) FROM minerals WHERE type = :type")
+    suspend fun countByType(type: String): Int
+
     // ========== Paging 3 Support (v1.5.0) ==========
 
     /**
@@ -483,6 +516,18 @@ interface MineralDao {
         ORDER BY count DESC
     """)
     suspend fun getStatusDistribution(): Map<@MapColumn(columnName = "statusType") String, @MapColumn(columnName = "count") Int>
+
+    /**
+     * Get distribution by mineral type (v2.0).
+     * Returns count of SIMPLE vs AGGREGATE minerals.
+     */
+    @Query("""
+        SELECT type, COUNT(*) as count
+        FROM minerals
+        GROUP BY type
+        ORDER BY count DESC
+    """)
+    suspend fun getTypeDistribution(): Map<@MapColumn(columnName = "type") String, @MapColumn(columnName = "count") Int>
 
     /**
      * Get total estimated value of all minerals.

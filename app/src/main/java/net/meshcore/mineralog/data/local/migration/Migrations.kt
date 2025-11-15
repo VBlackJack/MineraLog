@@ -145,5 +145,160 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
 }
 
 /**
+ * Migration from version 4 to version 5.
+ *
+ * Changes:
+ * - Add type column to minerals table (SIMPLE or AGGREGATE)
+ * - Create simple_properties table for simple mineral properties
+ * - Create mineral_components table for aggregate components
+ * - Migrate existing mineral properties to simple_properties table
+ * - Add indices for new tables and columns
+ *
+ * v2.0.0 feature: Mineral aggregates support (Granite, Gneiss, etc.)
+ *
+ * Backward compatibility:
+ * - All existing minerals are treated as type='SIMPLE'
+ * - Existing property fields in minerals table are preserved but deprecated
+ * - Properties are copied to simple_properties table
+ */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // 1. Add type column to minerals table (default = 'SIMPLE' for backward compatibility)
+        db.execSQL("""
+            ALTER TABLE minerals
+            ADD COLUMN type TEXT NOT NULL DEFAULT 'SIMPLE'
+        """.trimIndent())
+
+        // Create index for type column
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_minerals_type
+            ON minerals(type)
+        """.trimIndent())
+
+        // 2. Create simple_properties table
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS simple_properties (
+                id TEXT PRIMARY KEY NOT NULL,
+                mineralId TEXT NOT NULL,
+                `group` TEXT,
+                mohsMin REAL,
+                mohsMax REAL,
+                density REAL,
+                formula TEXT,
+                crystalSystem TEXT,
+                luster TEXT,
+                diaphaneity TEXT,
+                cleavage TEXT,
+                fracture TEXT,
+                habit TEXT,
+                streak TEXT,
+                fluorescence TEXT,
+                FOREIGN KEY(mineralId) REFERENCES minerals(id) ON DELETE CASCADE
+            )
+        """.trimIndent())
+
+        // Create unique index on mineralId (one-to-one relationship)
+        db.execSQL("""
+            CREATE UNIQUE INDEX IF NOT EXISTS index_simple_properties_mineralId
+            ON simple_properties(mineralId)
+        """.trimIndent())
+
+        // 3. Create mineral_components table
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS mineral_components (
+                id TEXT PRIMARY KEY NOT NULL,
+                aggregateId TEXT NOT NULL,
+                displayOrder INTEGER NOT NULL,
+                mineralName TEXT NOT NULL,
+                mineralGroup TEXT,
+                percentage REAL,
+                role TEXT NOT NULL,
+                mohsMin REAL,
+                mohsMax REAL,
+                density REAL,
+                formula TEXT,
+                crystalSystem TEXT,
+                luster TEXT,
+                diaphaneity TEXT,
+                cleavage TEXT,
+                fracture TEXT,
+                habit TEXT,
+                streak TEXT,
+                fluorescence TEXT,
+                notes TEXT,
+                createdAt INTEGER NOT NULL,
+                updatedAt INTEGER NOT NULL,
+                FOREIGN KEY(aggregateId) REFERENCES minerals(id) ON DELETE CASCADE
+            )
+        """.trimIndent())
+
+        // Create indices for mineral_components table
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_mineral_components_aggregateId
+            ON mineral_components(aggregateId)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_mineral_components_role
+            ON mineral_components(role)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_mineral_components_mineralName
+            ON mineral_components(mineralName)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_mineral_components_displayOrder
+            ON mineral_components(displayOrder)
+        """.trimIndent())
+
+        // 4. Migrate existing mineral data to simple_properties table
+        // Generate unique IDs by appending '_props' to mineral ID
+        db.execSQL("""
+            INSERT INTO simple_properties (
+                id,
+                mineralId,
+                `group`,
+                mohsMin,
+                mohsMax,
+                density,
+                formula,
+                crystalSystem,
+                luster,
+                diaphaneity,
+                cleavage,
+                fracture,
+                habit,
+                streak,
+                fluorescence
+            )
+            SELECT
+                id || '_props' AS id,
+                id AS mineralId,
+                `group`,
+                mohsMin,
+                mohsMax,
+                specificGravity AS density,
+                formula,
+                crystalSystem,
+                luster,
+                diaphaneity,
+                cleavage,
+                fracture,
+                habit,
+                streak,
+                fluorescence
+            FROM minerals
+            WHERE type = 'SIMPLE'
+        """.trimIndent())
+
+        // Note: The deprecated columns in minerals table are intentionally kept
+        // for backward compatibility. They will be removed in a future migration
+        // once all code has been updated to use the new tables.
+    }
+}
+
+/**
  * Future migrations will be added here as the schema evolves.
  */

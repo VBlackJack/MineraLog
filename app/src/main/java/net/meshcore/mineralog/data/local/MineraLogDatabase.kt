@@ -10,18 +10,23 @@ import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SupportFactory
 import net.meshcore.mineralog.data.local.converter.Converters
 import net.meshcore.mineralog.data.local.dao.FilterPresetDao
+import net.meshcore.mineralog.data.local.dao.MineralComponentDao
 import net.meshcore.mineralog.data.local.dao.MineralDao
 import net.meshcore.mineralog.data.local.dao.PhotoDao
 import net.meshcore.mineralog.data.local.dao.ProvenanceDao
+import net.meshcore.mineralog.data.local.dao.SimplePropertiesDao
 import net.meshcore.mineralog.data.local.dao.StorageDao
 import net.meshcore.mineralog.data.local.entity.FilterPresetEntity
+import net.meshcore.mineralog.data.local.entity.MineralComponentEntity
 import net.meshcore.mineralog.data.local.entity.MineralEntity
 import net.meshcore.mineralog.data.local.entity.PhotoEntity
 import net.meshcore.mineralog.data.local.entity.ProvenanceEntity
+import net.meshcore.mineralog.data.local.entity.SimplePropertiesEntity
 import net.meshcore.mineralog.data.local.entity.StorageEntity
 import net.meshcore.mineralog.data.local.migration.MIGRATION_1_2
 import net.meshcore.mineralog.data.local.migration.MIGRATION_2_3
 import net.meshcore.mineralog.data.local.migration.MIGRATION_3_4
+import net.meshcore.mineralog.data.local.migration.MIGRATION_4_5
 
 /**
  * Main Room database for MineraLog application.
@@ -29,22 +34,27 @@ import net.meshcore.mineralog.data.local.migration.MIGRATION_3_4
  * Version 2: Added lifecycle status, quality rating, completeness, and FK fields to minerals.
  * Version 3: Added filter_presets table for saved filter combinations (v1.2.0).
  * Version 4: Added currency field to provenances table for multi-currency support (v1.4.1).
+ * Version 5: Added support for mineral aggregates with simple_properties and mineral_components tables (v2.0.0).
  */
 @Database(
     entities = [
         MineralEntity::class,
+        SimplePropertiesEntity::class,
+        MineralComponentEntity::class,
         ProvenanceEntity::class,
         StorageEntity::class,
         PhotoEntity::class,
         FilterPresetEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class MineraLogDatabase : RoomDatabase() {
 
     abstract fun mineralDao(): MineralDao
+    abstract fun simplePropertiesDao(): SimplePropertiesDao
+    abstract fun mineralComponentDao(): MineralComponentDao
     abstract fun provenanceDao(): ProvenanceDao
     abstract fun storageDao(): StorageDao
     abstract fun photoDao(): PhotoDao
@@ -91,7 +101,7 @@ abstract class MineraLogDatabase : RoomDatabase() {
                     "mineralog_database"
                 )
                     .openHelperFactory(factory) // Enable SQLCipher encryption
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4) // Proper migrations for schema evolution
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5) // Proper migrations for schema evolution
                     // Note: fallbackToDestructiveMigration() has been removed to protect user data
                     // All migrations must be properly defined before releasing new schema versions
                     .addCallback(object : RoomDatabase.Callback() {
