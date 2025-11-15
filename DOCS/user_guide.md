@@ -1,4 +1,6 @@
-# MineraLog User Guide v1.0
+# MineraLog User Guide v1.5.0
+
+**Last Updated**: November 2025 | **App Version**: 1.5.0
 
 ## Introduction
 
@@ -6,14 +8,18 @@ MineraLog is a comprehensive Android application for cataloging and managing you
 
 **Key Features:**
 - 📝 Detailed mineral records with scientific properties
-- 📸 Multiple photos per specimen (normal, UV, macro)
-- 🗺️ Map view of specimen origins with clustering
+- 📸 Multiple photos per specimen (4 types: Normal, UV Shortwave, UV Longwave, Macro)
+- 📷 In-app camera with CameraX (high-quality captures)
+- 🖼️ Photo gallery with pinch-to-zoom (1x-5x)
+- 🗺️ Provenance tracking with GPS coordinates
 - 🔍 Powerful search and filtering
-- 📦 Hierarchical storage tracking
-- 🏷️ Printable QR code labels
-- 💾 Import/Export (ZIP, CSV)
-- 🔒 Encrypted backups
-- 🌍 Bilingual (English/Français)
+- 📦 Hierarchical storage tracking (Place → Container → Box → Slot)
+- 🏷️ QR code scanner with deep links
+- 🏷️ Printable QR code labels (PDF generation)
+- 💾 Import/Export (ZIP with encryption, CSV with auto-detection)
+- 🔒 Encrypted backups (Argon2id + AES-256-GCM)
+- 🌍 Bilingual (English/Français) with full i18n
+- ♿ WCAG 2.1 AA accessibility (92% grade A)
 
 ---
 
