@@ -6,7 +6,7 @@
 
 ---
 
-## 📊 Overall Progress: **35%** (Phases 1-3 of 8)
+## 📊 Overall Progress: **45%** (Phases 1-3 Complete)
 
 ### ✅ **Completed Phases**
 
@@ -87,12 +87,21 @@
   - Computed properties: hardnessRange, percentageFormatted, roleDisplayName
   - Validation: isValid, completenessPercentage
 
+**Mappers:**
+- ✅ `SimplePropertiesEntity` ↔ `SimpleProperties`
+- ✅ `MineralComponentEntity` ↔ `MineralComponent`
+- ✅ Bidirectional mapping with proper ID handling
+- ✅ Display order and foreign key management
+
 **Features:**
 - ✅ Kotlinx serialization support
 - ✅ Rich domain models with business logic
 - ✅ Property formatting helpers
+- ✅ Complete entity-domain conversion layer
 
-**Commit:** `972dae9` - feat(domain): add v2.0 domain models
+**Commits:**
+- `972dae9` - feat(domain): add v2.0 domain models
+- `3650e5d` - feat(mappers): add entity-domain mappers (Phase 3 complete)
 
 ---
 
@@ -227,7 +236,7 @@
 
 ## 🗂️ Files Created/Modified
 
-### ✅ Created (10 files)
+### ✅ Created (12 files)
 
 **Entities:**
 - `app/src/main/java/net/meshcore/mineralog/data/local/entity/MineralType.kt`
@@ -245,12 +254,17 @@
 - `app/src/main/java/net/meshcore/mineralog/domain/model/SimpleProperties.kt`
 - `app/src/main/java/net/meshcore/mineralog/domain/model/MineralComponent.kt`
 
-### ✅ Modified (4 files)
+**Documentation:**
+- `DOCS/V2_IMPLEMENTATION_STATUS.md`
+- `DOCS/V2_USAGE_EXAMPLES.md`
 
-- `app/src/main/java/net/meshcore/mineralog/data/local/MineraLogDatabase.kt`
-- `app/src/main/java/net/meshcore/mineralog/data/local/entity/MineralEntity.kt`
-- `app/src/main/java/net/meshcore/mineralog/data/local/dao/MineralDao.kt`
-- `app/src/main/java/net/meshcore/mineralog/data/local/migration/Migrations.kt`
+### ✅ Modified (5 files)
+
+- `app/src/main/java/net/meshcore/mineralog/data/local/MineraLogDatabase.kt` (v4 → v5)
+- `app/src/main/java/net/meshcore/mineralog/data/local/entity/MineralEntity.kt` (added type field)
+- `app/src/main/java/net/meshcore/mineralog/data/local/dao/MineralDao.kt` (aggregate queries)
+- `app/src/main/java/net/meshcore/mineralog/data/local/migration/Migrations.kt` (MIGRATION_4_5)
+- `app/src/main/java/net/meshcore/mineralog/data/mapper/EntityMappers.kt` (v2.0 mappers)
 - `app/build.gradle.kts` (version bump to 2.0.0-alpha)
 
 ---
@@ -294,8 +308,10 @@
 - **Roadmap:** `DOCS/ROADMAP_V2.0.md`
 - **Database Schema:** `app/schemas/net.meshcore.mineralog.data.local.MineraLogDatabase/5.json` (to be generated)
 - **Commits:**
-  - Phase 1-2: `4077fa0` - Database foundation
-  - Phase 3: `972dae9` - Domain models
+  - Phase 1-2: `4077fa0` - Database foundation & DAOs
+  - Phase 3 (models): `972dae9` - Domain models
+  - Phase 3 (mappers): `3650e5d` - Entity-domain mappers
+  - Version bump: `5505979` - v2.0.0-alpha
 
 ---
 
