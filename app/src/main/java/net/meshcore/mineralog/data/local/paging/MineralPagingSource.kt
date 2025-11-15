@@ -81,8 +81,8 @@ class MineralPagingSource(
                         nextKey = result.nextKey
                     )
                 }
-                is LoadResult.Error -> result
-                is LoadResult.Invalid -> result
+                is LoadResult.Error -> LoadResult.Error(result.throwable)
+                is LoadResult.Invalid -> LoadResult.Invalid()
             }
         } catch (e: Exception) {
             LoadResult.Error(e)

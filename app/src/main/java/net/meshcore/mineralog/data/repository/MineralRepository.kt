@@ -75,7 +75,7 @@ class MineralRepositoryImpl(
         mineral.id
     }
 
-    override suspend fun update(mineral: Mineral) = database.withTransaction {
+    override suspend fun update(mineral: Mineral): Unit = database.withTransaction {
         mineralDao.update(mineral.toEntity())
         mineral.provenance?.let { provenanceDao.insert(it.toEntity()) }
         mineral.storage?.let { storageDao.insert(it.toEntity()) }

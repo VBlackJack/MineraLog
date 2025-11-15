@@ -58,7 +58,7 @@ class AddMineralViewModelTest {
         coEvery { mineralRepository.getAllUniqueTags() } returns listOf("fluorescent", "blue", "collector", "rare")
 
         viewModel = AddMineralViewModel(mineralRepository, settingsRepository)
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
     }
 
     @AfterEach
@@ -70,7 +70,7 @@ class AddMineralViewModelTest {
     fun `onNameChange updates name state`() = runTest {
         // When
         viewModel.onNameChange("Quartz")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         viewModel.name.test {
@@ -82,11 +82,11 @@ class AddMineralViewModelTest {
     fun `onNameChange resets save state to Idle`() = runTest {
         // Given - simulate error state
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         viewModel.onNameChange("Q")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         viewModel.saveState.test {
@@ -98,7 +98,7 @@ class AddMineralViewModelTest {
     fun `saveMineral validates name is required`() = runTest {
         // When - save with blank name
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         viewModel.saveState.test {
@@ -114,11 +114,11 @@ class AddMineralViewModelTest {
     fun `saveMineral validates name minimum length`() = runTest {
         // Given
         viewModel.onNameChange("Q")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         viewModel.saveState.test {
@@ -134,14 +134,14 @@ class AddMineralViewModelTest {
     fun `saveMineral succeeds with valid name`() = runTest {
         // Given
         viewModel.onNameChange("Quartz")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         var savedMineralId = ""
         val onSuccess: (String) -> Unit = { savedMineralId = it }
 
         // When
         viewModel.saveMineral(onSuccess, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         coVerify { mineralRepository.insert(any()) }
@@ -158,11 +158,11 @@ class AddMineralViewModelTest {
     fun `saveMineral trims whitespace from name`() = runTest {
         // Given
         viewModel.onNameChange("  Quartz  ")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         coVerify {
@@ -177,11 +177,11 @@ class AddMineralViewModelTest {
         // Given
         viewModel.onNameChange("Quartz")
         viewModel.onTagsChange("fluorescent, blue, rare")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         coVerify {
@@ -196,11 +196,11 @@ class AddMineralViewModelTest {
         // Given
         viewModel.onNameChange("Quartz")
         viewModel.onTagsChange("fluorescent, , blue, , rare")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         coVerify {
@@ -214,7 +214,7 @@ class AddMineralViewModelTest {
     fun `saveMineral sets state to Saving then Success`() = runTest(testDispatcher) {
         // Given
         viewModel.onNameChange("Quartz")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         val states = mutableListOf<SaveMineralState>()
@@ -222,7 +222,7 @@ class AddMineralViewModelTest {
             states.add(awaitItem()) // Initial Idle state
 
             viewModel.saveMineral({}, File(""))
-            advanceUntilIdle()
+            testDispatcher.scheduler.advanceUntilIdle()
 
             // Skip intermediate states and get final
             cancelAndIgnoreRemainingEvents()
@@ -237,11 +237,11 @@ class AddMineralViewModelTest {
         // Given
         viewModel.onNameChange("Quartz")
         coEvery { mineralRepository.insert(any()) } throws RuntimeException("Database error")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         viewModel.saveState.test {
@@ -256,7 +256,7 @@ class AddMineralViewModelTest {
         // Given - simulate error state
         viewModel.onNameChange("Q") // Invalid name
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         viewModel.resetSaveState()
@@ -280,7 +280,7 @@ class AddMineralViewModelTest {
         viewModel.onStreakChange("White")
         viewModel.onHabitChange("Prismatic")
         viewModel.onCrystalSystemChange("Hexagonal")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         assertEquals("Silicates", viewModel.group.value)
@@ -302,11 +302,11 @@ class AddMineralViewModelTest {
         viewModel.onGroupChange("Silicates")
         viewModel.onFormulaChange("SiO2")
         viewModel.onNotesChange("Beautiful specimen")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         coVerify {
@@ -325,11 +325,11 @@ class AddMineralViewModelTest {
         viewModel.onNameChange("Quartz")
         viewModel.onGroupChange("   ") // Whitespace only
         viewModel.onFormulaChange("")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         coVerify {
@@ -345,11 +345,11 @@ class AddMineralViewModelTest {
     fun `saveMineral clears draft after successful save`() = runTest {
         // Given
         viewModel.onNameChange("Quartz")
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         coVerify { settingsRepository.clearDraft() }
@@ -360,11 +360,11 @@ class AddMineralViewModelTest {
         // Given
         viewModel.onNameChange("Quartz")
         // Add a photo (simplified - actual URI not needed for this test)
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // When
         viewModel.saveMineral({}, File(""))
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         viewModel.photos.test {

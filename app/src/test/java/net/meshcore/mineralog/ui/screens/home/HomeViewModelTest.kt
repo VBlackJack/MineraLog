@@ -66,7 +66,7 @@ class HomeViewModelTest {
             backupRepository,
             settingsRepository
         )
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
     }
 
     @AfterEach
@@ -90,8 +90,8 @@ class HomeViewModelTest {
     fun `onFilterCriteriaChange updates filter criteria and activates filter`() = runTest {
         // Given
         val criteria = FilterCriteria(
-            groups = setOf("Silicates"),
-            countries = setOf("France")
+            groups = listOf("Silicates"),
+            countries = listOf("France")
         )
 
         // When
@@ -111,7 +111,7 @@ class HomeViewModelTest {
     @Test
     fun `clearFilter resets filter criteria to empty and deactivates filter`() = runTest {
         // Given - set a filter first
-        val criteria = FilterCriteria(groups = setOf("Silicates"))
+        val criteria = FilterCriteria(groups = listOf("Silicates"))
         viewModel.onFilterCriteriaChange(criteria)
         advanceUntilIdle()
 
@@ -136,8 +136,8 @@ class HomeViewModelTest {
             id = "preset-1",
             name = "French Silicates",
             criteria = FilterCriteria(
-                groups = setOf("Silicates"),
-                countries = setOf("France")
+                groups = listOf("Silicates"),
+                countries = listOf("France")
             )
         )
 
@@ -161,7 +161,7 @@ class HomeViewModelTest {
         val preset = FilterPreset(
             id = "preset-1",
             name = "My Preset",
-            criteria = FilterCriteria(groups = setOf("Silicates"))
+            criteria = FilterCriteria(groups = listOf("Silicates"))
         )
 
         // When
@@ -276,7 +276,7 @@ class HomeViewModelTest {
         advanceUntilIdle()
 
         // When
-        viewModel.clearSelection()
+        viewModel.deselectAll()
 
         // Then
         viewModel.selectedIds.test {

@@ -127,10 +127,13 @@ class SettingsViewModelTest {
     fun `exportBackup with password should succeed and clear password`() = runTest {
         // Given
         val uri = mockk<Uri>()
-        val password = "secure-password"
-        val passwordSlot = slot<CharArray?>()
+        val password = "secure-password".toCharArray()
+        var capturedPassword: CharArray? = null
 
-        coEvery { backupRepository.exportZip(uri, capture(passwordSlot)) } returns Result.success(Unit)
+        coEvery { backupRepository.exportZip(uri, any()) } coAnswers {
+            capturedPassword = secondArg()
+            Result.success(Unit)
+        }
 
         // When
         viewModel.exportBackup(uri, password)
@@ -141,9 +144,9 @@ class SettingsViewModelTest {
             assertTrue(state is BackupExportState.Success)
         }
 
-        // Verify password was converted to CharArray
-        assertNotNull(passwordSlot.captured)
-        assertEquals(password.length, passwordSlot.captured?.size)
+        // Verify password was passed as CharArray
+        assertNotNull(capturedPassword)
+        assertEquals(password.size, capturedPassword?.size)
     }
 
     @Test
@@ -224,11 +227,14 @@ class SettingsViewModelTest {
     fun `importBackup with password should succeed`() = runTest {
         // Given
         val uri = mockk<Uri>()
-        val password = "secure-password"
+        val password = "secure-password".toCharArray()
         val importResult = ImportResult(imported = 10, skipped = 0, errors = emptyList())
-        val passwordSlot = slot<CharArray?>()
+        var capturedPassword: CharArray? = null
 
-        coEvery { backupRepository.importZip(uri, capture(passwordSlot), ImportMode.REPLACE) } returns Result.success(importResult)
+        coEvery { backupRepository.importZip(uri, any(), ImportMode.REPLACE) } coAnswers {
+            capturedPassword = secondArg()
+            Result.success(importResult)
+        }
 
         // When
         viewModel.importBackup(uri, password)
@@ -240,9 +246,9 @@ class SettingsViewModelTest {
             assertEquals(10, (state as BackupImportState.Success).imported)
         }
 
-        // Verify password was converted to CharArray
-        assertNotNull(passwordSlot.captured)
-        assertEquals(password.length, passwordSlot.captured?.size)
+        // Verify password was passed as CharArray
+        assertNotNull(capturedPassword)
+        assertEquals(password.size, capturedPassword?.size)
     }
 
     @Test
@@ -370,15 +376,15 @@ class SettingsViewModelTest {
 
     // Edge cases and security tests
     @Test
-    fun `exportBackup with empty password should treat as null`() = runTest {
+    fun `exportBackup with empty password should pass empty CharArray`() = runTest {
         // Given
         val uri = mockk<Uri>()
         coEvery { backupRepository.exportZip(uri, any()) } returns Result.success(Unit)
 
         // When
-        viewModel.exportBackup(uri, "")
+        viewModel.exportBackup(uri, CharArray(0))
 
-        // Then - empty string still creates CharArray, but it's empty
+        // Then - empty CharArray is passed
         coVerify { backupRepository.exportZip(uri, match { it != null && it.isEmpty() }) }
     }
 

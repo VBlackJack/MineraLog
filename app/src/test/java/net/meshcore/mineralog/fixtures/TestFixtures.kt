@@ -2,6 +2,8 @@ package net.meshcore.mineralog.fixtures
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import net.meshcore.mineralog.data.model.BackupCounts
+import net.meshcore.mineralog.data.model.BackupManifest
 import net.meshcore.mineralog.domain.model.Mineral
 import net.meshcore.mineralog.domain.model.Photo
 import net.meshcore.mineralog.domain.model.Provenance
@@ -115,20 +117,22 @@ object TestFixtures {
 
     /**
      * Create a valid unencrypted ZIP backup.
+     * BUGFIX: Use BackupManifest instead of Map<String, Any> for kotlinx.serialization compatibility.
      */
     fun createValidZipBackup(minerals: List<Mineral>): ByteArray {
         val output = ByteArrayOutputStream()
         ZipOutputStream(output).use { zip ->
             // manifest.json
-            val manifest = mapOf(
-                "app" to "MineraLog",
-                "schemaVersion" to "1.0.0",
-                "exportedAt" to Instant.now().toString(),
-                "counts" to mapOf(
-                    "minerals" to minerals.size,
-                    "photos" to minerals.sumOf { it.photos.size }
+            val manifest = BackupManifest(
+                app = "MineraLog",
+                schemaVersion = "1.0.0",
+                exportedAt = Instant.now().toString(),
+                counts = BackupCounts(
+                    minerals = minerals.size,
+                    photos = minerals.sumOf { it.photos.size }
                 ),
-                "encrypted" to false
+                encrypted = false,
+                encryption = null
             )
             zip.putNextEntry(ZipEntry("manifest.json"))
             zip.write(json.encodeToString(manifest).toByteArray())

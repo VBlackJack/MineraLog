@@ -206,16 +206,34 @@ fun MineraLogNavHost(
         ) { backStackEntry ->
             val mineralId = backStackEntry.arguments?.getString("mineralId") ?: return@composable
             val application = LocalContext.current.applicationContext as MineraLogApplication
+            val context = LocalContext.current
 
             val viewModelScope = rememberCoroutineScope()
 
             CameraCaptureScreen(
                 mineralId = mineralId,
                 onPhotoCaptured = { uri, photoType ->
-                    // Save photo to repository
+                    // BUGFIX: Copy photo file from camera temp directory to photos directory
                     viewModelScope.launch {
                         try {
-                            val fileName = uri.lastPathSegment ?: "photo_${System.currentTimeMillis()}.jpg"
+                            // Create photos directory if it doesn't exist
+                            val photosDir = java.io.File(context.filesDir, "photos")
+                            if (!photosDir.exists()) {
+                                photosDir.mkdirs()
+                            }
+
+                            // Generate new filename
+                            val fileName = "photo_${System.currentTimeMillis()}.jpg"
+                            val destinationFile = java.io.File(photosDir, fileName)
+
+                            // Copy file from URI to photos directory
+                            context.contentResolver.openInputStream(uri)?.use { input ->
+                                destinationFile.outputStream().use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+
+                            // Save photo metadata to database
                             val photo = net.meshcore.mineralog.domain.model.Photo(
                                 id = java.util.UUID.randomUUID().toString(),
                                 mineralId = mineralId,
@@ -225,6 +243,8 @@ fun MineraLogNavHost(
                                 fileName = fileName
                             )
                             application.mineralRepository.insertPhoto(photo)
+
+                            android.util.Log.d("Navigation", "Photo saved: $fileName")
                         } catch (e: Exception) {
                             android.util.Log.e("Navigation", "Failed to save photo", e)
                         } finally {

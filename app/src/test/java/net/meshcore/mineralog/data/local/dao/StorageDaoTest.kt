@@ -1,8 +1,9 @@
 package net.meshcore.mineralog.data.local.dao
 
 import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import net.meshcore.mineralog.data.local.MineraLogDatabase
@@ -11,12 +12,13 @@ import net.meshcore.mineralog.data.local.entity.StorageEntity
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.Assert.*
 import org.junit.runner.RunWith
 import java.time.Instant
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+// removed: import kotlin.test.assertEquals
+// removed: import kotlin.test.assertNotNull
+// removed: import kotlin.test.assertNull
+// removed: import kotlin.test.assertTrue
 
 /**
  * Comprehensive tests for [StorageDao].
@@ -33,7 +35,8 @@ import kotlin.test.assertTrue
  *
  * Uses in-memory database for fast, isolated tests.
  */
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [27, 35])
 class StorageDaoTest {
 
     private lateinit var database: MineraLogDatabase
@@ -44,7 +47,7 @@ class StorageDaoTest {
     fun setup() {
         // Create in-memory database for testing
         database = Room.inMemoryDatabaseBuilder(
-            ApplicationProvider.getApplicationContext(),
+            RuntimeEnvironment.getApplication(),
             MineraLogDatabase::class.java
         )
             .allowMainThreadQueries() // For testing only
@@ -80,9 +83,9 @@ class StorageDaoTest {
         // Then
         val retrieved = storageDao.getById(storage.id)
         assertNotNull(retrieved)
-        assertEquals("Living Room", retrieved.place)
-        assertEquals("Cabinet A", retrieved.container)
-        assertEquals(mineral.id, retrieved.mineralId)
+        assertEquals("Living Room", retrieved!!.place)
+        assertEquals("Cabinet A", retrieved!!.container)
+        assertEquals(mineral.id, retrieved!!.mineralId)
     }
 
     @Test
@@ -123,7 +126,7 @@ class StorageDaoTest {
         // Then
         val retrieved = storageDao.getById(storage.id)
         assertNotNull(retrieved)
-        assertEquals("Updated Place", retrieved.place)
+        assertEquals("Updated Place", retrieved!!.place)
     }
 
     // ========== READ Tests ==========
@@ -141,8 +144,8 @@ class StorageDaoTest {
 
         // Then
         assertNotNull(result)
-        assertEquals(storage.id, result.id)
-        assertEquals("Living Room", result.place)
+        assertEquals(storage.id, result!!.id)
+        assertEquals("Living Room", result!!.place)
     }
 
     @Test
@@ -167,7 +170,7 @@ class StorageDaoTest {
 
         // Then
         assertNotNull(result)
-        assertEquals(mineral.id, result.mineralId)
+        assertEquals(mineral.id, result!!.mineralId)
     }
 
     @Test
@@ -202,9 +205,9 @@ class StorageDaoTest {
         val result = storageDao.getByMineralIds(listOf(mineral1.id, mineral2.id))
 
         // Then
-        assertEquals(2, result.size)
-        assertTrue(result.any { it.mineralId == mineral1.id })
-        assertTrue(result.any { it.mineralId == mineral2.id })
+        assertEquals(2, result!!.size)
+        assertTrue(result!!.any { it.mineralId == mineral1.id })
+        assertTrue(result!!.any { it.mineralId == mineral2.id })
     }
 
     @Test
@@ -224,7 +227,7 @@ class StorageDaoTest {
 
         // Then
         assertNotNull(afterInsert)
-        assertEquals(storage.id, afterInsert.id)
+        assertEquals(storage.id, afterInsert!!.id)
     }
 
     @Test
@@ -244,7 +247,7 @@ class StorageDaoTest {
         val result = storageDao.getAll()
 
         // Then
-        assertEquals(2, result.size)
+        assertEquals(2, result!!.size)
     }
 
     // ========== HIERARCHICAL FILTERING Tests ==========
@@ -267,8 +270,8 @@ class StorageDaoTest {
         val result = storageDao.filterByLocationFlow(place = "Living Room").first()
 
         // Then
-        assertEquals(2, result.size)
-        assertTrue(result.all { it.place == "Living Room" })
+        assertEquals(2, result!!.size)
+        assertTrue(result!!.all { it.place == "Living Room" })
     }
 
     @Test
@@ -288,8 +291,8 @@ class StorageDaoTest {
         val result = storageDao.filterByLocationFlow(place = "Living Room", container = "Cabinet A").first()
 
         // Then
-        assertEquals(2, result.size)
-        assertTrue(result.all { it.place == "Living Room" && it.container == "Cabinet A" })
+        assertEquals(2, result!!.size)
+        assertTrue(result!!.all { it.place == "Living Room" && it.container == "Cabinet A" })
     }
 
     @Test
@@ -309,8 +312,8 @@ class StorageDaoTest {
         val result = storageDao.filterByLocationFlow(place = "Living Room", container = "Cabinet A", box = "Box 1").first()
 
         // Then
-        assertEquals(2, result.size)
-        assertTrue(result.all { it.place == "Living Room" && it.container == "Cabinet A" && it.box == "Box 1" })
+        assertEquals(2, result!!.size)
+        assertTrue(result!!.all { it.place == "Living Room" && it.container == "Cabinet A" && it.box == "Box 1" })
     }
 
     @Test
@@ -330,7 +333,7 @@ class StorageDaoTest {
         val result = storageDao.filterByLocationFlow(null, null, null).first()
 
         // Then
-        assertEquals(3, result.size)
+        assertEquals(3, result!!.size)
     }
 
     // ========== DISTINCT VALUES Tests ==========
@@ -354,7 +357,7 @@ class StorageDaoTest {
         val result = storageDao.getDistinctPlacesFlow().first()
 
         // Then - Unique, sorted, no nulls
-        assertEquals(3, result.size)
+        assertEquals(3, result!!.size)
         assertEquals("Basement", result[0])
         assertEquals("Living Room", result[1])
         assertEquals("Office", result[2])
@@ -378,8 +381,8 @@ class StorageDaoTest {
         val result = storageDao.getDistinctContainersFlow(null).first()
 
         // Then
-        assertEquals(3, result.size)
-        assertEquals(setOf("Cabinet A", "Cabinet B", "Shelf 1"), result.toSet())
+        assertEquals(3, result!!.size)
+        assertEquals(setOf("Cabinet A", "Cabinet B", "Shelf 1"), result!!.toSet())
     }
 
     @Test
@@ -399,8 +402,8 @@ class StorageDaoTest {
         val result = storageDao.getDistinctContainersFlow("Living Room").first()
 
         // Then - Only containers in Living Room
-        assertEquals(2, result.size)
-        assertEquals(setOf("Cabinet A", "Cabinet B"), result.toSet())
+        assertEquals(2, result!!.size)
+        assertEquals(setOf("Cabinet A", "Cabinet B"), result!!.toSet())
     }
 
     @Test
@@ -421,8 +424,8 @@ class StorageDaoTest {
         val result = storageDao.getDistinctBoxesFlow("Living Room", "Cabinet A").first()
 
         // Then - Only boxes in Living Room → Cabinet A
-        assertEquals(2, result.size)
-        assertEquals(setOf("Box 1", "Box 2"), result.toSet())
+        assertEquals(2, result!!.size)
+        assertEquals(setOf("Box 1", "Box 2"), result!!.toSet())
     }
 
     // ========== UPDATE Tests ==========
@@ -445,7 +448,7 @@ class StorageDaoTest {
         // Then
         val result = storageDao.getById(storage.id)
         assertNotNull(result)
-        assertEquals("Updated Place", result.place)
+        assertEquals("Updated Place", result!!.place)
     }
 
     // ========== DELETE Tests ==========
@@ -524,7 +527,7 @@ class StorageDaoTest {
 
         // Then
         val result = storageDao.getAll()
-        assertEquals(0, result.size)
+        assertEquals(0, result!!.size)
     }
 
     // ========== CASCADE DELETE Tests ==========
@@ -568,10 +571,10 @@ class StorageDaoTest {
         // Then
         val result = storageDao.getById(storage.id)
         assertNotNull(result)
-        assertNull(result.place)
-        assertNull(result.container)
-        assertNull(result.box)
-        assertNull(result.slot)
+        assertNull(result!!.place)
+        assertNull(result!!.container)
+        assertNull(result!!.box)
+        assertNull(result!!.slot)
     }
 
     @Test
@@ -592,8 +595,8 @@ class StorageDaoTest {
         // Then
         val result = storageDao.getById(storage.id)
         assertNotNull(result)
-        assertEquals("NFC-12345", result.nfcTagId)
-        assertEquals("QR-ABCDEF-001", result.qrContent)
+        assertEquals("NFC-12345", result!!.nfcTagId)
+        assertEquals("QR-ABCDEF-001", result!!.qrContent)
     }
 
     @Test
@@ -615,10 +618,10 @@ class StorageDaoTest {
         // Then
         val result = storageDao.getById(storage.id)
         assertNotNull(result)
-        assertEquals("Living Room", result.place)
-        assertEquals("Display Cabinet A", result.container)
-        assertEquals("Drawer 3", result.box)
-        assertEquals("A5", result.slot)
+        assertEquals("Living Room", result!!.place)
+        assertEquals("Display Cabinet A", result!!.container)
+        assertEquals("Drawer 3", result!!.box)
+        assertEquals("A5", result!!.slot)
     }
 
     // ========== Helper Methods ==========

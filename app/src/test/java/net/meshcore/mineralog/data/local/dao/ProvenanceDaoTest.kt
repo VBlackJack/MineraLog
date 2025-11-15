@@ -1,8 +1,9 @@
 package net.meshcore.mineralog.data.local.dao
 
 import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import net.meshcore.mineralog.data.local.MineraLogDatabase
@@ -11,12 +12,13 @@ import net.meshcore.mineralog.data.local.entity.ProvenanceEntity
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.Assert.*
 import org.junit.runner.RunWith
 import java.time.Instant
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+// removed: import kotlin.test.assertEquals
+// removed: import kotlin.test.assertNotNull
+// removed: import kotlin.test.assertNull
+// removed: import kotlin.test.assertTrue
 
 /**
  * Comprehensive tests for [ProvenanceDao].
@@ -32,7 +34,8 @@ import kotlin.test.assertTrue
  *
  * Uses in-memory database for fast, isolated tests.
  */
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [27, 35])
 class ProvenanceDaoTest {
 
     private lateinit var database: MineraLogDatabase
@@ -43,7 +46,7 @@ class ProvenanceDaoTest {
     fun setup() {
         // Create in-memory database for testing
         database = Room.inMemoryDatabaseBuilder(
-            ApplicationProvider.getApplicationContext(),
+            RuntimeEnvironment.getApplication(),
             MineraLogDatabase::class.java
         )
             .allowMainThreadQueries() // For testing only
@@ -77,8 +80,8 @@ class ProvenanceDaoTest {
         // Then
         val retrieved = provenanceDao.getById(provenance.id)
         assertNotNull(retrieved)
-        assertEquals("Mount Ida, Arkansas", retrieved.locality)
-        assertEquals(mineral.id, retrieved.mineralId)
+        assertEquals("Mount Ida, Arkansas", retrieved!!.locality)
+        assertEquals(mineral.id, retrieved!!.mineralId)
     }
 
     @Test
@@ -120,7 +123,7 @@ class ProvenanceDaoTest {
         // Then
         val retrieved = provenanceDao.getById(provenance.id)
         assertNotNull(retrieved)
-        assertEquals("Updated locality", retrieved.locality)
+        assertEquals("Updated locality", retrieved!!.locality)
     }
 
     // ========== READ Tests ==========
@@ -138,8 +141,8 @@ class ProvenanceDaoTest {
 
         // Then
         assertNotNull(result)
-        assertEquals(provenance.id, result.id)
-        assertEquals("Arkansas", result.locality)
+        assertEquals(provenance.id, result!!.id)
+        assertEquals("Arkansas", result!!.locality)
     }
 
     @Test
@@ -164,7 +167,7 @@ class ProvenanceDaoTest {
 
         // Then
         assertNotNull(result)
-        assertEquals(mineral.id, result.mineralId)
+        assertEquals(mineral.id, result!!.mineralId)
     }
 
     @Test
@@ -199,9 +202,9 @@ class ProvenanceDaoTest {
         val result = provenanceDao.getByMineralIds(listOf(mineral1.id, mineral2.id))
 
         // Then
-        assertEquals(2, result.size)
-        assertTrue(result.any { it.mineralId == mineral1.id })
-        assertTrue(result.any { it.mineralId == mineral2.id })
+        assertEquals(2, result!!.size)
+        assertTrue(result!!.any { it.mineralId == mineral1.id })
+        assertTrue(result!!.any { it.mineralId == mineral2.id })
     }
 
     @Test
@@ -221,7 +224,7 @@ class ProvenanceDaoTest {
 
         // Then
         assertNotNull(afterInsert)
-        assertEquals(provenance.id, afterInsert.id)
+        assertEquals(provenance.id, afterInsert!!.id)
     }
 
     @Test
@@ -241,7 +244,7 @@ class ProvenanceDaoTest {
         val result = provenanceDao.getAll()
 
         // Then
-        assertEquals(2, result.size)
+        assertEquals(2, result!!.size)
     }
 
     @Test
@@ -265,7 +268,7 @@ class ProvenanceDaoTest {
         val result = provenanceDao.getAllWithCoordinates()
 
         // Then - Only mineral1 has both latitude and longitude
-        assertEquals(1, result.size)
+        assertEquals(1, result!!.size)
         assertEquals(mineral1.id, result[0].mineralId)
     }
 
@@ -286,7 +289,7 @@ class ProvenanceDaoTest {
         val result = provenanceDao.getAllWithCoordinatesFlow().first()
 
         // Then
-        assertEquals(1, result.size)
+        assertEquals(1, result!!.size)
         assertEquals(mineral1.id, result[0].mineralId)
     }
 
@@ -315,7 +318,7 @@ class ProvenanceDaoTest {
         val result = provenanceDao.getDistinctCountriesFlow().first()
 
         // Then - Unique, sorted, no nulls
-        assertEquals(3, result.size)
+        assertEquals(3, result!!.size)
         assertEquals("China", result[0])
         assertEquals("Mexico", result[1])
         assertEquals("United States", result[2])
@@ -342,7 +345,7 @@ class ProvenanceDaoTest {
         // Then
         val result = provenanceDao.getById(provenance.id)
         assertNotNull(result)
-        assertEquals("Updated", result.locality)
+        assertEquals("Updated", result!!.locality)
     }
 
     // ========== DELETE Tests ==========
@@ -421,7 +424,7 @@ class ProvenanceDaoTest {
 
         // Then
         val result = provenanceDao.getAll()
-        assertEquals(0, result.size)
+        assertEquals(0, result!!.size)
     }
 
     // ========== CASCADE DELETE Tests ==========
@@ -467,10 +470,10 @@ class ProvenanceDaoTest {
         // Then
         val result = provenanceDao.getById(provenance.id)
         assertNotNull(result)
-        assertNull(result.locality)
-        assertNull(result.country)
-        assertNull(result.latitude)
-        assertNull(result.longitude)
+        assertNull(result!!.locality)
+        assertNull(result!!.country)
+        assertNull(result!!.latitude)
+        assertNull(result!!.longitude)
     }
 
     @Test
@@ -491,8 +494,8 @@ class ProvenanceDaoTest {
         // Then
         val result = provenanceDao.getById(provenance.id)
         assertNotNull(result)
-        assertEquals(-45.5, result.latitude)
-        assertEquals(120.3, result.longitude)
+        assertEquals(-45.5, result!!.latitude)
+        assertEquals(120.3, result!!.longitude)
     }
 
     @Test
@@ -541,9 +544,9 @@ class ProvenanceDaoTest {
         // Then
         val result = provenanceDao.getById(provenance.id)
         assertNotNull(result)
-        assertEquals(150.50f, result.price)
-        assertEquals(300.75f, result.estimatedValue)
-        assertEquals("USD", result.currency)
+        assertEquals(150.50f, result!!.price)
+        assertEquals(300.75f, result!!.estimatedValue)
+        assertEquals("USD", result!!.currency)
     }
 
     // ========== Helper Methods ==========

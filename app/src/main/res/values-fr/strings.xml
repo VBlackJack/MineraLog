@@ -597,6 +597,7 @@
     <string name="settings_about_feature_qr">• Génération d\'étiquettes QR</string>
     <string name="settings_about_feature_filter">• Filtrage et recherche avancés</string>
     <string name="settings_about_feature_stats">• Statistiques et visualisations</string>
+    <string name="settings_about_author">Auteur : Julien Bombled</string>
     <string name="settings_about_copyright">© 2025 Contributeurs MineraLog</string>
     <string name="settings_about_license">Sous licence Apache License 2.0</string>
     <string name="settings_about_built_with">Construit avec Jetpack Compose &amp; Material 3</string>

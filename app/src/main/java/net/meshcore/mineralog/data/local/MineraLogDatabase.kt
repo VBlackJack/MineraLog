@@ -56,6 +56,26 @@ abstract class MineraLogDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): MineraLogDatabase {
             return INSTANCE ?: synchronized(this) {
+                // Check if migration from plaintext to encrypted is needed
+                // This must happen BEFORE we try to open the database
+                val migrationResult = DatabaseMigrationHelper.migrateIfNeeded(context)
+                when (migrationResult) {
+                    is DatabaseMigrationHelper.MigrationResult.Success -> {
+                        android.util.Log.i("MineraLogDB", "Database migrated to encrypted format. Backup at: ${migrationResult.backupPath}")
+                        // Optionally delete backup after verification in production
+                        // DatabaseMigrationHelper.deleteBackup(migrationResult.backupPath)
+                    }
+                    is DatabaseMigrationHelper.MigrationResult.Error -> {
+                        android.util.Log.e("MineraLogDB", "Migration failed: ${migrationResult.message}", migrationResult.cause)
+                        // In production, you might want to show user a dialog or handle this gracefully
+                        throw IllegalStateException("Failed to migrate database to encrypted format", migrationResult.cause)
+                    }
+                    is DatabaseMigrationHelper.MigrationResult.AlreadyEncrypted,
+                    is DatabaseMigrationHelper.MigrationResult.NoDatabase -> {
+                        // Normal case, continue with database initialization
+                    }
+                }
+
                 // Initialize SQLCipher native libraries
                 System.loadLibrary("sqlcipher")
 

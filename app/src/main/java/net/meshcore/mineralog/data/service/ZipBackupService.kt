@@ -11,6 +11,7 @@ import net.meshcore.mineralog.data.crypto.DecryptionException
 import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.mapper.toDomain
 import net.meshcore.mineralog.data.mapper.toEntity
+import net.meshcore.mineralog.data.model.BackupManifest
 import net.meshcore.mineralog.data.repository.ImportMode
 import net.meshcore.mineralog.data.repository.ImportResult
 import net.meshcore.mineralog.domain.model.Mineral
@@ -100,12 +101,14 @@ class ZipBackupService(
                     }
                     zip.closeEntry()
 
-                    // Write media files
+                    // Write media files - BUGFIX: Photos are stored in photos/ subdirectory
+                    val photosDir = File(context.filesDir, "photos")
                     minerals.forEach { mineral ->
                         mineral.photos.forEach { photo ->
-                            val photoFile = File(context.filesDir, photo.fileName)
+                            val photoFile = File(photosDir, photo.fileName)
                             if (photoFile.exists()) {
-                                zip.putNextEntry(ZipEntry(photo.fileName))
+                                // Store in ZIP with photos/ prefix to maintain structure
+                                zip.putNextEntry(ZipEntry("photos/${photo.fileName}"))
                                 photoFile.inputStream().use { it.copyTo(zip) }
                                 zip.closeEntry()
                             }
@@ -206,7 +209,8 @@ class ZipBackupService(
                             sanitizedPath == "minerals.json" -> {
                                 mineralsBytes = zip.readBytes()
                             }
-                            sanitizedPath.startsWith("media/") -> {
+                            sanitizedPath.startsWith("photos/") || sanitizedPath.startsWith("media/") -> {
+                                // BUGFIX: Support both photos/ (new format) and media/ (legacy format)
                                 val file = File(context.filesDir, sanitizedPath)
                                 // Additional safety: ensure file is within filesDir
                                 if (file.canonicalPath.startsWith(context.filesDir.canonicalPath)) {
@@ -222,16 +226,15 @@ class ZipBackupService(
                     }
 
                     // Parse manifest to check for encryption
-                    val manifest = manifestJson?.let { json.decodeFromString<Map<String, Any>>(it) }
+                    val manifest = manifestJson?.let { json.decodeFromString<BackupManifest>(it) }
 
                     // Security: Validate schema version
-                    val schemaVersion = manifest?.get("schemaVersion") as? String
-                    if (!encryptionService.validateSchemaVersion(schemaVersion)) {
-                        val message = "Incompatible backup schema version: $schemaVersion. " +
+                    if (!encryptionService.validateSchemaVersion(manifest?.schemaVersion)) {
+                        val message = "Incompatible backup schema version: ${manifest?.schemaVersion}. " +
                             "Only version 1.0.0 is supported."
                         return@withContext Result.failure(Exception(message))
                     }
-                    val isEncrypted = manifest?.get("encrypted") as? Boolean ?: false
+                    val isEncrypted = manifest?.encrypted ?: false
 
                     // Decrypt minerals.json if necessary
                     val mineralsJson = if (isEncrypted) {
@@ -240,13 +243,11 @@ class ZipBackupService(
                         }
 
                         // Extract encryption metadata
-                        val encryptionMap = manifest?.get("encryption") as? Map<*, *>
+                        val encryptionMetadata = manifest?.encryption
                             ?: return@withContext Result.failure(Exception("Encrypted backup is missing encryption metadata"))
 
-                        val encodedSalt = encryptionMap["salt"] as? String
-                            ?: return@withContext Result.failure(Exception("Missing encryption salt"))
-                        val encodedIv = encryptionMap["iv"] as? String
-                            ?: return@withContext Result.failure(Exception("Missing encryption IV"))
+                        val encodedSalt = encryptionMetadata.salt
+                        val encodedIv = encryptionMetadata.iv
 
                         // Decrypt
                         try {

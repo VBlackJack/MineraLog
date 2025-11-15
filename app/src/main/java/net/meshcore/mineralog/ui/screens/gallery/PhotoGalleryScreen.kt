@@ -18,10 +18,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import net.meshcore.mineralog.MineraLogApplication
+import net.meshcore.mineralog.R
 import net.meshcore.mineralog.domain.model.Photo
 import java.io.File
 
@@ -50,15 +52,15 @@ fun PhotoGalleryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Photos (${photos.size})") },
+                title = { Text(stringResource(R.string.gallery_title_with_count, photos.size)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { onCameraClick(mineralId) }) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = "Take photo")
+                        Icon(Icons.Default.CameraAlt, contentDescription = stringResource(R.string.cd_take_photo))
                     }
                 }
             )
@@ -87,13 +89,13 @@ fun PhotoGalleryScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "No photos yet",
+                            text = stringResource(R.string.gallery_no_photos),
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Take your first photo using the camera button above",
+                            text = stringResource(R.string.gallery_take_first_photo),
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -102,7 +104,7 @@ fun PhotoGalleryScreen(
                         Button(onClick = { onCameraClick(mineralId) }) {
                             Icon(Icons.Default.CameraAlt, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Take Photo")
+                            Text(stringResource(R.string.gallery_button_take_photo))
                         }
                     }
                 }
@@ -225,8 +227,8 @@ fun PhotoGridItem(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Photo") },
-            text = { Text("Are you sure you want to delete this photo? This action cannot be undone.") },
+            title = { Text(stringResource(R.string.gallery_delete_dialog_title)) },
+            text = { Text(stringResource(R.string.gallery_delete_dialog_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -234,12 +236,12 @@ fun PhotoGridItem(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )

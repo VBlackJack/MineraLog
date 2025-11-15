@@ -597,6 +597,7 @@
     <string name="settings_about_feature_qr">• QR label generation</string>
     <string name="settings_about_feature_filter">• Advanced filtering &amp; search</string>
     <string name="settings_about_feature_stats">• Statistics &amp; visualizations</string>
+    <string name="settings_about_author">Author: Julien Bombled</string>
     <string name="settings_about_copyright">© 2025 MineraLog Contributors</string>
     <string name="settings_about_license">Licensed under Apache License 2.0</string>
     <string name="settings_about_built_with">Built with Jetpack Compose &amp; Material 3</string>

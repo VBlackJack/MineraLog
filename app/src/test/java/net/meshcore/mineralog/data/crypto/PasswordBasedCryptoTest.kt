@@ -15,7 +15,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `encrypt and decrypt string successfully`() {
         val plaintext = "Hello, MineraLog!"
-        val password = "SecurePassword123"
+        val password = "SecurePassword123".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
         val decrypted = PasswordBasedCrypto.decryptString(
@@ -31,7 +31,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `encrypt and decrypt byte array successfully`() {
         val plaintext = "Test data".toByteArray()
-        val password = "password123"
+        val password = "password123".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encrypt(plaintext, password)
         val decrypted = PasswordBasedCrypto.decrypt(
@@ -47,8 +47,8 @@ class PasswordBasedCryptoTest {
     @Test
     fun `different passwords produce different ciphertexts`() {
         val plaintext = "Same plaintext"
-        val password1 = "password1"
-        val password2 = "password2"
+        val password1 = "password1".toCharArray()
+        val password2 = "password2".toCharArray()
 
         val encrypted1 = PasswordBasedCrypto.encryptString(plaintext, password1)
         val encrypted2 = PasswordBasedCrypto.encryptString(plaintext, password2)
@@ -60,7 +60,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `same plaintext and password produce different ciphertexts (unique salt and IV)`() {
         val plaintext = "Same plaintext"
-        val password = "same password"
+        val password = "same password".toCharArray()
 
         val encrypted1 = PasswordBasedCrypto.encryptString(plaintext, password)
         val encrypted2 = PasswordBasedCrypto.encryptString(plaintext, password)
@@ -76,8 +76,8 @@ class PasswordBasedCryptoTest {
     @Test
     fun `wrong password throws DecryptionException`() {
         val plaintext = "Secret data"
-        val correctPassword = "correct"
-        val wrongPassword = "wrong"
+        val correctPassword = "correct".toCharArray()
+        val wrongPassword = "wrong".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, correctPassword)
 
@@ -94,7 +94,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `tampered ciphertext throws DecryptionException`() {
         val plaintext = "Secret data"
-        val password = "password"
+        val password = "password".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
 
@@ -117,7 +117,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `tampered salt throws DecryptionException`() {
         val plaintext = "Secret data"
-        val password = "password"
+        val password = "password".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
 
@@ -138,7 +138,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `tampered IV throws DecryptionException`() {
         val plaintext = "Secret data"
-        val password = "password"
+        val password = "password".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
 
@@ -159,7 +159,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `empty string encrypts and decrypts`() {
         val plaintext = ""
-        val password = "password"
+        val password = "password".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
         val decrypted = PasswordBasedCrypto.decryptString(
@@ -175,7 +175,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `large data encrypts and decrypts`() {
         val plaintext = "A".repeat(10000) // 10KB
-        val password = "password"
+        val password = "password".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
         val decrypted = PasswordBasedCrypto.decryptString(
@@ -191,7 +191,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `special characters in plaintext encrypt and decrypt`() {
         val plaintext = "Special: !@#$%^&*()_+-=[]{}|;':\",./<>?`~äöüß中文日本語"
-        val password = "password"
+        val password = "password".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
         val decrypted = PasswordBasedCrypto.decryptString(
@@ -207,7 +207,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `special characters in password work correctly`() {
         val plaintext = "Secret"
-        val password = "p@ssw0rd!#$%^&*()"
+        val password = "p@ssw0rd!#$%^&*()".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
         val decrypted = PasswordBasedCrypto.decryptString(
@@ -223,7 +223,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `unicode password works correctly`() {
         val plaintext = "Secret"
-        val password = "пароль密码パスワード"
+        val password = "пароль密码パスワード".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
         val decrypted = PasswordBasedCrypto.decryptString(
@@ -239,7 +239,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `salt has expected length`() {
         val plaintext = "Test"
-        val password = "password"
+        val password = "password".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
 
@@ -249,7 +249,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `base64 encoding and decoding works`() {
         val plaintext = "Test data"
-        val password = "password"
+        val password = "password".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
 
@@ -267,7 +267,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `ciphertext is larger than plaintext (includes auth tag)`() {
         val plaintext = "Test"
-        val password = "password"
+        val password = "password".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
 
@@ -280,7 +280,7 @@ class PasswordBasedCryptoTest {
         // This test is purely for understanding - in production,
         // salt and IV are always random
         val plaintext = "Test".toByteArray()
-        val password = "password"
+        val password = "password".toCharArray()
 
         // First encryption to get salt and IV
         val encrypted1 = PasswordBasedCrypto.encrypt(plaintext, password)
@@ -293,7 +293,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `very long password works correctly`() {
         val plaintext = "Secret"
-        val password = "a".repeat(1000)
+        val password = "a".repeat(1000).toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
         val decrypted = PasswordBasedCrypto.decryptString(
@@ -309,7 +309,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `JSON-like data encrypts correctly`() {
         val plaintext = """{"name":"Quartz","formula":"SiO2","group":"Silicate"}"""
-        val password = "password"
+        val password = "password".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
         val decrypted = PasswordBasedCrypto.decryptString(
@@ -325,7 +325,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `newlines and whitespace preserved`() {
         val plaintext = "Line 1\nLine 2\r\nLine 3\n\tTabbed"
-        val password = "password"
+        val password = "password".toCharArray()
 
         val encrypted = PasswordBasedCrypto.encryptString(plaintext, password)
         val decrypted = PasswordBasedCrypto.decryptString(
@@ -341,7 +341,7 @@ class PasswordBasedCryptoTest {
     @Test
     fun `encryption performance is acceptable`() {
         val plaintext = "A".repeat(1000) // 1KB
-        val password = "password"
+        val password = "password".toCharArray()
 
         val start = System.currentTimeMillis()
         repeat(10) {

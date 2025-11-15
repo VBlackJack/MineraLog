@@ -1,5 +1,6 @@
 package net.meshcore.mineralog.ui.screens.add
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -30,6 +31,7 @@ sealed class SaveMineralState {
 
 @OptIn(FlowPreview::class)
 class AddMineralViewModel(
+    private val context: Context,
     private val mineralRepository: MineralRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
@@ -331,20 +333,32 @@ class AddMineralViewModel(
                 )
                 mineralRepository.insert(mineral)
 
-                // Insert photos
+                // Insert photos - BUGFIX: Actually copy the file from URI
                 _photos.value.forEach { photoItem ->
                     photoItem.uri?.let { uri ->
-                        // In a real app, you would copy the file here
-                        // For now, we'll just create the Photo entity
-                        val photo = Photo(
-                            id = photoItem.id,
-                            mineralId = mineralId,
-                            type = photoItem.type,
-                            caption = photoItem.caption,
-                            takenAt = Instant.now(),
-                            fileName = photoItem.fileName
-                        )
-                        mineralRepository.insertPhoto(photo)
+                        try {
+                            // Copy file from URI to app's photos directory
+                            val photoFile = File(photosDir, photoItem.fileName)
+                            context.contentResolver.openInputStream(uri)?.use { input ->
+                                photoFile.outputStream().use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+
+                            // Create Photo entity after successful file copy
+                            val photo = Photo(
+                                id = photoItem.id,
+                                mineralId = mineralId,
+                                type = photoItem.type,
+                                caption = photoItem.caption,
+                                takenAt = Instant.now(),
+                                fileName = photoItem.fileName
+                            )
+                            mineralRepository.insertPhoto(photo)
+                        } catch (e: Exception) {
+                            // Log error but continue with other photos
+                            android.util.Log.e("AddMineralViewModel", "Failed to copy photo: ${e.message}", e)
+                        }
                     }
                 }
 
@@ -367,13 +381,14 @@ class AddMineralViewModel(
 }
 
 class AddMineralViewModelFactory(
+    private val context: Context,
     private val mineralRepository: MineralRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AddMineralViewModel::class.java)) {
-            return AddMineralViewModel(mineralRepository, settingsRepository) as T
+            return AddMineralViewModel(context, mineralRepository, settingsRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

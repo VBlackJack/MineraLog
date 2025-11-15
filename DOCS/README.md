@@ -1,6 +1,6 @@
 # MineraLog Documentation Index
 
-**Version**: 1.5.0 | **Last Updated**: 2025-11-15
+**Version**: 1.8.0 | **Last Updated**: 2025-11-15
 
 Welcome to the MineraLog documentation. This index helps you find the right documentation for your needs.
 
@@ -10,7 +10,7 @@ Welcome to the MineraLog documentation. This index helps you find the right docu
 
 ### For Users
 
-- **[User Guide](user_guide.md)** - Complete guide to using MineraLog (v1.5.0)
+- **[User Guide](user_guide.md)** - Complete guide to using MineraLog (v1.8.0)
 - **[Main README](../README.md)** - Project overview, installation, quick start (FR/EN)
 - **[Import/Export Spec](specs/import_export_spec.md)** - CSV and ZIP format specifications
 
@@ -25,7 +25,7 @@ Welcome to the MineraLog documentation. This index helps you find the right docu
 
 - **[Manual Testing Guide](qa/manual-testing-guide.md)** - Comprehensive QA checklist
 - **[TalkBack Testing Checklist](qa/talkback-checklist.md)** - Accessibility testing guide
-- **[Accessibility Audit v1.5.0](qa/ACCESSIBILITY_AUDIT_v1.5.0.md)** - WCAG 2.1 AA compliance audit
+- **[Accessibility Audit v1.8.0](qa/ACCESSIBILITY_AUDIT_v1.5.0.md)** - WCAG 2.1 AA compliance audit
 
 ### Operational
 
@@ -119,7 +119,7 @@ All active documentation should include YAML front matter:
 lastReviewed: YYYY-MM-DD
 owner: @username
 status: active  # active | deprecated | archived
-version: 1.5.0  # App version this doc applies to
+version: 1.8.0  # App version this doc applies to
 ---
 ```
 

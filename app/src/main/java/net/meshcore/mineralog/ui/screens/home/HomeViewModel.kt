@@ -85,12 +85,16 @@ class HomeViewModel(
             initialValue = emptyList()
         )
 
+    // Refresh trigger to invalidate PagingData cache after mineral creation/deletion
+    private val _refreshTrigger = MutableStateFlow(0)
+
     // Paged minerals for efficient large dataset handling (v1.5.0)
     val mineralsPaged: Flow<PagingData<Mineral>> = combine(
         _searchQuery.debounce(300),
         _filterCriteria,
-        _isFilterActive
-    ) { query, criteria, filterActive ->
+        _isFilterActive,
+        _refreshTrigger  // BUGFIX: Trigger re-collection after insert/delete
+    ) { query, criteria, filterActive, _ ->
         Triple(query, criteria, filterActive)
     }.flatMapLatest { (query, criteria, filterActive) ->
         when {
@@ -102,6 +106,14 @@ class HomeViewModel(
             else -> mineralRepository.getAllPaged()
         }
     }.cachedIn(viewModelScope)
+
+    /**
+     * Refresh the minerals list by invalidating the PagingData cache.
+     * Call this after creating, updating, or deleting minerals.
+     */
+    fun refreshMineralsList() {
+        _refreshTrigger.value += 1
+    }
 
     // Legacy non-paged flow for bulk operations that need full list access
     val minerals: StateFlow<List<Mineral>> = combine(

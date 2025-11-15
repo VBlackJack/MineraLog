@@ -85,9 +85,12 @@ class CsvParser {
                 val values = parseLine(line, delimiter)
 
                 // Create map from headers to values
+                // For duplicate headers, first occurrence wins
                 val rowMap = mutableMapOf<String, String>()
                 headers.forEachIndexed { index, header ->
-                    rowMap[header] = values.getOrNull(index)?.trim() ?: ""
+                    if (!rowMap.containsKey(header)) {
+                        rowMap[header] = values.getOrNull(index) ?: ""
+                    }
                 }
 
                 rows.add(rowMap)
@@ -111,6 +114,7 @@ class CsvParser {
     /**
      * Detect character encoding by checking for BOM and common patterns.
      * Stream must support mark/reset.
+     * Skips BOM bytes if found.
      */
     private fun detectEncoding(inputStream: InputStream): Charset {
         require(inputStream.markSupported()) { "InputStream must support mark/reset for encoding detection" }
@@ -120,17 +124,20 @@ class CsvParser {
         val read = inputStream.read(bom)
         inputStream.reset()
 
-        // Check for UTF-8 BOM (EF BB BF)
+        // Check for UTF-8 BOM (EF BB BF) - skip it if found
         if (read >= 3 && bom[0] == 0xEF.toByte() && bom[1] == 0xBB.toByte() && bom[2] == 0xBF.toByte()) {
+            inputStream.skip(3) // Skip the UTF-8 BOM
             return StandardCharsets.UTF_8
         }
 
         // Check for UTF-16 BOMs
         if (read >= 2) {
             if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte()) {
+                inputStream.skip(2) // Skip the UTF-16BE BOM
                 return Charsets.UTF_16BE
             }
             if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte()) {
+                inputStream.skip(2) // Skip the UTF-16LE BOM
                 return Charsets.UTF_16LE
             }
         }
@@ -186,11 +193,13 @@ class CsvParser {
      * - Fields with commas must be quoted
      * - Quotes within fields are escaped as ""
      * - Newlines within quoted fields are preserved
+     * - Quoted fields preserve whitespace, unquoted fields are trimmed
      */
     private fun parseLine(line: String, delimiter: Char): List<String> {
         val fields = mutableListOf<String>()
         val currentField = StringBuilder()
         var inQuotes = false
+        var wasQuoted = false
         var i = 0
 
         while (i < line.length) {
@@ -206,13 +215,21 @@ class CsvParser {
                     } else {
                         // Toggle quote mode
                         inQuotes = !inQuotes
+                        wasQuoted = true
                     }
                 }
 
                 // Handle delimiter
                 ch == delimiter && !inQuotes -> {
-                    fields.add(currentField.toString())
+                    // Trim unquoted fields, preserve quoted fields
+                    val fieldValue = if (wasQuoted) {
+                        currentField.toString()
+                    } else {
+                        currentField.toString().trim()
+                    }
+                    fields.add(fieldValue)
                     currentField.clear()
+                    wasQuoted = false
                 }
 
                 // Regular character
@@ -224,8 +241,13 @@ class CsvParser {
             i++
         }
 
-        // Add final field
-        fields.add(currentField.toString())
+        // Add final field (trim if unquoted)
+        val finalField = if (wasQuoted) {
+            currentField.toString()
+        } else {
+            currentField.toString().trim()
+        }
+        fields.add(finalField)
 
         return fields
     }

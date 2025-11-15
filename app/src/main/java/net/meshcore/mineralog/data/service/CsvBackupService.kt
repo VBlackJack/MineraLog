@@ -213,9 +213,9 @@ class CsvBackupService(
                                     row = row,
                                     columnMapping = mapping,
                                     existingMineral = existing.toDomain(
-                                        existingProvenance?.toDomain(),
-                                        existingStorage?.toDomain(),
-                                        existingPhotos.map { it.toDomain() }
+                                        existingProvenance,
+                                        existingStorage,
+                                        existingPhotos
                                     )
                                 )
                             } else {

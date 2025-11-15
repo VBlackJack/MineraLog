@@ -3,6 +3,9 @@ package net.meshcore.mineralog.data.service
 import android.util.Base64
 import net.meshcore.mineralog.data.crypto.DecryptionException
 import net.meshcore.mineralog.data.crypto.PasswordBasedCrypto
+import net.meshcore.mineralog.data.model.BackupCounts
+import net.meshcore.mineralog.data.model.BackupManifest
+import net.meshcore.mineralog.data.model.EncryptionMetadata
 import java.time.Instant
 
 /**
@@ -82,13 +85,13 @@ class BackupEncryptionService {
      * Create manifest encryption metadata.
      *
      * @param encryptionResult The result from encrypting the data
-     * @return Map containing encryption algorithm, salt, and IV
+     * @return EncryptionMetadata containing encryption algorithm, salt, and IV
      */
-    fun createEncryptionMetadata(encryptionResult: EncryptionResult): Map<String, String> {
-        return mapOf(
-            "algorithm" to "Argon2id+AES-256-GCM",
-            "salt" to encryptionResult.encodedSalt,
-            "iv" to encryptionResult.encodedIv
+    fun createEncryptionMetadata(encryptionResult: EncryptionResult): EncryptionMetadata {
+        return EncryptionMetadata(
+            algorithm = "Argon2id+AES-256-GCM",
+            salt = encryptionResult.encodedSalt,
+            iv = encryptionResult.encodedIv
         )
     }
 
@@ -99,30 +102,25 @@ class BackupEncryptionService {
      * @param photoCount Number of photos in the backup
      * @param encrypted Whether the backup is encrypted
      * @param encryptionMetadata Optional encryption metadata if encrypted
-     * @return Map representing the manifest
+     * @return BackupManifest with all metadata
      */
     fun createManifest(
         mineralCount: Int,
         photoCount: Int,
         encrypted: Boolean,
-        encryptionMetadata: Map<String, String>? = null
-    ): Map<String, Any> {
-        val manifest = mutableMapOf<String, Any>(
-            "app" to "MineraLog",
-            "schemaVersion" to "1.0.0",
-            "exportedAt" to Instant.now().toString(),
-            "counts" to mapOf(
-                "minerals" to mineralCount,
-                "photos" to photoCount
+        encryptionMetadata: EncryptionMetadata? = null
+    ): BackupManifest {
+        return BackupManifest(
+            app = "MineraLog",
+            schemaVersion = "1.0.0",
+            exportedAt = Instant.now().toString(),
+            counts = BackupCounts(
+                minerals = mineralCount,
+                photos = photoCount
             ),
-            "encrypted" to encrypted
+            encrypted = encrypted,
+            encryption = if (encrypted) encryptionMetadata else null
         )
-
-        if (encrypted && encryptionMetadata != null) {
-            manifest["encryption"] = encryptionMetadata
-        }
-
-        return manifest
     }
 
     /**

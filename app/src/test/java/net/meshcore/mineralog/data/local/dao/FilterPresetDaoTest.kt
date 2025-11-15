@@ -1,21 +1,19 @@
 package net.meshcore.mineralog.data.local.dao
 
 import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.local.entity.FilterPresetEntity
 import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 import java.time.Instant
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
  * Comprehensive tests for [FilterPresetDao].
@@ -30,7 +28,8 @@ import kotlin.test.assertTrue
  *
  * Uses in-memory database for fast, isolated tests.
  */
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [27, 35])
 class FilterPresetDaoTest {
 
     private lateinit var database: MineraLogDatabase
@@ -40,7 +39,7 @@ class FilterPresetDaoTest {
     fun setup() {
         // Create in-memory database for testing
         database = Room.inMemoryDatabaseBuilder(
-            ApplicationProvider.getApplicationContext(),
+            RuntimeEnvironment.getApplication(),
             MineraLogDatabase::class.java
         )
             .allowMainThreadQueries() // For testing only
@@ -70,8 +69,8 @@ class FilterPresetDaoTest {
         // Then
         val retrieved = filterPresetDao.getById(preset.id)
         assertNotNull(retrieved)
-        assertEquals("High-Value Quartz", retrieved.name)
-        assertEquals("""{"group":"Quartz","minValue":100}""", retrieved.criteriaJson)
+        assertEquals("High-Value Quartz", retrieved!!.name)
+        assertEquals("""{"group":"Quartz","minValue":100}""", retrieved!!.criteriaJson)
     }
 
     @Test
@@ -111,8 +110,8 @@ class FilterPresetDaoTest {
         // Then
         val retrieved = filterPresetDao.getById(preset.id)
         assertNotNull(retrieved)
-        assertEquals("Updated Name", retrieved.name)
-        assertEquals("""{"group":"Calcite"}""", retrieved.criteriaJson)
+        assertEquals("Updated Name", retrieved!!.name)
+        assertEquals("""{"group":"Calcite"}""", retrieved!!.criteriaJson)
     }
 
     @Test
@@ -130,7 +129,7 @@ class FilterPresetDaoTest {
         // Then
         val retrieved = filterPresetDao.getById(preset.id)
         assertNotNull(retrieved)
-        assertEquals("star", retrieved.icon)
+        assertEquals("star", retrieved!!.icon)
     }
 
     // ========== READ Tests ==========
@@ -146,8 +145,8 @@ class FilterPresetDaoTest {
 
         // Then
         assertNotNull(result)
-        assertEquals(preset.id, result.id)
-        assertEquals("Test Preset", result.name)
+        assertEquals(preset.id, result!!.id)
+        assertEquals("Test Preset", result!!.name)
     }
 
     @Test
@@ -174,7 +173,7 @@ class FilterPresetDaoTest {
 
         // Then
         assertNotNull(afterInsert)
-        assertEquals(preset.id, afterInsert.id)
+        assertEquals(preset.id, afterInsert!!.id)
     }
 
     @Test
@@ -192,7 +191,7 @@ class FilterPresetDaoTest {
         val result = filterPresetDao.getAll()
 
         // Then - Should be sorted DESC by updatedAt (newest first)
-        assertEquals(3, result.size)
+        assertEquals(3, result!!.size)
         assertEquals("Newest", result[0].name)
         assertEquals("Middle", result[1].name)
         assertEquals("Oldest", result[2].name)
@@ -215,7 +214,7 @@ class FilterPresetDaoTest {
         val afterInsert = flow.first()
 
         // Then
-        assertEquals(2, afterInsert.size)
+        assertEquals(2, afterInsert!!.size)
     }
 
     @Test
@@ -248,7 +247,7 @@ class FilterPresetDaoTest {
         val result = filterPresetDao.searchFlow("High-Value Quartz").first()
 
         // Then
-        assertEquals(1, result.size)
+        assertEquals(1, result!!.size)
         assertEquals("High-Value Quartz", result[0].name)
     }
 
@@ -266,8 +265,8 @@ class FilterPresetDaoTest {
         val result = filterPresetDao.searchFlow("Quartz").first()
 
         // Then - Should match both presets with "Quartz"
-        assertEquals(2, result.size)
-        assertTrue(result.all { "Quartz" in it.name })
+        assertEquals(2, result!!.size)
+        assertTrue(result!!.all { "Quartz" in it.name })
     }
 
     @Test
@@ -295,7 +294,7 @@ class FilterPresetDaoTest {
         val result = filterPresetDao.searchFlow("Calcite").first()
 
         // Then
-        assertEquals(0, result.size)
+        assertEquals(0, result!!.size)
     }
 
     @Test
@@ -311,7 +310,7 @@ class FilterPresetDaoTest {
         val result = filterPresetDao.searchFlow("").first()
 
         // Then
-        assertEquals(2, result.size)
+        assertEquals(2, result!!.size)
     }
 
     // ========== COUNT Tests ==========
@@ -379,7 +378,7 @@ class FilterPresetDaoTest {
         // Then
         val result = filterPresetDao.getById(preset.id)
         assertNotNull(result)
-        assertEquals("Updated Name", result.name)
+        assertEquals("Updated Name", result!!.name)
     }
 
     @Test
@@ -398,7 +397,7 @@ class FilterPresetDaoTest {
         // Then
         val result = filterPresetDao.getById(preset.id)
         assertNotNull(result)
-        assertEquals("""{"group":"Calcite","minHardness":3}""", result.criteriaJson)
+        assertEquals("""{"group":"Calcite","minHardness":3}""", result!!.criteriaJson)
     }
 
     // ========== DELETE Tests ==========
@@ -445,7 +444,7 @@ class FilterPresetDaoTest {
 
         // Then
         val result = filterPresetDao.getAll()
-        assertEquals(0, result.size)
+        assertEquals(0, result!!.size)
     }
 
     // ========== JSON CRITERIA Tests ==========
@@ -477,7 +476,7 @@ class FilterPresetDaoTest {
         // Then
         val result = filterPresetDao.getById(preset.id)
         assertNotNull(result)
-        assertEquals(complexJson, result.criteriaJson)
+        assertEquals(complexJson, result!!.criteriaJson)
     }
 
     @Test
@@ -491,7 +490,7 @@ class FilterPresetDaoTest {
         // Then
         val result = filterPresetDao.getById(preset.id)
         assertNotNull(result)
-        assertEquals("{}", result.criteriaJson)
+        assertEquals("{}", result!!.criteriaJson)
     }
 
     @Test
@@ -509,7 +508,7 @@ class FilterPresetDaoTest {
         // Then
         val result = filterPresetDao.getById(preset.id)
         assertNotNull(result)
-        assertEquals(jsonWithSpecialChars, result.criteriaJson)
+        assertEquals(jsonWithSpecialChars, result!!.criteriaJson)
     }
 
     // ========== EDGE CASES ==========
@@ -528,7 +527,7 @@ class FilterPresetDaoTest {
         // Then
         val result = filterPresetDao.getById(preset.id)
         assertNotNull(result)
-        assertEquals("Filter: Quartz (High-Value) - 2024", result.name)
+        assertEquals("Filter: Quartz (High-Value) - 2024", result!!.name)
     }
 
     @Test
@@ -545,7 +544,7 @@ class FilterPresetDaoTest {
         // Then
         val result = filterPresetDao.getById(preset.id)
         assertNotNull(result)
-        assertEquals("⭐ Favorites ✨", result.name)
+        assertEquals("⭐ Favorites ✨", result!!.name)
     }
 
     @Test
@@ -566,8 +565,8 @@ class FilterPresetDaoTest {
         // Then
         val result = filterPresetDao.getById(preset.id)
         assertNotNull(result)
-        assertEquals(createdAt, result.createdAt)
-        assertEquals(updatedAt, result.updatedAt)
+        assertEquals(createdAt, result!!.createdAt)
+        assertEquals(updatedAt, result!!.updatedAt)
     }
 
     @Test
@@ -582,7 +581,7 @@ class FilterPresetDaoTest {
         // Then
         val result = filterPresetDao.getById(preset.id)
         assertNotNull(result)
-        assertEquals("filter_list", result.icon)
+        assertEquals("filter_list", result!!.icon)
     }
 
     // ========== Helper Methods ==========

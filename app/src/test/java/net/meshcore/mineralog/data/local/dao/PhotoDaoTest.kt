@@ -1,8 +1,9 @@
 package net.meshcore.mineralog.data.local.dao
 
 import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import net.meshcore.mineralog.data.local.MineraLogDatabase
@@ -12,12 +13,13 @@ import net.meshcore.mineralog.data.local.entity.PhotoType
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.Assert.*
 import org.junit.runner.RunWith
 import java.time.Instant
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+// removed: import kotlin.test.assertEquals
+// removed: import kotlin.test.assertNotNull
+// removed: import kotlin.test.assertNull
+// removed: import kotlin.test.assertTrue
 
 /**
  * Comprehensive tests for [PhotoDao].
@@ -32,7 +34,8 @@ import kotlin.test.assertTrue
  *
  * Uses in-memory database for fast, isolated tests.
  */
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [27, 35])
 class PhotoDaoTest {
 
     private lateinit var database: MineraLogDatabase
@@ -43,7 +46,7 @@ class PhotoDaoTest {
     fun setup() {
         // Create in-memory database for testing
         database = Room.inMemoryDatabaseBuilder(
-            ApplicationProvider.getApplicationContext(),
+            RuntimeEnvironment.getApplication(),
             MineraLogDatabase::class.java
         )
             .allowMainThreadQueries() // For testing only
@@ -73,8 +76,8 @@ class PhotoDaoTest {
         // Then
         val retrieved = photoDao.getById(photo.id)
         assertNotNull(retrieved)
-        assertEquals(photo.fileName, retrieved.fileName)
-        assertEquals(mineral.id, retrieved.mineralId)
+        assertEquals(photo.fileName, retrieved!!.fileName)
+        assertEquals(mineral.id, retrieved!!.mineralId)
     }
 
     @Test
@@ -115,7 +118,7 @@ class PhotoDaoTest {
         // Then
         val retrieved = photoDao.getById(photo.id)
         assertNotNull(retrieved)
-        assertEquals("Updated", retrieved.caption)
+        assertEquals("Updated", retrieved!!.caption)
     }
 
     // ========== READ Tests ==========
@@ -133,8 +136,8 @@ class PhotoDaoTest {
 
         // Then
         assertNotNull(result)
-        assertEquals(photo.id, result.id)
-        assertEquals(photo.fileName, result.fileName)
+        assertEquals(photo.id, result!!.id)
+        assertEquals(photo.fileName, result!!.fileName)
     }
 
     @Test
@@ -163,7 +166,7 @@ class PhotoDaoTest {
         val result = photoDao.getByMineralId(mineral.id)
 
         // Then
-        assertEquals(3, result.size)
+        assertEquals(3, result!!.size)
         // Should be sorted DESC by takenAt (newest first)
         assertEquals("photo3.jpg", result[0].fileName)
         assertEquals("photo2.jpg", result[1].fileName)
@@ -188,9 +191,9 @@ class PhotoDaoTest {
         val result = photoDao.getByMineralIds(listOf(mineral1.id, mineral2.id))
 
         // Then
-        assertEquals(3, result.size)
-        assertTrue(result.any { it.mineralId == mineral1.id })
-        assertTrue(result.any { it.mineralId == mineral2.id })
+        assertEquals(3, result!!.size)
+        assertTrue(result!!.any { it.mineralId == mineral1.id })
+        assertTrue(result!!.any { it.mineralId == mineral2.id })
     }
 
     @Test
@@ -214,7 +217,7 @@ class PhotoDaoTest {
     }
 
     @Test
-    fun getByMineralIdAndTypeFlow_filtersBy Type() = runTest {
+    fun getByMineralIdAndTypeFlow_filtersByType() = runTest {
         // Given
         val mineral = createTestMineral(name = "Fluorite")
         mineralDao.insert(mineral)
@@ -252,7 +255,7 @@ class PhotoDaoTest {
         val result = photoDao.getAll()
 
         // Then
-        assertEquals(2, result.size)
+        assertEquals(2, result!!.size)
     }
 
     @Test
@@ -310,7 +313,7 @@ class PhotoDaoTest {
 
         // Then
         assertNotNull(result)
-        assertEquals("oldest.jpg", result.fileName)
+        assertEquals("oldest.jpg", result!!.fileName)
     }
 
     // ========== UPDATE Tests ==========
@@ -334,7 +337,7 @@ class PhotoDaoTest {
         // Then
         val result = photoDao.getById(photo.id)
         assertNotNull(result)
-        assertEquals("Updated caption", result.caption)
+        assertEquals("Updated caption", result!!.caption)
     }
 
     // ========== DELETE Tests ==========
@@ -388,7 +391,7 @@ class PhotoDaoTest {
 
         // Then
         val result = photoDao.getByMineralId(mineral.id)
-        assertEquals(0, result.size)
+        assertEquals(0, result!!.size)
     }
 
     @Test
@@ -431,7 +434,7 @@ class PhotoDaoTest {
 
         // Then
         val result = photoDao.getAll()
-        assertEquals(0, result.size)
+        assertEquals(0, result!!.size)
     }
 
     // ========== CASCADE DELETE Tests ==========
@@ -467,7 +470,7 @@ class PhotoDaoTest {
         val result = photoDao.getByMineralId(mineral.id)
 
         // Then
-        assertEquals(0, result.size)
+        assertEquals(0, result!!.size)
     }
 
     @Test
@@ -487,7 +490,7 @@ class PhotoDaoTest {
         // Then
         val result = photoDao.getById(photo.id)
         assertNotNull(result)
-        assertNull(result.caption)
+        assertNull(result!!.caption)
     }
 
     @Test
@@ -507,9 +510,9 @@ class PhotoDaoTest {
 
         // Then
         val result = photoDao.getByMineralId(mineral.id)
-        assertEquals(4, result.size)
+        assertEquals(4, result!!.size)
         assertEquals(setOf(PhotoType.NORMAL, PhotoType.UV_SW, PhotoType.UV_LW, PhotoType.MACRO),
-                     result.map { it.type }.toSet())
+                     result!!.map { it.type }.toSet())
     }
 
     // ========== Helper Methods ==========

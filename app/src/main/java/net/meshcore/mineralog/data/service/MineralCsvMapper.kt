@@ -43,6 +43,15 @@ class MineralCsvMapper {
             return value in listOf("true", "yes", "1", "y", "oui")
         }
 
+        fun getInstant(domainField: String): java.time.Instant? {
+            val value = getMapped(domainField) ?: return null
+            return try {
+                java.time.Instant.parse(value)
+            } catch (e: java.time.format.DateTimeParseException) {
+                throw IllegalArgumentException("Invalid date format for $domainField: '$value'. Expected ISO 8601 format (e.g., 2024-01-15T10:30:00Z)")
+            }
+        }
+
         // Generate IDs - reuse existing if provided (MERGE mode)
         val mineralId = existingMineral?.id ?: java.util.UUID.randomUUID().toString()
 
@@ -86,6 +95,7 @@ class MineralCsvMapper {
                 site = getMapped("prov_site"),
                 latitude = latitude,
                 longitude = longitude,
+                acquiredAt = getInstant("prov_acquiredAt"),
                 source = getMapped("prov_source"),
                 price = getFloat("prov_price"),
                 estimatedValue = getFloat("prov_estimatedValue"),

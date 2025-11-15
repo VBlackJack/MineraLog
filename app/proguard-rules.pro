@@ -26,6 +26,31 @@
 -keep class com.lambdapioneer.argon2kt.Argon2Mode { *; }
 -keep class com.lambdapioneer.argon2kt.Argon2Version { *; }
 
+# SQLCipher - CRITICAL: Keep all classes and native methods
+-keep class net.sqlcipher.** { *; }
+-keep class net.sqlcipher.database.** { *; }
+-keep interface net.sqlcipher.** { *; }
+-dontwarn net.sqlcipher.**
+
+# EncryptedSharedPreferences & MasterKey - CRITICAL for database key persistence
+# Without these rules, the database encryption key cannot be retrieved after app restart
+-keep class androidx.security.crypto.EncryptedSharedPreferences { *; }
+-keep class androidx.security.crypto.EncryptedSharedPreferences$* { *; }
+-keep class androidx.security.crypto.MasterKey { *; }
+-keep class androidx.security.crypto.MasterKey$* { *; }
+-keep class com.google.crypto.tink.integration.android.AndroidKeystoreKmsClient { *; }
+-keepclassmembers class * extends com.google.crypto.tink.shaded.protobuf.GeneratedMessageLite {
+    <fields>;
+}
+-dontwarn androidx.security.crypto.**
+
+# Keep our crypto implementation classes - critical for security
+-keep class net.meshcore.mineralog.data.local.DatabaseKeyManager { *; }
+-keep class net.meshcore.mineralog.data.local.DatabaseMigrationHelper { *; }
+-keep class net.meshcore.mineralog.data.local.DatabaseMigrationHelper$MigrationResult { *; }
+-keep class net.meshcore.mineralog.data.local.DatabaseMigrationHelper$MigrationResult$* { *; }
+-keep class net.meshcore.mineralog.data.crypto.** { *; }
+
 # Keep serialization classes - specific to our domain models
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.AnnotationsKt
@@ -140,12 +165,13 @@
     <init>(...);
 }
 
-# Remove all logging in release
+# Remove all logging in release (including errors to prevent info leakage)
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
     public static *** i(...);
     public static *** w(...);
+    public static *** e(...);
 }
 
 # Optimize and obfuscate

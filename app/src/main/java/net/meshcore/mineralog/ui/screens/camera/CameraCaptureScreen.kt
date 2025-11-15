@@ -26,10 +26,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import net.meshcore.mineralog.R
 import net.meshcore.mineralog.data.local.entity.PhotoType
 import java.io.File
 import java.text.SimpleDateFormat
@@ -65,6 +73,8 @@ fun CameraCaptureScreen(
     var torchEnabled by remember { mutableStateOf(false) }
     var isCapturing by remember { mutableStateOf(false) }
     var showPhotoTypeMenu by remember { mutableStateOf(false) }
+    var captureStatusMessage by remember { mutableStateOf("") }
+    var photoTypeChangeMessage by remember { mutableStateOf("") }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -86,10 +96,10 @@ fun CameraCaptureScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Take Photo") },
+                title = { Text(stringResource(R.string.camera_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                     }
                 },
                 actions = {
@@ -99,10 +109,10 @@ fun CameraCaptureScreen(
                             onClick = { showPhotoTypeMenu = true },
                             modifier = Modifier.padding(end = 8.dp)
                         ) {
-                            Text(getPhotoTypeLabel(selectedPhotoType))
+                            Text(getPhotoTypeLabel(context, selectedPhotoType))
                             Icon(
                                 Icons.Default.ArrowDropDown,
-                                contentDescription = "Select photo type"
+                                contentDescription = stringResource(R.string.camera_select_photo_type)
                             )
                         }
 
@@ -115,11 +125,11 @@ fun CameraCaptureScreen(
                                     text = {
                                         Column {
                                             Text(
-                                                text = getPhotoTypeLabel(type),
+                                                text = getPhotoTypeLabel(context, type),
                                                 style = MaterialTheme.typography.bodyLarge
                                             )
                                             Text(
-                                                text = getPhotoTypeDescription(type),
+                                                text = getPhotoTypeDescription(context, type),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -128,12 +138,13 @@ fun CameraCaptureScreen(
                                     onClick = {
                                         selectedPhotoType = type
                                         showPhotoTypeMenu = false
+                                        photoTypeChangeMessage = context.getString(R.string.camera_photo_type_changed, getPhotoTypeLabel(context, type))
                                     },
                                     leadingIcon = {
                                         if (selectedPhotoType == type) {
                                             Icon(
                                                 Icons.Default.Check,
-                                                contentDescription = "Selected"
+                                                contentDescription = stringResource(R.string.camera_photo_type_selected)
                                             )
                                         }
                                     }
@@ -147,7 +158,7 @@ fun CameraCaptureScreen(
                         IconButton(onClick = { torchEnabled = !torchEnabled }) {
                             Icon(
                                 if (torchEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
-                                contentDescription = if (torchEnabled) "Disable flash" else "Enable flash"
+                                contentDescription = stringResource(if (torchEnabled) R.string.camera_disable_flash else R.string.camera_enable_flash)
                             )
                         }
                     }
@@ -173,13 +184,13 @@ fun CameraCaptureScreen(
                     ) {
                         Icon(
                             Icons.Default.CameraAlt,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.camera_permission_required),
                             modifier = Modifier.size(64.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Camera permission is required to take photos",
+                            text = stringResource(R.string.camera_permission_required),
                             style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurface
@@ -188,7 +199,7 @@ fun CameraCaptureScreen(
                         Button(onClick = {
                             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                         }) {
-                            Text("Grant Permission")
+                            Text(stringResource(R.string.camera_grant_permission))
                         }
                     }
                 }
@@ -199,8 +210,36 @@ fun CameraCaptureScreen(
                         onImageCaptureReady = { capture ->
                             imageCapture = capture
                         },
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .semantics {
+                                contentDescription = context.getString(R.string.camera_preview_ready, getPhotoTypeLabel(context, selectedPhotoType))
+                            }
                     )
+
+                    // Live region for capture status announcements (invisible)
+                    if (captureStatusMessage.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .size(0.dp)
+                                .semantics {
+                                    liveRegion = LiveRegionMode.Polite
+                                    contentDescription = captureStatusMessage
+                                }
+                        )
+                    }
+
+                    // Live region for photo type change announcements (invisible)
+                    if (photoTypeChangeMessage.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .size(0.dp)
+                                .semantics {
+                                    liveRegion = LiveRegionMode.Polite
+                                    contentDescription = photoTypeChangeMessage
+                                }
+                        )
+                    }
 
                     // Capture button at bottom
                     Column(
@@ -216,7 +255,7 @@ fun CameraCaptureScreen(
                             modifier = Modifier.padding(bottom = 16.dp)
                         ) {
                             Text(
-                                text = getPhotoTypeLabel(selectedPhotoType),
+                                text = getPhotoTypeLabel(context, selectedPhotoType),
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -230,17 +269,26 @@ fun CameraCaptureScreen(
                                 .clip(CircleShape)
                                 .background(Color.White)
                                 .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                                .semantics {
+                                    role = Role.Button
+                                    contentDescription = context.getString(
+                                        if (isCapturing) R.string.camera_capturing else R.string.camera_capture_photo
+                                    )
+                                }
                                 .clickable(enabled = !isCapturing) {
                                     isCapturing = true
+                                    captureStatusMessage = context.getString(R.string.camera_capturing_status)
                                     capturePhoto(
                                         context = context,
                                         imageCapture = imageCapture,
                                         outputDirectory = outputDirectory,
                                         photoType = selectedPhotoType,
                                         onSuccess = { uri ->
+                                            captureStatusMessage = context.getString(R.string.camera_capture_success)
                                             onPhotoCaptured(uri, selectedPhotoType)
                                         },
                                         onError = {
+                                            captureStatusMessage = context.getString(R.string.camera_capture_failed)
                                             isCapturing = false
                                         }
                                     )
@@ -255,7 +303,7 @@ fun CameraCaptureScreen(
                             } else {
                                 Icon(
                                     Icons.Default.CameraAlt,
-                                    contentDescription = "Capture photo",
+                                    contentDescription = null, // Handled by parent Box semantics
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(40.dp)
                                 )
@@ -301,7 +349,8 @@ fun CameraPreviewWithCapture(
             // Image capture use case
             val imageCapture = ImageCapture.Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                .setTargetRotation(previewView.display.rotation)
+                // BUGFIX: Use safe call - display may be null before view is attached
+                .setTargetRotation(previewView.display?.rotation ?: android.view.Surface.ROTATION_0)
                 .build()
 
             // Notify parent that ImageCapture is ready
@@ -388,20 +437,20 @@ private fun getOutputDirectory(context: Context, mineralId: String): File {
     return if (mediaDir != null && mediaDir.exists()) mediaDir else context.filesDir
 }
 
-private fun getPhotoTypeLabel(type: PhotoType): String {
+private fun getPhotoTypeLabel(context: android.content.Context, type: PhotoType): String {
     return when (type) {
-        PhotoType.NORMAL -> "Normal"
-        PhotoType.UV_SW -> "UV Shortwave"
-        PhotoType.UV_LW -> "UV Longwave"
-        PhotoType.MACRO -> "Macro"
+        PhotoType.NORMAL -> context.getString(R.string.camera_photo_type_normal)
+        PhotoType.UV_SW -> context.getString(R.string.camera_photo_type_uv_sw)
+        PhotoType.UV_LW -> context.getString(R.string.camera_photo_type_uv_lw)
+        PhotoType.MACRO -> context.getString(R.string.camera_photo_type_macro)
     }
 }
 
-private fun getPhotoTypeDescription(type: PhotoType): String {
+private fun getPhotoTypeDescription(context: android.content.Context, type: PhotoType): String {
     return when (type) {
-        PhotoType.NORMAL -> "Standard photo"
-        PhotoType.UV_SW -> "Shortwave UV fluorescence"
-        PhotoType.UV_LW -> "Longwave UV fluorescence"
-        PhotoType.MACRO -> "Close-up macro shot"
+        PhotoType.NORMAL -> context.getString(R.string.camera_photo_type_normal_desc)
+        PhotoType.UV_SW -> context.getString(R.string.camera_photo_type_uv_sw_desc)
+        PhotoType.UV_LW -> context.getString(R.string.camera_photo_type_uv_lw_desc)
+        PhotoType.MACRO -> context.getString(R.string.camera_photo_type_macro_desc)
     }
 }

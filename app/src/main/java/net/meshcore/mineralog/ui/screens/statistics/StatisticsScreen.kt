@@ -91,7 +91,7 @@ fun StatisticsScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = { viewModel.loadStatistics() }) {
-                            Text("Retry")
+                            Text(stringResource(R.string.statistics_retry))
                         }
                     }
                 }

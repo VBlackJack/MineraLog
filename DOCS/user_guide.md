@@ -1,6 +1,6 @@
-# MineraLog User Guide v1.5.0
+# MineraLog User Guide v1.8.0
 
-**Last Updated**: November 2025 | **App Version**: 1.5.0
+**Last Updated**: November 2025 | **App Version**: 1.8.0
 
 ## Introduction
 
