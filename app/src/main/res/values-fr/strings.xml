@@ -57,12 +57,28 @@
     <string name="home_search_placeholder">Rechercher des minéraux…</string>
     <string name="home_empty_state">Aucun minéral pour le moment. Ajoutez le premier !</string>
     <string name="home_empty_search">Aucun minéral trouvé</string>
-    <string name="home_mineral_count">%d minéral</string>
-    <string name="home_mineral_count_plural">%d minéraux</string>
+    <string name="home_empty_state_title">Votre collection est vide</string>
+    <string name="home_empty_state_message">Commencez à constituer votre collection minérale en ajoutant votre premier spécimen</string>
+    <string name="home_empty_state_action">Appuyez sur le bouton + ci-dessous pour commencer</string>
+    <string name="home_no_results_title">Aucun résultat trouvé</string>
+    <string name="home_no_results_message">Aucun minéral ne correspond à \"%s\"</string>
+    <string name="home_no_results_with_filters">avec les filtres actuels</string>
+    <string name="home_error_loading">Erreur de chargement des minéraux : %s</string>
+    <string name="home_error_loading_more">Erreur de chargement supplémentaire : %s</string>
+    <string name="home_operation_in_progress">%s en cours...</string>
+    <string name="home_generating_labels">Génération des étiquettes...</string>
+    <plurals name="home_mineral_count">
+        <item quantity="one">%d minéral</item>
+        <item quantity="other">%d minéraux</item>
+    </plurals>
 
     <!-- Add/Edit Mineral Screen -->
     <string name="add_mineral_title">Ajouter un minéral</string>
     <string name="edit_mineral_title">Modifier le minéral</string>
+    <string name="add_mineral_draft_saved">Brouillon enregistré</string>
+    <string name="add_mineral_required_field">* Champ requis</string>
+    <string name="add_mineral_photos_title">Photos</string>
+    <string name="add_mineral_photos_hint">Ajoutez des photos depuis la galerie ou l\'appareil photo. Support pour les photos normales, UV et macro.</string>
     <string name="field_name">Nom *</string>
     <string name="field_name_hint">Entrez le nom du minéral</string>
     <string name="field_group">Groupe</string>
@@ -177,6 +193,8 @@
     <!-- Statistics Screen -->
     <string name="statistics_title">Statistiques</string>
     <string name="statistics_overview">Vue d\'ensemble</string>
+    <string name="chart_no_data">Aucune donnée à afficher</string>
+    <string name="chart_and_more">... et %d de plus</string>
     <string name="statistics_time_based">Activité récente</string>
     <string name="statistics_highlights">Points forts</string>
     <string name="statistics_by_group">Distribution par groupe</string>
@@ -216,6 +234,17 @@
     <!-- Import/Export -->
     <string name="import_title">Importer</string>
     <string name="export_title">Exporter</string>
+    <string name="import_result_title">Import terminé</string>
+    <string name="import_result_imported">✅ Importé :</string>
+    <string name="import_result_skipped">⚠️ Ignoré :</string>
+    <string name="import_result_errors">❌ Erreurs :</string>
+    <string name="import_result_error_details">Détails de l\'erreur</string>
+    <string name="import_csv_analyzing">Analyse du fichier CSV…</string>
+    <string name="import_csv_skip_column_option">(Ignorer la colonne)</string>
+    <string name="column_mapping_title">Mapper les colonnes CSV</string>
+    <string name="column_mapping_preview">Aperçu</string>
+    <string name="column_mapping_required">Requis : Vous devez mapper une colonne vers \'Nom\'</string>
+    <string name="export_csv_columns_selected">%1$d colonnes sélectionnées sur %2$d</string>
     <string name="export_csv_title">Exporter en CSV</string>
     <string name="export_csv_subtitle">%d minéraux sélectionnés</string>
     <string name="export_csv_select_columns">Sélectionner les colonnes à exporter</string>
@@ -300,6 +329,12 @@
     <!-- Photo Gallery -->
     <string name="gallery_title">Galerie photo</string>
     <string name="gallery_add">Ajouter une photo</string>
+    <string name="photo_manager_no_photos_title">Aucune photo pour l\'instant</string>
+    <string name="photo_manager_no_photos_message">Ajoutez des photos depuis la galerie ou l\'appareil photo</string>
+    <plurals name="photo_count">
+        <item quantity="one">%d photo</item>
+        <item quantity="other">%d photos</item>
+    </plurals>
     <string name="gallery_type">Type de photo</string>
     <string name="gallery_type_normal">Normale</string>
     <string name="gallery_type_uv">Lumière UV</string>
@@ -419,7 +454,292 @@
     <string name="bulk_action_delete">Supprimer la sélection</string>
     <string name="bulk_action_export_csv">Exporter en CSV</string>
     <string name="bulk_action_export_csv_desc">Exporter les minéraux sélectionnés avec colonnes personnalisables</string>
+    <string name="bulk_action_qr_labels">Générer des étiquettes QR</string>
+    <string name="bulk_action_qr_labels_desc">Créer un PDF imprimable avec codes QR</string>
     <string name="bulk_delete_confirm_title">Supprimer les minéraux ?</string>
     <string name="bulk_delete_confirm_message">Cela supprimera définitivement %d minéraux et toutes les photos associées.</string>
     <string name="delete">Supprimer</string>
+
+    <!-- Camera Capture Screen -->
+    <string name="camera_title">Prendre une photo</string>
+    <string name="camera_permission_required">La permission caméra est requise pour prendre des photos</string>
+    <string name="camera_grant_permission">Accorder la permission</string>
+    <string name="camera_select_photo_type">Sélectionner le type de photo</string>
+    <string name="camera_photo_type_normal">Normale</string>
+    <string name="camera_photo_type_normal_desc">Photo standard</string>
+    <string name="camera_photo_type_uv_sw">UV ondes courtes</string>
+    <string name="camera_photo_type_uv_sw_desc">Fluorescence UV ondes courtes</string>
+    <string name="camera_photo_type_uv_lw">UV ondes longues</string>
+    <string name="camera_photo_type_uv_lw_desc">Fluorescence UV ondes longues</string>
+    <string name="camera_photo_type_macro">Macro</string>
+    <string name="camera_photo_type_macro_desc">Gros plan macro</string>
+    <string name="camera_photo_type_selected">Sélectionné</string>
+    <string name="camera_enable_flash">Activer le flash</string>
+    <string name="camera_disable_flash">Désactiver le flash</string>
+    <string name="camera_preview_ready">Aperçu caméra. Prêt à capturer une photo %s</string>
+    <string name="camera_capturing">Capture en cours, veuillez patienter</string>
+    <string name="camera_capture_photo">Capturer la photo</string>
+    <string name="camera_photo_type_changed">Type de photo changé en %s</string>
+    <string name="camera_capturing_status">Capture de la photo...</string>
+    <string name="camera_capture_success">Photo capturée avec succès</string>
+    <string name="camera_capture_failed">Échec de la capture. Veuillez réessayer</string>
+
+    <!-- Photo Gallery -->
+    <string name="gallery_title_with_count">Photos (%d)</string>
+    <string name="gallery_no_photos">Aucune photo pour le moment</string>
+    <string name="gallery_take_first_photo">Prenez votre première photo en utilisant le bouton caméra ci-dessus</string>
+    <string name="gallery_button_take_photo">Prendre une photo</string>
+    <string name="gallery_delete_dialog_title">Supprimer la photo</string>
+    <string name="gallery_delete_dialog_message">Êtes-vous sûr de vouloir supprimer cette photo ? Cette action est irréversible.</string>
+
+    <!-- Edit/Add Mineral Common -->
+    <string name="dialog_discard_title">Abandonner les modifications ?</string>
+    <string name="dialog_discard_message">Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir les abandonner ?</string>
+    <string name="button_discard">Abandonner</string>
+    <string name="field_required_legend">* Champ requis</string>
+    <string name="error_name_required">Le nom est requis</string>
+    <string name="error_name_required_detail">Le nom est requis. Ce champ ne peut pas être vide.</string>
+    <string name="section_technical_properties">Propriétés techniques</string>
+    <string name="section_technical_properties_hint">Sélectionnez parmi les valeurs prédéfinies ou saisissez une valeur personnalisée. Appuyez sur ⓘ pour les explications.</string>
+    <string name="section_tags_organization">Étiquettes &amp; Organisation</string>
+    <string name="section_tags_hint">Ajoutez des étiquettes séparées par des virgules. Des suggestions automatiques apparaîtront lors de la saisie.</string>
+    <string name="field_tags_placeholder">ex : collection, rare, beau</string>
+    <string name="field_tags_supporting">Séparez les étiquettes multiples par des virgules</string>
+    <string name="field_tags_description">Champ étiquettes. Saisissez des étiquettes séparées par des virgules. Suggestions automatiques disponibles.</string>
+    <string name="tag_suggestions_available">%d suggestions d\'étiquettes disponibles</string>
+    <string name="tag_select">Sélectionner l\'étiquette : %s</string>
+    <string name="section_photos">Photos</string>
+    <string name="section_photos_hint">Ajoutez des photos depuis la galerie ou l\'appareil photo. Support pour les photos normales, UV et macro.</string>
+    <string name="field_diaphaneity_label">Diaphanéité</string>
+    <string name="field_diaphaneity_placeholder">Sélectionner le niveau de transparence</string>
+    <string name="field_cleavage_label">Clivage</string>
+    <string name="field_cleavage_placeholder">Sélectionner la qualité de clivage</string>
+    <string name="field_fracture_label">Fracture</string>
+    <string name="field_fracture_placeholder">Sélectionner le type de fracture</string>
+    <string name="field_luster_label">Éclat</string>
+    <string name="field_luster_placeholder">Sélectionner le type d\'éclat</string>
+    <string name="field_streak_label">Trait</string>
+    <string name="field_streak_placeholder">Sélectionner la couleur du trait</string>
+    <string name="field_habit_label">Habitus</string>
+    <string name="field_habit_placeholder">Sélectionner l\'habitus cristallin</string>
+    <string name="field_crystal_system_label">Système cristallin</string>
+    <string name="field_crystal_system_placeholder">Sélectionner le système cristallin</string>
+    <string name="draft_saved">Brouillon enregistré</string>
+
+    <!-- Mineral Detail Screen -->
+    <string name="detail_loading_message">Chargement des détails du minéral...</string>
+    <string name="detail_photos_count">Photos (%d)</string>
+    <string name="detail_menu_properties">Propriétés</string>
+    <string name="detail_menu_edit_external">Modifier avec une application externe</string>
+    <string name="detail_menu_delete">Supprimer</string>
+    <string name="detail_photo_properties_title">Propriétés de la photo</string>
+    <string name="detail_photo_property_type">Type</string>
+    <string name="detail_photo_property_filename">Nom de fichier</string>
+    <string name="detail_photo_property_size">Taille</string>
+    <string name="detail_photo_property_caption">Légende</string>
+    <string name="detail_delete_photo_title">Supprimer la photo ?</string>
+    <string name="detail_delete_photo_message">Êtes-vous sûr de vouloir supprimer cette photo ? Cette action est irréversible.</string>
+    <string name="detail_section_basic_info">Informations de base</string>
+    <string name="detail_section_physical_props">Propriétés physiques</string>
+    <string name="detail_section_special_props">Propriétés spéciales</string>
+    <string name="detail_section_measurements_title">Mesures</string>
+    <string name="detail_section_provenance_title">Provenance</string>
+    <string name="detail_section_storage_title">Emplacement de stockage</string>
+    <string name="detail_section_notes_title">Notes</string>
+    <string name="detail_property_group">Groupe</string>
+    <string name="detail_property_formula">Formule</string>
+    <string name="detail_property_crystal_system">Système cristallin</string>
+    <string name="detail_property_mohs_hardness">Dureté (Mohs)</string>
+    <string name="detail_property_luster">Éclat</string>
+    <string name="detail_property_streak">Trait</string>
+    <string name="detail_property_cleavage">Clivage</string>
+    <string name="detail_property_fracture">Fracture</string>
+    <string name="detail_property_diaphaneity">Diaphanéité</string>
+    <string name="detail_property_habit">Habitus</string>
+    <string name="detail_property_specific_gravity">Densité</string>
+    <string name="detail_property_fluorescence">Fluorescence</string>
+    <string name="detail_property_magnetic">Magnétique</string>
+    <string name="detail_property_magnetic_yes">Oui</string>
+    <string name="detail_property_radioactive">Radioactif</string>
+    <string name="detail_property_radioactive_yes">Oui</string>
+    <string name="detail_property_dimensions">Dimensions</string>
+    <string name="detail_property_dimensions_mm">%s mm</string>
+    <string name="detail_property_weight">Poids</string>
+    <string name="detail_property_weight_g">%s g</string>
+    <string name="detail_property_country">Pays</string>
+    <string name="detail_property_locality">Localité</string>
+    <string name="detail_property_site">Site</string>
+    <string name="detail_property_source">Source</string>
+    <string name="detail_property_acquired">Acquis</string>
+    <string name="detail_property_place">Lieu</string>
+    <string name="detail_property_container">Conteneur</string>
+    <string name="detail_property_box">Boîte</string>
+    <string name="detail_property_slot">Emplacement</string>
+    <string name="toast_no_photo_editor">Aucun éditeur de photo trouvé</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_export_subtitle">Exporter toutes les données avec chiffrement</string>
+    <string name="settings_import_subtitle">Restaurer depuis une sauvegarde chiffrée (ZIP)</string>
+    <string name="settings_import_csv_title">Importer CSV</string>
+    <string name="settings_import_csv_subtitle">Importer des minéraux depuis une feuille de calcul CSV</string>
+    <string name="settings_copy_photos_title">Copier les photos en stockage interne</string>
+    <string name="settings_copy_photos_subtitle">Recommandé pour la sécurité des données</string>
+    <string name="settings_encrypt_default_title">Chiffrer les sauvegardes par défaut</string>
+    <string name="settings_encrypt_default_subtitle">Protéger toutes les sauvegardes exportées avec chiffrement</string>
+    <string name="settings_about_title">À propos</string>
+    <string name="settings_about_version">MineraLog v1.8.0</string>
+    <string name="settings_about_dialog_title">MineraLog</string>
+    <string name="settings_about_version_number">Version 1.8.0</string>
+    <string name="settings_about_description">Un gestionnaire complet de collection minérale avec des fonctionnalités avancées :</string>
+    <string name="settings_about_feature_wcag">• 100% conforme WCAG 2.1 AA</string>
+    <string name="settings_about_feature_backup">• Sauvegarde et restauration chiffrées</string>
+    <string name="settings_about_feature_csv">• Import/export CSV</string>
+    <string name="settings_about_feature_qr">• Génération d\'étiquettes QR</string>
+    <string name="settings_about_feature_filter">• Filtrage et recherche avancés</string>
+    <string name="settings_about_feature_stats">• Statistiques et visualisations</string>
+    <string name="settings_about_copyright">© 2025 Contributeurs MineraLog</string>
+    <string name="settings_about_license">Sous licence Apache License 2.0</string>
+    <string name="settings_about_built_with">Construit avec Jetpack Compose &amp; Material 3</string>
+    <string name="settings_encrypt_warning_title">Activer le chiffrement par défaut ?</string>
+    <string name="settings_encrypt_warning_message">Lorsqu\'activé, toutes les sauvegardes exportées seront chiffrées avec un mot de passe.</string>
+    <string name="settings_encrypt_warning_important">⚠️ Important : La récupération de mot de passe est impossible. Conservez vos mots de passe en sécurité !</string>
+    <string name="settings_encrypt_warning_enable">Activer</string>
+
+    <!-- QR Scanner Screen -->
+    <string name="qr_scanner_title">Scanner le code QR</string>
+    <string name="qr_scanner_permission_required">La permission caméra est requise pour scanner les codes QR</string>
+    <string name="qr_scanner_grant_permission">Accorder la permission</string>
+    <string name="qr_scanner_align_instruction">Alignez le code QR dans le cadre</string>
+    <string name="qr_scanner_detected">Code QR détecté</string>
+
+    <!-- Sort -->
+    <string name="sort_title">Trier par</string>
+    <string name="sort_description">Choisissez comment ordonner votre collection</string>
+
+    <!-- Tags -->
+    <string name="tags_title">Étiquettes</string>
+    <string name="tags_empty">Aucune étiquette pour l\'instant. Ajoutez des étiquettes ci-dessous.</string>
+    <string name="tags_hint">Séparez les étiquettes multiples par des virgules ou ajoutez-les une par une</string>
+
+    <!-- Photo Viewer -->
+    <string name="photo_viewer_count">%1$d / %2$d</string>
+    <string name="photo_viewer_zoom">%d%%</string>
+    <string name="photo_viewer_no_photos">Aucune photo à afficher</string>
+
+    <!-- Password Dialogs -->
+    <string name="password_dialog_encrypted_title">Sauvegarde chiffrée</string>
+    <string name="password_dialog_encrypted_message">Cette sauvegarde est chiffrée. Entrez le mot de passe pour déchiffrer et restaurer.</string>
+    <string name="password_dialog_encrypt_description">Protégez votre sauvegarde avec chiffrement Argon2id + AES-256-GCM.</string>
+    <string name="password_dialog_strength">Force :</string>
+    <string name="password_dialog_warning">Votre sauvegarde sera chiffrée et ne pourra être restaurée qu\'avec ce mot de passe.</string>
+
+    <!-- Bulk Actions -->
+    <string name="bulk_actions_selected_item">• %s</string>
+    <string name="bulk_actions_more_items">• et %d de plus...</string>
+
+    <!-- Home Screen -->
+    <string name="home_selection_count">%d sélectionné(s)</string>
+    <string name="home_exit_selection">Quitter la sélection</string>
+    <string name="home_select_all">Tout sélectionner</string>
+    <string name="home_actions">Actions</string>
+    <string name="home_scan_qr">Scanner le code QR</string>
+    <string name="home_bulk_edit">Édition groupée</string>
+    <string name="home_statistics">Statistiques</string>
+    <string name="home_search_placeholder_text">Rechercher des minéraux...</string>
+    <string name="home_clear_search">Effacer la recherche</string>
+    <string name="home_clear_search_button">Effacer la recherche</string>
+    <string name="home_clear_filters_button">Effacer les filtres</string>
+
+    <!-- Password Dialogs -->
+    <string name="password_min_length">Le mot de passe doit contenir au moins 8 caractères</string>
+    <string name="password_mismatch">Les mots de passe ne correspondent pas</string>
+    <string name="password_encrypt_export">Chiffrer &amp; Exporter</string>
+    <string name="password_decrypt_import">Déchiffrer &amp; Importer</string>
+    <string name="password_label">Mot de passe</string>
+
+    <!-- Filter -->
+    <string name="filter_active_badge">%d %s</string>
+
+    <!-- Statistics -->
+    <string name="statistics_retry">Réessayer</string>
+
+    <!-- Valeurs des menus déroulants pour les propriétés techniques -->
+    <string-array name="crystal_systems">
+        <item>Cubique</item>
+        <item>Hexagonal</item>
+        <item>Tétragonal</item>
+        <item>Orthorhombique</item>
+        <item>Monoclinique</item>
+        <item>Triclinique</item>
+        <item>Trigonal</item>
+        <item>Autre</item>
+    </string-array>
+
+    <string-array name="luster_types">
+        <item>Métallique</item>
+        <item>Vitreux</item>
+        <item>Nacré</item>
+        <item>Soyeux</item>
+        <item>Résineux</item>
+        <item>Adamantin</item>
+        <item>Gras</item>
+        <item>Mat/Terreux</item>
+        <item>Autre</item>
+    </string-array>
+
+    <string-array name="diaphaneity_types">
+        <item>Transparent</item>
+        <item>Translucide</item>
+        <item>Opaque</item>
+        <item>Autre</item>
+    </string-array>
+
+    <string-array name="cleavage_types">
+        <item>Parfait</item>
+        <item>Bon</item>
+        <item>Distinct</item>
+        <item>Médiocre</item>
+        <item>Aucun</item>
+        <item>Autre</item>
+    </string-array>
+
+    <string-array name="fracture_types">
+        <item>Conchoïdale</item>
+        <item>Irrégulière</item>
+        <item>Esquilleuse</item>
+        <item>Hachée</item>
+        <item>Fibreuse</item>
+        <item>Fragile</item>
+        <item>Autre</item>
+    </string-array>
+
+    <string-array name="habit_types">
+        <item>Prismatique</item>
+        <item>Tabulaire</item>
+        <item>Massif</item>
+        <item>Granulaire</item>
+        <item>Fibreux</item>
+        <item>Aciculaire</item>
+        <item>Lamellaire</item>
+        <item>Dendritique</item>
+        <item>Botryoïdale</item>
+        <item>Stalactitique</item>
+        <item>Cubique</item>
+        <item>Octaédrique</item>
+        <item>Dodécaédrique</item>
+        <item>Autre</item>
+    </string-array>
+
+    <string-array name="streak_colors">
+        <item>Blanc</item>
+        <item>Noir</item>
+        <item>Gris</item>
+        <item>Rouge</item>
+        <item>Brun</item>
+        <item>Jaune</item>
+        <item>Vert</item>
+        <item>Bleu</item>
+        <item>Incolore</item>
+        <item>Autre</item>
+    </string-array>
 </resources>

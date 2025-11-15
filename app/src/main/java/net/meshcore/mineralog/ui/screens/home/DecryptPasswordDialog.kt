@@ -28,13 +28,14 @@ import net.meshcore.mineralog.R
  * - Attempt counter (max 3 attempts)
  * - Error feedback for wrong password
  * - Clear security messaging
+ * - Secure password handling (converts to CharArray before passing to callback)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DecryptPasswordDialog(
     attemptsRemaining: Int = 3,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onConfirm: (CharArray) -> Unit
 ) {
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -61,7 +62,7 @@ fun DecryptPasswordDialog(
         },
         title = {
             Text(
-                text = "Encrypted Backup",
+                text = stringResource(R.string.password_dialog_encrypted_title),
                 style = MaterialTheme.typography.headlineSmall
             )
         },
@@ -72,7 +73,7 @@ fun DecryptPasswordDialog(
             ) {
                 // Info text
                 Text(
-                    text = "This backup is encrypted. Enter the password to decrypt and restore.",
+                    text = stringResource(R.string.password_dialog_encrypted_message),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -145,7 +146,10 @@ fun DecryptPasswordDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    onConfirm(password)
+                    // Convert to CharArray for secure password handling
+                    val passwordChars = password.toCharArray()
+                    onConfirm(passwordChars)
+                    // Note: Caller is responsible for clearing the CharArray
                 },
                 enabled = password.isNotEmpty() && attemptsRemaining > 0
             ) {

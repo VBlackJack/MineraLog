@@ -3,6 +3,7 @@ package net.meshcore.mineralog.ui.screens.settings
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -16,6 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.meshcore.mineralog.MineraLogApplication
@@ -35,6 +40,7 @@ fun SettingsScreen(
         )
     )
 ) {
+    val activity = LocalContext.current as? ComponentActivity
     val copyPhotos by viewModel.copyPhotosToInternal.collectAsState()
     val encryptByDefault by viewModel.encryptByDefault.collectAsState()
     val language by viewModel.language.collectAsState()
@@ -53,6 +59,7 @@ fun SettingsScreen(
     var decryptAttempts by remember { mutableStateOf(3) }
     var pendingExportUri by remember { mutableStateOf<Uri?>(null) }
     var pendingImportUri by remember { mutableStateOf<Uri?>(null) }
+    var operationStatusMessage by remember { mutableStateOf("") }
 
     // File picker for ZIP export
     val zipExportLauncher = rememberLauncherForActivityResult(
@@ -88,9 +95,13 @@ fun SettingsScreen(
     // Handle CSV import state changes
     LaunchedEffect(csvImportState) {
         when (csvImportState) {
+            is CsvImportState.Importing -> {
+                operationStatusMessage = "Importing CSV data... Please wait"
+            }
             is CsvImportState.Success -> {
                 val result = (csvImportState as CsvImportState.Success).result
                 lastImportResult = result
+                operationStatusMessage = "CSV import completed. ${result.imported} minerals imported"
 
                 // Show dialog with detailed results
                 showImportResultDialog = true
@@ -99,6 +110,7 @@ fun SettingsScreen(
             }
             is CsvImportState.Error -> {
                 val errorMessage = (csvImportState as CsvImportState.Error).message
+                operationStatusMessage = "CSV import failed: $errorMessage"
                 snackbarHostState.showSnackbar(
                     message = "CSV import failed: $errorMessage",
                     duration = SnackbarDuration.Long
@@ -112,7 +124,11 @@ fun SettingsScreen(
     // Handle export state changes
     LaunchedEffect(exportState) {
         when (exportState) {
+            is BackupExportState.Exporting -> {
+                operationStatusMessage = "Exporting backup... Please wait"
+            }
             is BackupExportState.Success -> {
+                operationStatusMessage = "Backup exported successfully"
                 snackbarHostState.showSnackbar(
                     message = "Backup exported successfully",
                     duration = SnackbarDuration.Short
@@ -132,6 +148,7 @@ fun SettingsScreen(
                         "No minerals to export. Add minerals first."
                     else -> "Export failed: $errorMessage"
                 }
+                operationStatusMessage = actionableMessage
                 val result = snackbarHostState.showSnackbar(
                     message = actionableMessage,
                     actionLabel = if (hasPermissionError) "Open Settings" else null,
@@ -154,9 +171,14 @@ fun SettingsScreen(
     // Handle import state changes
     LaunchedEffect(importState) {
         when (importState) {
+            is BackupImportState.Importing -> {
+                operationStatusMessage = "Importing backup... Please wait"
+            }
             is BackupImportState.Success -> {
+                val imported = (importState as BackupImportState.Success).imported
+                operationStatusMessage = "Backup imported successfully. $imported minerals restored"
                 snackbarHostState.showSnackbar(
-                    message = "Backup imported successfully. ${(importState as BackupImportState.Success).imported} minerals restored.",
+                    message = "Backup imported successfully. $imported minerals restored.",
                     duration = SnackbarDuration.Long
                 )
                 viewModel.resetImportState()
@@ -164,6 +186,7 @@ fun SettingsScreen(
                 decryptAttempts = 3
             }
             is BackupImportState.PasswordRequired -> {
+                operationStatusMessage = "Password required for encrypted backup"
                 // Show password dialog
                 showDecryptDialog = true
             }
@@ -184,6 +207,7 @@ fun SettingsScreen(
                         "Cannot read file. Grant storage access to import."
                     else -> "Import failed: $errorMessage"
                 }
+                operationStatusMessage = actionableMessage
                 val result = snackbarHostState.showSnackbar(
                     message = actionableMessage,
                     actionLabel = if (hasPermissionError) "Open Settings" else null,
@@ -219,13 +243,25 @@ fun SettingsScreen(
         }
     }
 
+    // Live region for operation status announcements (invisible)
+    if (operationStatusMessage.isNotEmpty()) {
+        Box(
+            modifier = Modifier
+                .size(0.dp)
+                .semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = operationStatusMessage
+                }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.cd_back))
                     }
                 }
             )
@@ -268,7 +304,7 @@ fun SettingsScreen(
                 title = "Import CSV",
                 subtitle = "Import minerals from CSV spreadsheet",
                 onClick = {
-                    csvImportLauncher.launch("text/csv")
+                    csvImportLauncher.launch("text/*")
                 }
             )
 
@@ -276,10 +312,20 @@ fun SettingsScreen(
 
             // Language
             SettingsItem(
-                title = "Language",
+                title = stringResource(R.string.settings_language),
                 subtitle = language.uppercase()
             ) {
-                viewModel.setLanguage(if (language == "en") "fr" else "en")
+                val newLanguage = if (language == "en") "fr" else "en"
+                viewModel.setLanguage(newLanguage)
+
+                // Also save to SharedPreferences for synchronous access
+                context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+                    .edit()
+                    .putString("language_sync", newLanguage)
+                    .apply()
+
+                // Recreate activity to apply new language
+                activity?.recreate()
             }
 
             HorizontalDivider()
@@ -289,16 +335,17 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { viewModel.setCopyPhotos(!copyPhotos) }
+                    .semantics(mergeDescendants = true) {}
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Copy photos to internal storage",
+                        text = stringResource(R.string.settings_copy_photos_title),
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = "Recommended for data safety",
+                        text = stringResource(R.string.settings_copy_photos_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -323,16 +370,17 @@ fun SettingsScreen(
                             viewModel.setEncryptByDefault(false)
                         }
                     }
+                    .semantics(mergeDescendants = true) {}
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Encrypt backups by default",
+                        text = stringResource(R.string.settings_encrypt_default_title),
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = "Protect all exported backups with encryption",
+                        text = stringResource(R.string.settings_encrypt_default_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -369,7 +417,7 @@ fun SettingsScreen(
             icon = {
                 Icon(
                     Icons.Default.Info,
-                    contentDescription = null,
+                    contentDescription = "About MineraLog",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(48.dp)
                 )
@@ -385,13 +433,13 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Version 1.8.0",
+                        text = stringResource(R.string.settings_about_version_number),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
 
                     Text(
-                        text = "A comprehensive mineral collection manager with advanced features:",
+                        text = stringResource(R.string.settings_about_description),
                         style = MaterialTheme.typography.bodyMedium
                     )
 
@@ -399,30 +447,30 @@ fun SettingsScreen(
                         modifier = Modifier.padding(start = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text("• 100% WCAG 2.1 AA Compliant", style = MaterialTheme.typography.bodySmall)
-                        Text("• Encrypted backup & restore", style = MaterialTheme.typography.bodySmall)
-                        Text("• CSV import/export", style = MaterialTheme.typography.bodySmall)
-                        Text("• QR label generation", style = MaterialTheme.typography.bodySmall)
-                        Text("• Advanced filtering & search", style = MaterialTheme.typography.bodySmall)
-                        Text("• Statistics & visualizations", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.settings_about_feature_wcag), style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.settings_about_feature_backup), style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.settings_about_feature_csv), style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.settings_about_feature_qr), style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.settings_about_feature_filter), style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.settings_about_feature_stats), style = MaterialTheme.typography.bodySmall)
                     }
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                     Text(
-                        text = "© 2025 MineraLog Contributors",
+                        text = stringResource(R.string.settings_about_copyright),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
-                        text = "Licensed under Apache License 2.0",
+                        text = stringResource(R.string.settings_about_license),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
-                        text = "Built with Jetpack Compose & Material 3",
+                        text = stringResource(R.string.settings_about_built_with),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -430,7 +478,7 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showAboutDialog = false }) {
-                    Text("Close")
+                    Text(stringResource(R.string.action_close))
                 }
             }
         )
@@ -446,7 +494,8 @@ fun SettingsScreen(
             onConfirm = { password ->
                 showEncryptDialog = false
                 pendingExportUri?.let { uri ->
-                    viewModel.exportBackup(uri, password.ifEmpty { null })
+                    // Pass CharArray directly; null if empty
+                    viewModel.exportBackup(uri, if (password.isEmpty()) null else password)
                 }
             }
         )
@@ -495,12 +544,12 @@ fun SettingsScreen(
                 )
             },
             title = {
-                Text("Enable Encryption by Default?")
+                Text(stringResource(R.string.settings_encrypt_warning_title))
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "When enabled, all exported backups will be encrypted with a password.",
+                        text = stringResource(R.string.settings_encrypt_warning_message),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Card(
@@ -513,7 +562,7 @@ fun SettingsScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "⚠️ Important: Password recovery is impossible. Store your passwords securely!",
+                                text = stringResource(R.string.settings_encrypt_warning_important),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer
                             )
@@ -528,12 +577,12 @@ fun SettingsScreen(
                         showEncryptWarningDialog = false
                     }
                 ) {
-                    Text("Enable")
+                    Text(stringResource(R.string.settings_encrypt_warning_enable))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEncryptWarningDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -567,7 +616,8 @@ fun SettingsActionItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     subtitle: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    iconDescription: String = title
 ) {
     ListItem(
         headlineContent = { Text(title) },
@@ -575,7 +625,7 @@ fun SettingsActionItem(
         leadingContent = {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
+                contentDescription = iconDescription,
                 tint = MaterialTheme.colorScheme.primary
             )
         },

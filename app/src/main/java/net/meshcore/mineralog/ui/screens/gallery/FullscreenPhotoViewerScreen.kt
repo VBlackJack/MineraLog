@@ -20,10 +20,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import net.meshcore.mineralog.MineraLogApplication
+import net.meshcore.mineralog.R
 import net.meshcore.mineralog.domain.model.Photo
 import java.io.File
 import java.text.SimpleDateFormat
@@ -100,7 +102,7 @@ fun FullscreenPhotoViewerScreen(
             if (photos.isEmpty()) {
                 // Empty state
                 Text(
-                    text = "No photos to display",
+                    text = stringResource(R.string.photo_viewer_no_photos),
                     modifier = Modifier.align(Alignment.Center),
                     color = Color.White,
                     style = MaterialTheme.typography.bodyLarge

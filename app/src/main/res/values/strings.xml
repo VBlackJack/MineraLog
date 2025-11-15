@@ -57,12 +57,28 @@
     <string name="home_search_placeholder">Search minerals…</string>
     <string name="home_empty_state">No minerals yet. Add your first one!</string>
     <string name="home_empty_search">No minerals found</string>
-    <string name="home_mineral_count">%d mineral</string>
-    <string name="home_mineral_count_plural">%d minerals</string>
+    <string name="home_empty_state_title">Your Collection is Empty</string>
+    <string name="home_empty_state_message">Start building your mineral collection by adding your first specimen</string>
+    <string name="home_empty_state_action">Tap the + button below to get started</string>
+    <string name="home_no_results_title">No Results Found</string>
+    <string name="home_no_results_message">No minerals match \"%s\"</string>
+    <string name="home_no_results_with_filters">with the current filters</string>
+    <string name="home_error_loading">Error loading minerals: %s</string>
+    <string name="home_error_loading_more">Error loading more: %s</string>
+    <string name="home_operation_in_progress">%s in progress...</string>
+    <string name="home_generating_labels">Generating labels...</string>
+    <plurals name="home_mineral_count">
+        <item quantity="one">%d mineral</item>
+        <item quantity="other">%d minerals</item>
+    </plurals>
 
     <!-- Add/Edit Mineral Screen -->
     <string name="add_mineral_title">Add Mineral</string>
     <string name="edit_mineral_title">Edit Mineral</string>
+    <string name="add_mineral_draft_saved">Draft saved</string>
+    <string name="add_mineral_required_field">* Required field</string>
+    <string name="add_mineral_photos_title">Photos</string>
+    <string name="add_mineral_photos_hint">Add photos from gallery or camera. Support for Normal, UV, and Macro photos.</string>
     <string name="field_name">Name *</string>
     <string name="field_name_hint">Enter mineral name</string>
     <string name="field_group">Group</string>
@@ -177,6 +193,8 @@
     <!-- Statistics Screen -->
     <string name="statistics_title">Statistics</string>
     <string name="statistics_overview">Overview</string>
+    <string name="chart_no_data">No data to display</string>
+    <string name="chart_and_more">... and %d more</string>
     <string name="statistics_time_based">Recent Activity</string>
     <string name="statistics_highlights">Highlights</string>
     <string name="statistics_by_group">Distribution by Group</string>
@@ -216,6 +234,17 @@
     <!-- Import/Export -->
     <string name="import_title">Import</string>
     <string name="export_title">Export</string>
+    <string name="import_result_title">Import Complete</string>
+    <string name="import_result_imported">✅ Imported:</string>
+    <string name="import_result_skipped">⚠️ Skipped:</string>
+    <string name="import_result_errors">❌ Errors:</string>
+    <string name="import_result_error_details">Error Details</string>
+    <string name="import_csv_analyzing">Analyzing CSV file…</string>
+    <string name="import_csv_skip_column_option">(Skip column)</string>
+    <string name="column_mapping_title">Map CSV Columns</string>
+    <string name="column_mapping_preview">Preview</string>
+    <string name="column_mapping_required">Required: You must map a column to \'Name\'</string>
+    <string name="export_csv_columns_selected">%1$d of %2$d columns selected</string>
     <string name="export_csv_title">Export to CSV</string>
     <string name="export_csv_subtitle">%d minerals selected</string>
     <string name="export_csv_select_columns">Select columns to export</string>
@@ -300,6 +329,12 @@
     <!-- Photo Gallery -->
     <string name="gallery_title">Photo Gallery</string>
     <string name="gallery_add">Add Photo</string>
+    <string name="photo_manager_no_photos_title">No photos yet</string>
+    <string name="photo_manager_no_photos_message">Add photos from gallery or camera</string>
+    <plurals name="photo_count">
+        <item quantity="one">%d photo</item>
+        <item quantity="other">%d photos</item>
+    </plurals>
     <string name="gallery_type">Photo Type</string>
     <string name="gallery_type_normal">Normal</string>
     <string name="gallery_type_uv">UV Light</string>
@@ -419,7 +454,292 @@
     <string name="bulk_action_delete">Delete Selected</string>
     <string name="bulk_action_export_csv">Export to CSV</string>
     <string name="bulk_action_export_csv_desc">Export selected minerals with customizable columns</string>
+    <string name="bulk_action_qr_labels">Generate QR Labels</string>
+    <string name="bulk_action_qr_labels_desc">Create printable PDF with QR codes</string>
     <string name="bulk_delete_confirm_title">Delete Minerals?</string>
     <string name="bulk_delete_confirm_message">This will permanently delete %d minerals and all associated photos.</string>
     <string name="delete">Delete</string>
+
+    <!-- Camera Capture Screen -->
+    <string name="camera_title">Take Photo</string>
+    <string name="camera_permission_required">Camera permission is required to take photos</string>
+    <string name="camera_grant_permission">Grant Permission</string>
+    <string name="camera_select_photo_type">Select photo type</string>
+    <string name="camera_photo_type_normal">Normal</string>
+    <string name="camera_photo_type_normal_desc">Standard photo</string>
+    <string name="camera_photo_type_uv_sw">UV Shortwave</string>
+    <string name="camera_photo_type_uv_sw_desc">Shortwave UV fluorescence</string>
+    <string name="camera_photo_type_uv_lw">UV Longwave</string>
+    <string name="camera_photo_type_uv_lw_desc">Longwave UV fluorescence</string>
+    <string name="camera_photo_type_macro">Macro</string>
+    <string name="camera_photo_type_macro_desc">Close-up macro shot</string>
+    <string name="camera_photo_type_selected">Selected</string>
+    <string name="camera_enable_flash">Enable flash</string>
+    <string name="camera_disable_flash">Disable flash</string>
+    <string name="camera_preview_ready">Camera preview. Ready to capture %s photo</string>
+    <string name="camera_capturing">Capturing photo, please wait</string>
+    <string name="camera_capture_photo">Capture photo</string>
+    <string name="camera_photo_type_changed">Photo type changed to %s</string>
+    <string name="camera_capturing_status">Capturing photo...</string>
+    <string name="camera_capture_success">Photo captured successfully</string>
+    <string name="camera_capture_failed">Photo capture failed. Please try again</string>
+
+    <!-- Photo Gallery -->
+    <string name="gallery_title_with_count">Photos (%d)</string>
+    <string name="gallery_no_photos">No photos yet</string>
+    <string name="gallery_take_first_photo">Take your first photo using the camera button above</string>
+    <string name="gallery_button_take_photo">Take Photo</string>
+    <string name="gallery_delete_dialog_title">Delete Photo</string>
+    <string name="gallery_delete_dialog_message">Are you sure you want to delete this photo? This action cannot be undone.</string>
+
+    <!-- Edit/Add Mineral Common -->
+    <string name="dialog_discard_title">Discard changes?</string>
+    <string name="dialog_discard_message">You have unsaved changes. Are you sure you want to discard them?</string>
+    <string name="button_discard">Discard</string>
+    <string name="field_required_legend">* Required field</string>
+    <string name="error_name_required">Name is required</string>
+    <string name="error_name_required_detail">Name is required. This field cannot be empty.</string>
+    <string name="section_technical_properties">Technical Properties</string>
+    <string name="section_technical_properties_hint">Select from predefined values or enter custom. Tap ⓘ for explanations.</string>
+    <string name="section_tags_organization">Tags &amp; Organization</string>
+    <string name="section_tags_hint">Add tags separated by commas. Autocomplete suggestions will appear as you type.</string>
+    <string name="field_tags_placeholder">e.g., collection, rare, beautiful</string>
+    <string name="field_tags_supporting">Separate multiple tags with commas</string>
+    <string name="field_tags_description">Tags field. Enter comma-separated tags. Autocomplete suggestions available.</string>
+    <string name="tag_suggestions_available">%d tag suggestions available</string>
+    <string name="tag_select">Select tag: %s</string>
+    <string name="section_photos">Photos</string>
+    <string name="section_photos_hint">Add photos from gallery or camera. Support for Normal, UV, and Macro photos.</string>
+    <string name="field_diaphaneity_label">Diaphaneity</string>
+    <string name="field_diaphaneity_placeholder">Select transparency level</string>
+    <string name="field_cleavage_label">Cleavage</string>
+    <string name="field_cleavage_placeholder">Select cleavage quality</string>
+    <string name="field_fracture_label">Fracture</string>
+    <string name="field_fracture_placeholder">Select fracture type</string>
+    <string name="field_luster_label">Luster</string>
+    <string name="field_luster_placeholder">Select luster type</string>
+    <string name="field_streak_label">Streak</string>
+    <string name="field_streak_placeholder">Select streak color</string>
+    <string name="field_habit_label">Habit</string>
+    <string name="field_habit_placeholder">Select crystal habit</string>
+    <string name="field_crystal_system_label">Crystal System</string>
+    <string name="field_crystal_system_placeholder">Select crystal system</string>
+    <string name="draft_saved">Draft saved</string>
+
+    <!-- Mineral Detail Screen -->
+    <string name="detail_loading_message">Loading mineral details...</string>
+    <string name="detail_photos_count">Photos (%d)</string>
+    <string name="detail_menu_properties">Properties</string>
+    <string name="detail_menu_edit_external">Edit with external app</string>
+    <string name="detail_menu_delete">Delete</string>
+    <string name="detail_photo_properties_title">Photo Properties</string>
+    <string name="detail_photo_property_type">Type</string>
+    <string name="detail_photo_property_filename">File name</string>
+    <string name="detail_photo_property_size">Size</string>
+    <string name="detail_photo_property_caption">Caption</string>
+    <string name="detail_delete_photo_title">Delete Photo?</string>
+    <string name="detail_delete_photo_message">Are you sure you want to delete this photo? This action cannot be undone.</string>
+    <string name="detail_section_basic_info">Basic Information</string>
+    <string name="detail_section_physical_props">Physical Properties</string>
+    <string name="detail_section_special_props">Special Properties</string>
+    <string name="detail_section_measurements_title">Measurements</string>
+    <string name="detail_section_provenance_title">Provenance</string>
+    <string name="detail_section_storage_title">Storage Location</string>
+    <string name="detail_section_notes_title">Notes</string>
+    <string name="detail_property_group">Group</string>
+    <string name="detail_property_formula">Formula</string>
+    <string name="detail_property_crystal_system">Crystal System</string>
+    <string name="detail_property_mohs_hardness">Mohs Hardness</string>
+    <string name="detail_property_luster">Luster</string>
+    <string name="detail_property_streak">Streak</string>
+    <string name="detail_property_cleavage">Cleavage</string>
+    <string name="detail_property_fracture">Fracture</string>
+    <string name="detail_property_diaphaneity">Diaphaneity</string>
+    <string name="detail_property_habit">Habit</string>
+    <string name="detail_property_specific_gravity">Specific Gravity</string>
+    <string name="detail_property_fluorescence">Fluorescence</string>
+    <string name="detail_property_magnetic">Magnetic</string>
+    <string name="detail_property_magnetic_yes">Yes</string>
+    <string name="detail_property_radioactive">Radioactive</string>
+    <string name="detail_property_radioactive_yes">Yes</string>
+    <string name="detail_property_dimensions">Dimensions</string>
+    <string name="detail_property_dimensions_mm">%s mm</string>
+    <string name="detail_property_weight">Weight</string>
+    <string name="detail_property_weight_g">%s g</string>
+    <string name="detail_property_country">Country</string>
+    <string name="detail_property_locality">Locality</string>
+    <string name="detail_property_site">Site</string>
+    <string name="detail_property_source">Source</string>
+    <string name="detail_property_acquired">Acquired</string>
+    <string name="detail_property_place">Place</string>
+    <string name="detail_property_container">Container</string>
+    <string name="detail_property_box">Box</string>
+    <string name="detail_property_slot">Slot</string>
+    <string name="toast_no_photo_editor">No photo editor found</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_export_subtitle">Export all data with encryption</string>
+    <string name="settings_import_subtitle">Restore from encrypted backup (ZIP)</string>
+    <string name="settings_import_csv_title">Import CSV</string>
+    <string name="settings_import_csv_subtitle">Import minerals from CSV spreadsheet</string>
+    <string name="settings_copy_photos_title">Copy photos to internal storage</string>
+    <string name="settings_copy_photos_subtitle">Recommended for data safety</string>
+    <string name="settings_encrypt_default_title">Encrypt backups by default</string>
+    <string name="settings_encrypt_default_subtitle">Protect all exported backups with encryption</string>
+    <string name="settings_about_title">About</string>
+    <string name="settings_about_version">MineraLog v1.8.0</string>
+    <string name="settings_about_dialog_title">MineraLog</string>
+    <string name="settings_about_version_number">Version 1.8.0</string>
+    <string name="settings_about_description">A comprehensive mineral collection manager with advanced features:</string>
+    <string name="settings_about_feature_wcag">• 100% WCAG 2.1 AA Compliant</string>
+    <string name="settings_about_feature_backup">• Encrypted backup &amp; restore</string>
+    <string name="settings_about_feature_csv">• CSV import/export</string>
+    <string name="settings_about_feature_qr">• QR label generation</string>
+    <string name="settings_about_feature_filter">• Advanced filtering &amp; search</string>
+    <string name="settings_about_feature_stats">• Statistics &amp; visualizations</string>
+    <string name="settings_about_copyright">© 2025 MineraLog Contributors</string>
+    <string name="settings_about_license">Licensed under Apache License 2.0</string>
+    <string name="settings_about_built_with">Built with Jetpack Compose &amp; Material 3</string>
+    <string name="settings_encrypt_warning_title">Enable Encryption by Default?</string>
+    <string name="settings_encrypt_warning_message">When enabled, all exported backups will be encrypted with a password.</string>
+    <string name="settings_encrypt_warning_important">⚠️ Important: Password recovery is impossible. Store your passwords securely!</string>
+    <string name="settings_encrypt_warning_enable">Enable</string>
+
+    <!-- QR Scanner Screen -->
+    <string name="qr_scanner_title">Scan QR Code</string>
+    <string name="qr_scanner_permission_required">Camera permission is required to scan QR codes</string>
+    <string name="qr_scanner_grant_permission">Grant Permission</string>
+    <string name="qr_scanner_align_instruction">Align QR code within frame</string>
+    <string name="qr_scanner_detected">QR Code Detected</string>
+
+    <!-- Sort -->
+    <string name="sort_title">Sort By</string>
+    <string name="sort_description">Choose how to order your collection</string>
+
+    <!-- Tags -->
+    <string name="tags_title">Tags</string>
+    <string name="tags_empty">No tags yet. Add tags below.</string>
+    <string name="tags_hint">Separate multiple tags with commas or add them one at a time</string>
+
+    <!-- Photo Viewer -->
+    <string name="photo_viewer_count">%1$d / %2$d</string>
+    <string name="photo_viewer_zoom">%d%%</string>
+    <string name="photo_viewer_no_photos">No photos to display</string>
+
+    <!-- Password Dialogs -->
+    <string name="password_dialog_encrypted_title">Encrypted Backup</string>
+    <string name="password_dialog_encrypted_message">This backup is encrypted. Enter the password to decrypt and restore.</string>
+    <string name="password_dialog_encrypt_description">Protect your backup with encryption using Argon2id + AES-256-GCM.</string>
+    <string name="password_dialog_strength">Strength:</string>
+    <string name="password_dialog_warning">Your backup will be encrypted and can only be restored with this password.</string>
+
+    <!-- Bulk Actions -->
+    <string name="bulk_actions_selected_item">• %s</string>
+    <string name="bulk_actions_more_items">• and %d more...</string>
+
+    <!-- Home Screen -->
+    <string name="home_selection_count">%d selected</string>
+    <string name="home_exit_selection">Exit selection</string>
+    <string name="home_select_all">Select all</string>
+    <string name="home_actions">Actions</string>
+    <string name="home_scan_qr">Scan QR code</string>
+    <string name="home_bulk_edit">Bulk edit</string>
+    <string name="home_statistics">Statistics</string>
+    <string name="home_search_placeholder_text">Search minerals...</string>
+    <string name="home_clear_search">Clear search</string>
+    <string name="home_clear_search_button">Clear Search</string>
+    <string name="home_clear_filters_button">Clear Filters</string>
+
+    <!-- Password Dialogs -->
+    <string name="password_min_length">Password must be at least 8 characters</string>
+    <string name="password_mismatch">Passwords do not match</string>
+    <string name="password_encrypt_export">Encrypt &amp; Export</string>
+    <string name="password_decrypt_import">Decrypt &amp; Import</string>
+    <string name="password_label">Password</string>
+
+    <!-- Filter -->
+    <string name="filter_active_badge">%d %s</string>
+
+    <!-- Statistics -->
+    <string name="statistics_retry">Retry</string>
+
+    <!-- Dropdown field values for technical properties -->
+    <string-array name="crystal_systems">
+        <item>Cubic</item>
+        <item>Hexagonal</item>
+        <item>Tetragonal</item>
+        <item>Orthorhombic</item>
+        <item>Monoclinic</item>
+        <item>Triclinic</item>
+        <item>Trigonal</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="luster_types">
+        <item>Metallic</item>
+        <item>Vitreous (Glassy)</item>
+        <item>Pearly</item>
+        <item>Silky</item>
+        <item>Resinous</item>
+        <item>Adamantine</item>
+        <item>Greasy</item>
+        <item>Dull/Earthy</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="diaphaneity_types">
+        <item>Transparent</item>
+        <item>Translucent</item>
+        <item>Opaque</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="cleavage_types">
+        <item>Perfect</item>
+        <item>Good</item>
+        <item>Distinct</item>
+        <item>Poor</item>
+        <item>None</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="fracture_types">
+        <item>Conchoidal</item>
+        <item>Uneven</item>
+        <item>Splintery</item>
+        <item>Hackly</item>
+        <item>Fibrous</item>
+        <item>Brittle</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="habit_types">
+        <item>Prismatic</item>
+        <item>Tabular</item>
+        <item>Massive</item>
+        <item>Granular</item>
+        <item>Fibrous</item>
+        <item>Acicular (Needle-like)</item>
+        <item>Bladed</item>
+        <item>Dendritic</item>
+        <item>Botryoidal</item>
+        <item>Stalactitic</item>
+        <item>Cubic</item>
+        <item>Octahedral</item>
+        <item>Dodecahedral</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="streak_colors">
+        <item>White</item>
+        <item>Black</item>
+        <item>Gray</item>
+        <item>Red</item>
+        <item>Brown</item>
+        <item>Yellow</item>
+        <item>Green</item>
+        <item>Blue</item>
+        <item>Colorless</item>
+        <item>Other</item>
+    </string-array>
 </resources>

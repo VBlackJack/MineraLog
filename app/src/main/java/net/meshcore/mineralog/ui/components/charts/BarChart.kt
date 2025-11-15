@@ -11,6 +11,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.max
+import net.meshcore.mineralog.R
 
 /**
  * Simple bar chart component using Compose Canvas.
@@ -41,7 +43,7 @@ fun BarChart(
     if (data.isEmpty()) {
         Box(modifier = modifier) {
             Text(
-                text = "No data to display",
+                text = stringResource(R.string.chart_no_data),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -127,7 +129,7 @@ fun BarChart(
         // Show "and N more" if data was truncated
         if (data.size > maxBars) {
             Text(
-                text = "... and ${data.size - maxBars} more",
+                text = stringResource(R.string.chart_and_more, data.size - maxBars),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp)

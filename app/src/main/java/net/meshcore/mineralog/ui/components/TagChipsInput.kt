@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
@@ -18,6 +19,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow as ComposeFlowRow
+import net.meshcore.mineralog.R
 
 /**
  * Quick Win #9: Interactive tag chips with visual feedback
@@ -42,7 +44,7 @@ fun TagChipsInput(
 
     Column(modifier = modifier) {
         Text(
-            text = "Tags",
+            text = stringResource(R.string.tags_title),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -89,7 +91,7 @@ fun TagChipsInput(
             }
         } else {
             Text(
-                text = "No tags yet. Add tags below.",
+                text = stringResource(R.string.tags_empty),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -193,7 +195,7 @@ fun TagChipsInput(
         }
 
         Text(
-            text = "Separate multiple tags with commas or add them one at a time",
+            text = stringResource(R.string.tags_hint),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp)

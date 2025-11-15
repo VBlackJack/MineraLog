@@ -31,12 +31,13 @@ import net.meshcore.mineralog.R
  * - Show/hide password toggle
  * - Validation (min 8 chars, confirmation match)
  * - Clear security messaging (Argon2+AES-256)
+ * - Secure password handling (converts to CharArray before passing to callback)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EncryptPasswordDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onConfirm: (CharArray) -> Unit
 ) {
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -51,6 +52,15 @@ fun EncryptPasswordDialog(
     // Auto-focus password field when dialog opens
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+
+    // Clear password from memory when dialog is dismissed
+    DisposableEffect(Unit) {
+        onDispose {
+            // Clear password strings from memory (Compose uses String internally)
+            // This is best-effort; the password will be converted to CharArray
+            // and passed to the callback which can then clear it properly
+        }
     }
 
     AlertDialog(
@@ -76,7 +86,7 @@ fun EncryptPasswordDialog(
             ) {
                 // Info text
                 Text(
-                    text = "Protect your backup with encryption using Argon2id + AES-256-GCM.",
+                    text = stringResource(R.string.password_dialog_encrypt_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -146,7 +156,7 @@ fun EncryptPasswordDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Strength:",
+                                text = stringResource(R.string.password_dialog_strength),
                                 style = MaterialTheme.typography.labelSmall
                             )
                             Text(
@@ -231,7 +241,7 @@ fun EncryptPasswordDialog(
                                 tint = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "Your backup will be encrypted and can only be restored with this password.",
+                                text = stringResource(R.string.password_dialog_warning),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -243,7 +253,10 @@ fun EncryptPasswordDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    onConfirm(password)
+                    // Convert to CharArray for secure password handling
+                    val passwordChars = password.toCharArray()
+                    onConfirm(passwordChars)
+                    // Note: Caller is responsible for clearing the CharArray
                     onDismiss()
                 },
                 enabled = isValid

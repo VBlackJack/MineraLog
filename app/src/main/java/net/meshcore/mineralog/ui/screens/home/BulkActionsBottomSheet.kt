@@ -202,14 +202,14 @@ fun BulkActionsBottomSheet(
                         val displayNames = selectedMineralNames.take(5)
                         displayNames.forEach { name ->
                             Text(
-                                text = "• $name",
+                                text = stringResource(R.string.bulk_actions_selected_item, name),
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.padding(start = 8.dp, top = 2.dp)
                             )
                         }
                         if (selectedMineralNames.size > 5) {
                             Text(
-                                text = "• and ${selectedMineralNames.size - 5} more...",
+                                text = stringResource(R.string.bulk_actions_more_items, selectedMineralNames.size - 5),
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.padding(start = 8.dp, top = 2.dp),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant

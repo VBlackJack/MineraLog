@@ -8,9 +8,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import net.meshcore.mineralog.R
 
 /**
  * Quick Win #7: Bottom sheet for sorting mineral list
@@ -42,11 +44,11 @@ fun SortBottomSheet(
             ) {
                 Column {
                     Text(
-                        text = "Sort By",
+                        text = stringResource(R.string.sort_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                     Text(
-                        text = "Choose how to order your collection",
+                        text = stringResource(R.string.sort_description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

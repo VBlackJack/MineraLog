@@ -53,6 +53,11 @@ fun HomeScreen(
         )
     )
 ) {
+    // BUGFIX: Refresh list when returning to HomeScreen to show newly created/edited minerals
+    LaunchedEffect(Unit) {
+        viewModel.refreshMineralsList()
+    }
+
     // Use paged minerals for efficient loading of large datasets (v1.5.0)
     val mineralsPaged = viewModel.mineralsPaged.collectAsLazyPagingItems()
     // Keep non-paged minerals for bulk operations
@@ -205,7 +210,7 @@ fun HomeScreen(
             if (selectionMode) {
                 // Selection mode top bar
                 TopAppBar(
-                    title = { Text("$selectionCount selected") },
+                    title = { Text(stringResource(R.string.home_selection_count, selectionCount)) },
                     navigationIcon = {
                         IconButton(onClick = { viewModel.exitSelectionMode() }) {
                             Icon(Icons.Default.Close, contentDescription = "Exit selection")
@@ -227,15 +232,11 @@ fun HomeScreen(
             } else {
                 // Normal top bar
                 TopAppBar(
-                    title = { Text("MineraLog") },
+                    title = { Text(stringResource(R.string.home_title)) },
                     actions = {
                         // QR Scanner button
                         IconButton(onClick = onQrScanClick) {
                             Icon(Icons.Default.QrCodeScanner, contentDescription = "Scan QR code")
-                        }
-                        // Import CSV button
-                        IconButton(onClick = { csvImportLauncher.launch("text/*") }) {
-                            Icon(Icons.Default.CloudUpload, contentDescription = stringResource(R.string.action_import_csv))
                         }
                         // Bulk edit button
                         IconButton(onClick = { viewModel.enterSelectionMode() }) {
@@ -274,7 +275,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                placeholder = { Text("Search minerals...") },
+                placeholder = { Text(stringResource(R.string.home_search_placeholder_text)) },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = "Search")
                 },
@@ -383,7 +384,7 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "$operationName in progress...",
+                                text = stringResource(R.string.home_operation_in_progress, operationName),
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
@@ -438,7 +439,7 @@ fun HomeScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Error loading minerals: ${error.localizedMessage}",
+                                    text = stringResource(R.string.home_error_loading, error.localizedMessage ?: ""),
                                     color = MaterialTheme.colorScheme.error
                                 )
                             }
@@ -472,14 +473,14 @@ fun HomeScreen(
                                             )
                                             Spacer(modifier = Modifier.height(16.dp))
                                             Text(
-                                                text = "No Results Found",
+                                                text = stringResource(R.string.home_no_results_title),
                                                 style = MaterialTheme.typography.headlineSmall,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
                                             Spacer(modifier = Modifier.height(8.dp))
                                             if (searchQuery.isNotEmpty()) {
                                                 Text(
-                                                    text = "No minerals match \"$searchQuery\"",
+                                                    text = stringResource(R.string.home_no_results_message, searchQuery),
                                                     style = MaterialTheme.typography.bodyMedium,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -487,7 +488,7 @@ fun HomeScreen(
                                             }
                                             if (isFilterActive) {
                                                 Text(
-                                                    text = "with the current filters",
+                                                    text = stringResource(R.string.home_no_results_with_filters),
                                                     style = MaterialTheme.typography.bodySmall,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -507,7 +508,7 @@ fun HomeScreen(
                                                             modifier = Modifier.size(18.dp)
                                                         )
                                                         Spacer(modifier = Modifier.width(4.dp))
-                                                        Text("Clear Search")
+                                                        Text(stringResource(R.string.home_clear_search_button))
                                                     }
                                                 }
                                                 if (isFilterActive) {
@@ -520,7 +521,7 @@ fun HomeScreen(
                                                             modifier = Modifier.size(18.dp)
                                                         )
                                                         Spacer(modifier = Modifier.width(4.dp))
-                                                        Text("Clear Filters")
+                                                        Text(stringResource(R.string.home_clear_filters_button))
                                                     }
                                                 }
                                             }
@@ -546,20 +547,20 @@ fun HomeScreen(
                                             )
                                             Spacer(modifier = Modifier.height(16.dp))
                                             Text(
-                                                text = "Your Collection is Empty",
+                                                text = stringResource(R.string.home_empty_state_title),
                                                 style = MaterialTheme.typography.headlineSmall,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
                                             Spacer(modifier = Modifier.height(8.dp))
                                             Text(
-                                                text = "Start building your mineral collection by adding your first specimen",
+                                                text = stringResource(R.string.home_empty_state_message),
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                             )
                                             Spacer(modifier = Modifier.height(24.dp))
                                             Text(
-                                                text = "Tap the + button below to get started",
+                                                text = stringResource(R.string.home_empty_state_action),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.primary
                                             )
@@ -619,7 +620,7 @@ fun HomeScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Error loading more: ${error.localizedMessage}",
+                                    text = stringResource(R.string.home_error_loading_more, error.localizedMessage ?: ""),
                                     color = MaterialTheme.colorScheme.error,
                                     style = MaterialTheme.typography.bodySmall
                                 )
@@ -780,7 +781,7 @@ fun HomeScreen(
             ) {
                 CircularProgressIndicator()
                 Text(
-                    text = "Generating labels...",
+                    text = stringResource(R.string.home_generating_labels),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )

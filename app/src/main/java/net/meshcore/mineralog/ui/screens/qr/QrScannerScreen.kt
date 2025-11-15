@@ -23,11 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.BarcodeScanning
+import net.meshcore.mineralog.R
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
@@ -75,7 +77,7 @@ fun QrScannerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Scan QR Code") },
+                title = { Text(stringResource(R.string.qr_scanner_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -111,7 +113,7 @@ fun QrScannerScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "Camera permission is required to scan QR codes",
+                            text = stringResource(R.string.qr_scanner_permission_required),
                             style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurface
@@ -120,7 +122,7 @@ fun QrScannerScreen(
                         Button(onClick = {
                             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                         }) {
-                            Text("Grant Permission")
+                            Text(stringResource(R.string.qr_scanner_grant_permission))
                         }
                     }
                 }
@@ -139,17 +141,19 @@ fun QrScannerScreen(
                                 if (mineralId != null) {
                                     onQrCodeScanned(mineralId)
                                 }
-
-                                // Reset scan after 2 seconds
-                                kotlinx.coroutines.GlobalScope.launch {
-                                    kotlinx.coroutines.delay(2000)
-                                    scanInProgress = false
-                                    scannedText = null
-                                }
                             }
                         },
                         modifier = Modifier.fillMaxSize()
                     )
+
+                    // Reset scan after 2 seconds
+                    LaunchedEffect(scannedText) {
+                        if (scannedText != null) {
+                            kotlinx.coroutines.delay(2000)
+                            scanInProgress = false
+                            scannedText = null
+                        }
+                    }
 
                     // Scanning frame overlay
                     ScannerOverlay(
@@ -171,7 +175,7 @@ fun QrScannerScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "QR Code Detected",
+                                    text = stringResource(R.string.qr_scanner_detected),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
@@ -374,7 +378,7 @@ fun ScannerOverlay(
 
         // Instruction text
         Text(
-            text = "Align QR code within frame",
+            text = stringResource(R.string.qr_scanner_align_instruction),
             style = MaterialTheme.typography.bodyMedium,
             color = Color.White,
             modifier = Modifier

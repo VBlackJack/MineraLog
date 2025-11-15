@@ -93,16 +93,14 @@ class SettingsViewModel(
 
     /**
      * Export full backup to ZIP with optional encryption.
-     * FIXME: UI should use CharArray for password to improve security
+     * Uses CharArray for password to prevent it from lingering in memory.
      */
-    fun exportBackup(uri: Uri, password: String?) {
+    fun exportBackup(uri: Uri, password: CharArray?) {
         viewModelScope.launch {
             _exportState.value = BackupExportState.Exporting
 
-            // Convert String to CharArray for secure password handling
-            val passwordChars = password?.toCharArray()
             try {
-                val result = backupRepository.exportZip(uri, passwordChars)
+                val result = backupRepository.exportZip(uri, password)
 
                 _exportState.value = result.fold(
                     onSuccess = { BackupExportState.Success },
@@ -110,23 +108,21 @@ class SettingsViewModel(
                 )
             } finally {
                 // Clear password from memory
-                passwordChars?.fill('\u0000')
+                password?.fill('\u0000')
             }
         }
     }
 
     /**
      * Import full backup from ZIP. If encrypted, caller must provide password.
-     * FIXME: UI should use CharArray for password to improve security
+     * Uses CharArray for password to prevent it from lingering in memory.
      */
-    fun importBackup(uri: Uri, password: String? = null) {
+    fun importBackup(uri: Uri, password: CharArray? = null) {
         viewModelScope.launch {
             _importState.value = BackupImportState.Importing
 
-            // Convert String to CharArray for secure password handling
-            val passwordChars = password?.toCharArray()
             try {
-                val result = backupRepository.importZip(uri, passwordChars, ImportMode.REPLACE)
+                val result = backupRepository.importZip(uri, password, ImportMode.REPLACE)
 
                 _importState.value = result.fold(
                     onSuccess = { importResult ->
@@ -143,7 +139,7 @@ class SettingsViewModel(
                 )
             } finally {
                 // Clear password from memory
-                passwordChars?.fill('\u0000')
+                password?.fill('\u0000')
             }
         }
     }

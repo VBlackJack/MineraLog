@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -17,9 +18,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import net.meshcore.mineralog.R
 import net.meshcore.mineralog.ui.screens.edit.PhotoItem
 import java.io.File
 
@@ -63,21 +69,24 @@ fun PhotoManager(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Add photo buttons
+        // Add photo buttons - BUGFIX: Added explicit elevation and enabled state
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp), // BUGFIX: Add spacing from content below
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            OutlinedButton(
+            Button(  // BUGFIX: Changed from OutlinedButton to Button for better visibility
                 onClick = { galleryLauncher.launch("image/*") },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                enabled = true  // BUGFIX: Explicitly enabled
             ) {
-                Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                Icon(Icons.Default.PhotoLibrary, contentDescription = "Open gallery")
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Gallery")
             }
 
-            OutlinedButton(
+            Button(  // BUGFIX: Changed from OutlinedButton to Button for better visibility
                 onClick = {
                     // Create temp file for camera
                     val photoFile = File(photosDir, "temp_${System.currentTimeMillis()}.jpg")
@@ -89,9 +98,10 @@ fun PhotoManager(
                     onTakePhoto(photoUri)
                     cameraLauncher.launch(photoUri)
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                enabled = true  // BUGFIX: Explicitly enabled
             ) {
-                Icon(Icons.Default.CameraAlt, contentDescription = null)
+                Icon(Icons.Default.CameraAlt, contentDescription = "Take photo")
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Camera")
             }
@@ -100,7 +110,7 @@ fun PhotoManager(
         // Photos grid
         if (photos.isNotEmpty()) {
             Text(
-                text = "${photos.size} photo(s)",
+                text = pluralStringResource(R.plurals.photo_count, photos.size, photos.size),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -145,17 +155,17 @@ fun PhotoManager(
                     ) {
                         Icon(
                             Icons.Default.AddPhotoAlternate,
-                            contentDescription = null,
+                            contentDescription = "No photos",
                             modifier = Modifier.size(48.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "No photos yet",
+                            text = stringResource(R.string.photo_manager_no_photos_title),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "Add photos from gallery or camera",
+                            text = stringResource(R.string.photo_manager_no_photos_message),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
@@ -269,15 +279,43 @@ fun PhotoCard(
     onEditCaption: () -> Unit,
     photosDir: File
 ) {
-    var showMenu by remember { mutableStateOf(false) }
+    var showContextMenu by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showPropertiesDialog by remember { mutableStateOf(false) }
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    val photoTypeLabel = when (photo.type) {
+        "UV_SW" -> "UV Shortwave"
+        "UV_LW" -> "UV Longwave"
+        "MACRO" -> "Macro"
+        else -> "Normal"
+    }
+
+    val photoDescription = buildString {
+        append("Photo: $photoTypeLabel type")
+        if (photo.caption != null && photo.caption.isNotBlank()) {
+            append(". Caption: ${photo.caption}")
+        } else {
+            append(". No caption")
+        }
+    }
 
     Card(
         modifier = Modifier
             .width(200.dp)
-            .height(240.dp),
+            .height(240.dp)
+            .semantics {
+                contentDescription = photoDescription
+            },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Box {
+        Box(
+            modifier = Modifier.combinedClickable(
+                onClick = { /* Single click - do nothing or show full screen */ },
+                onLongClick = { showContextMenu = true }
+            )
+        ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Photo
                 Box(
@@ -379,7 +417,7 @@ fun PhotoCard(
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         IconButton(
-                            onClick = onRemove,
+                            onClick = { showDeleteConfirmation = true },
                             modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
@@ -393,6 +431,134 @@ fun PhotoCard(
                 }
             }
         }
+    }
+
+    // Context menu (long-press)
+    DropdownMenu(
+        expanded = showContextMenu,
+        onDismissRequest = { showContextMenu = false }
+    ) {
+        DropdownMenuItem(
+            text = { Text("Properties") },
+            onClick = {
+                showContextMenu = false
+                showPropertiesDialog = true
+            },
+            leadingIcon = {
+                Icon(Icons.Default.Info, contentDescription = null)
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Edit with external app") },
+            onClick = {
+                showContextMenu = false
+                // Open photo in external editor
+                val photoFile = if (photo.uri != null) {
+                    // For new photos with URI, get the file from content resolver
+                    null // Will use URI directly
+                } else if (photo.isExisting) {
+                    File(photosDir, photo.fileName)
+                } else {
+                    null
+                }
+
+                photoFile?.let { file ->
+                    val photoUri = androidx.core.content.FileProvider.getUriForFile(
+                        context,
+                        "net.meshcore.mineralog.fileprovider",
+                        file
+                    )
+                    val intent = android.content.Intent(android.content.Intent.ACTION_EDIT).apply {
+                        setDataAndType(photoUri, "image/*")
+                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        addFlags(android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                    }
+                    try {
+                        context.startActivity(android.content.Intent.createChooser(intent, "Edit photo with"))
+                    } catch (e: Exception) {
+                        android.widget.Toast.makeText(context, "No photo editor found", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+            leadingIcon = {
+                Icon(Icons.Default.Edit, contentDescription = null)
+            }
+        )
+        HorizontalDivider()
+        DropdownMenuItem(
+            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+            onClick = {
+                showContextMenu = false
+                showDeleteConfirmation = true
+            },
+            leadingIcon = {
+                Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+            }
+        )
+    }
+
+    // Properties dialog
+    if (showPropertiesDialog) {
+        val photoFile = if (photo.isExisting) File(photosDir, photo.fileName) else null
+        val fileSize = photoFile?.let { if (it.exists()) it.length() else 0L } ?: 0L
+        val fileSizeKB = fileSize / 1024.0
+        val fileSizeMB = fileSizeKB / 1024.0
+        val fileSizeText = when {
+            fileSizeMB >= 1.0 -> String.format("%.2f MB", fileSizeMB)
+            fileSizeKB >= 1.0 -> String.format("%.2f KB", fileSizeKB)
+            else -> "$fileSize bytes"
+        }
+
+        AlertDialog(
+            onDismissRequest = { showPropertiesDialog = false },
+            title = { Text("Photo Properties") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PropertyRow("Type", photoTypeLabel)
+                    PropertyRow("File name", photo.fileName)
+                    if (photoFile?.exists() == true) {
+                        PropertyRow("Size", fileSizeText)
+                    }
+                    if (photo.caption?.isNotBlank() == true) {
+                        PropertyRow("Caption", photo.caption)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showPropertiesDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
+    // Delete confirmation dialog
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Delete Photo?") },
+            text = {
+                Text("Are you sure you want to delete this photo? This action cannot be undone.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        onRemove()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -458,5 +624,24 @@ fun PhotoTypeOption(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun PropertyRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

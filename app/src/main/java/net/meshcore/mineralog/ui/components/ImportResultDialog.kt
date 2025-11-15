@@ -16,8 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import net.meshcore.mineralog.R
 import net.meshcore.mineralog.data.repository.ImportResult
 
 /**
@@ -59,7 +61,7 @@ fun ImportResultDialog(
         },
         title = {
             Text(
-                text = "Import Complete",
+                text = stringResource(R.string.import_result_title),
                 style = MaterialTheme.typography.headlineSmall
             )
         },
@@ -90,7 +92,7 @@ fun ImportResultDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "✅ Imported:",
+                                text = stringResource(R.string.import_result_imported),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -109,7 +111,7 @@ fun ImportResultDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "⚠️ Skipped:",
+                                    text = stringResource(R.string.import_result_skipped),
                                     style = MaterialTheme.typography.titleMedium
                                 )
                                 Text(
@@ -127,7 +129,7 @@ fun ImportResultDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "❌ Errors:",
+                                    text = stringResource(R.string.import_result_errors),
                                     style = MaterialTheme.typography.titleMedium
                                 )
                                 Text(
@@ -145,7 +147,7 @@ fun ImportResultDialog(
                     HorizontalDivider()
 
                     Text(
-                        text = "Error Details",
+                        text = stringResource(R.string.import_result_error_details),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.error
@@ -186,9 +188,10 @@ fun ImportResultDialog(
                                 item {
                                     Text(
                                         text = "... and ${result.errors.size - 100} more errors (click Copy to see all)",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onErrorContainer,
-                                        fontWeight = FontWeight.Italic
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                        ),
+                                        color = MaterialTheme.colorScheme.onErrorContainer
                                     )
                                 }
                             }

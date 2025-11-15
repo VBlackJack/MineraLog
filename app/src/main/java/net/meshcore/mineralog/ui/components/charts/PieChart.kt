@@ -10,6 +10,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
+import net.meshcore.mineralog.R
 
 /**
  * Simple pie chart component using Compose Canvas.
@@ -39,7 +41,7 @@ fun PieChart(
     if (data.isEmpty()) {
         Box(modifier = modifier) {
             Text(
-                text = "No data to display",
+                text = stringResource(R.string.chart_no_data),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
