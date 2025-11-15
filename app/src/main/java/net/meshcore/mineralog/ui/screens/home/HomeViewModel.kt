@@ -54,6 +54,9 @@ class HomeViewModel(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _sortOption = MutableStateFlow(SortOption.DATE_NEWEST)
+    val sortOption: StateFlow<SortOption> = _sortOption.asStateFlow()
+
     private val _filterCriteria = MutableStateFlow(FilterCriteria.EMPTY)
     val filterCriteria: StateFlow<FilterCriteria> = _filterCriteria.asStateFlow()
 
@@ -91,19 +94,21 @@ class HomeViewModel(
     // Paged minerals for efficient large dataset handling (v1.5.0)
     val mineralsPaged: Flow<PagingData<Mineral>> = combine(
         _searchQuery.debounce(300),
+        _sortOption,
         _filterCriteria,
         _isFilterActive,
         _refreshTrigger  // BUGFIX: Trigger re-collection after insert/delete
-    ) { query, criteria, filterActive, _ ->
-        Triple(query, criteria, filterActive)
-    }.flatMapLatest { (query, criteria, filterActive) ->
+    ) { query, sort, criteria, filterActive, _ ->
+        Triple(query, Pair(sort, criteria), filterActive)
+    }.flatMapLatest { (query, sortAndCriteria, filterActive) ->
+        val (sort, criteria) = sortAndCriteria
         when {
             // Search takes precedence
-            query.isNotBlank() -> mineralRepository.searchPaged(query)
+            query.isNotBlank() -> mineralRepository.searchPaged(query, sort)
             // Apply filters if active
-            filterActive && !criteria.isEmpty() -> mineralRepository.filterAdvancedPaged(criteria)
+            filterActive && !criteria.isEmpty() -> mineralRepository.filterAdvancedPaged(criteria, sort)
             // Default: show all
-            else -> mineralRepository.getAllPaged()
+            else -> mineralRepository.getAllPaged(sort)
         }
     }.cachedIn(viewModelScope)
 
@@ -118,18 +123,20 @@ class HomeViewModel(
     // Legacy non-paged flow for bulk operations that need full list access
     val minerals: StateFlow<List<Mineral>> = combine(
         _searchQuery.debounce(300),
+        _sortOption,
         _filterCriteria,
         _isFilterActive
-    ) { query, criteria, filterActive ->
-        Triple(query, criteria, filterActive)
-    }.flatMapLatest { (query, criteria, filterActive) ->
+    ) { query, sort, criteria, filterActive ->
+        Triple(query, Pair(sort, criteria), filterActive)
+    }.flatMapLatest { (query, sortAndCriteria, filterActive) ->
+        val (sort, criteria) = sortAndCriteria
         when {
             // Search takes precedence
-            query.isNotBlank() -> mineralRepository.searchFlow(query)
+            query.isNotBlank() -> mineralRepository.searchFlow(query, sort)
             // Apply filters if active
-            filterActive && !criteria.isEmpty() -> mineralRepository.filterAdvancedFlow(criteria)
+            filterActive && !criteria.isEmpty() -> mineralRepository.filterAdvancedFlow(criteria, sort)
             // Default: show all
-            else -> mineralRepository.getAllFlow()
+            else -> mineralRepository.getAllFlow(sort)
         }
     }.stateIn(
         scope = viewModelScope,
@@ -139,6 +146,10 @@ class HomeViewModel(
 
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
+    }
+
+    fun onSortOptionChange(option: SortOption) {
+        _sortOption.value = option
     }
 
     fun onFilterCriteriaChange(criteria: FilterCriteria) {

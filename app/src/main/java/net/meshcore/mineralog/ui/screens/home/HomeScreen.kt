@@ -63,6 +63,7 @@ fun HomeScreen(
     // Keep non-paged minerals for bulk operations
     val minerals by viewModel.minerals.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val sortOption by viewModel.sortOption.collectAsState()
     val filterCriteria by viewModel.filterCriteria.collectAsState()
     val isFilterActive by viewModel.isFilterActive.collectAsState()
     val filterPresets by viewModel.filterPresets.collectAsState()
@@ -76,6 +77,7 @@ fun HomeScreen(
     val csvExportWarningShown by viewModel.csvExportWarningShown.collectAsState()
 
     var showFilterSheet by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
     var showBulkActionsSheet by remember { mutableStateOf(false) }
     var showCsvExportWarningDialog by remember { mutableStateOf(false) }
     var showExportCsvDialog by remember { mutableStateOf(false) }
@@ -289,6 +291,18 @@ fun HomeScreen(
                                     contentDescription = "Clear search"
                                 )
                             }
+                        }
+                        // Sort button
+                        IconButton(onClick = { showSortSheet = true }) {
+                            Icon(
+                                Icons.Default.Sort,
+                                contentDescription = "Sort: ${sortOption.displayName}",
+                                tint = if (sortOption != SortOption.DATE_NEWEST) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
                         }
                         // Filter button with badge
                         BadgedBox(
@@ -645,6 +659,15 @@ fun HomeScreen(
             onLoadPreset = { viewModel.applyPreset(it) },
             onDeletePreset = { viewModel.deletePreset(it) },
             onDismiss = { showFilterSheet = false }
+        )
+    }
+
+    // Sort bottom sheet (Quick Win #7)
+    if (showSortSheet) {
+        SortBottomSheet(
+            currentSort = sortOption,
+            onSortSelected = { viewModel.onSortOptionChange(it) },
+            onDismiss = { showSortSheet = false }
         )
     }
 

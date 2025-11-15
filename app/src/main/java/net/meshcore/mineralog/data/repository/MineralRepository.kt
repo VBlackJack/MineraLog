@@ -17,6 +17,7 @@ import net.meshcore.mineralog.data.local.paging.MineralPagingSource
 import net.meshcore.mineralog.data.mapper.*
 import net.meshcore.mineralog.data.model.FilterCriteria
 import net.meshcore.mineralog.domain.model.Mineral
+import net.meshcore.mineralog.ui.screens.home.SortOption
 import net.meshcore.mineralog.domain.model.Photo
 import net.meshcore.mineralog.domain.model.Provenance
 import net.meshcore.mineralog.domain.model.Storage
@@ -30,17 +31,17 @@ interface MineralRepository {
     suspend fun getById(id: String): Mineral?
     suspend fun getByIds(ids: List<String>): List<Mineral>
     fun getByIdFlow(id: String): Flow<Mineral?>
-    fun getAllFlow(): Flow<List<Mineral>>
+    fun getAllFlow(sortOption: SortOption = SortOption.DATE_NEWEST): Flow<List<Mineral>>
     suspend fun getAll(): List<Mineral>
-    fun searchFlow(query: String): Flow<List<Mineral>>
-    fun filterAdvancedFlow(criteria: FilterCriteria): Flow<List<Mineral>>
+    fun searchFlow(query: String, sortOption: SortOption = SortOption.DATE_NEWEST): Flow<List<Mineral>>
+    fun filterAdvancedFlow(criteria: FilterCriteria, sortOption: SortOption = SortOption.DATE_NEWEST): Flow<List<Mineral>>
     suspend fun getCount(): Int
     fun getCountFlow(): Flow<Int>
 
     // Paging 3 support (v1.5.0)
-    fun getAllPaged(): Flow<PagingData<Mineral>>
-    fun searchPaged(query: String): Flow<PagingData<Mineral>>
-    fun filterAdvancedPaged(criteria: FilterCriteria): Flow<PagingData<Mineral>>
+    fun getAllPaged(sortOption: SortOption = SortOption.DATE_NEWEST): Flow<PagingData<Mineral>>
+    fun searchPaged(query: String, sortOption: SortOption = SortOption.DATE_NEWEST): Flow<PagingData<Mineral>>
+    fun filterAdvancedPaged(criteria: FilterCriteria, sortOption: SortOption = SortOption.DATE_NEWEST): Flow<PagingData<Mineral>>
 
     // Quick Win #8: Tag autocomplete support (v1.7.0)
     suspend fun getAllUniqueTags(): List<String>
@@ -148,7 +149,7 @@ class MineralRepositoryImpl(
         }
     }
 
-    override fun getAllFlow(): Flow<List<Mineral>> {
+    override fun getAllFlow(sortOption: SortOption): Flow<List<Mineral>> {
         return mineralDao.getAllFlow().map { entities ->
             if (entities.isEmpty()) return@map emptyList()
 
@@ -158,12 +159,23 @@ class MineralRepositoryImpl(
             val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
             val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
 
-            entities.map { entity ->
+            val minerals = entities.map { entity ->
                 entity.toDomain(
                     provenances[entity.id],
                     storages[entity.id],
                     photos[entity.id] ?: emptyList()
                 )
+            }
+
+            // Apply in-memory sorting (legacy flow for bulk operations)
+            when (sortOption) {
+                SortOption.NAME_ASC -> minerals.sortedBy { it.name.lowercase() }
+                SortOption.NAME_DESC -> minerals.sortedByDescending { it.name.lowercase() }
+                SortOption.DATE_NEWEST -> minerals.sortedByDescending { it.updatedAt }
+                SortOption.DATE_OLDEST -> minerals.sortedBy { it.updatedAt }
+                SortOption.GROUP -> minerals.sortedWith(compareBy({ it.group }, { it.name.lowercase() }))
+                SortOption.HARDNESS_LOW -> minerals.sortedWith(compareBy({ it.mohsMin }, { it.name.lowercase() }))
+                SortOption.HARDNESS_HIGH -> minerals.sortedWith(compareByDescending<Mineral> { it.mohsMax }.thenBy { it.name.lowercase() })
             }
         }
     }
@@ -187,7 +199,7 @@ class MineralRepositoryImpl(
         }
     }
 
-    override fun searchFlow(query: String): Flow<List<Mineral>> {
+    override fun searchFlow(query: String, sortOption: SortOption): Flow<List<Mineral>> {
         // Pre-format query with wildcards to prevent SQL injection
         val formattedQuery = "%$query%"
         return mineralDao.searchFlow(formattedQuery).map { entities ->
@@ -199,20 +211,31 @@ class MineralRepositoryImpl(
             val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
             val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
 
-            entities.map { entity ->
+            val minerals = entities.map { entity ->
                 entity.toDomain(
                     provenances[entity.id],
                     storages[entity.id],
                     photos[entity.id] ?: emptyList()
                 )
             }
+
+            // Apply in-memory sorting (legacy flow for bulk operations)
+            when (sortOption) {
+                SortOption.NAME_ASC -> minerals.sortedBy { it.name.lowercase() }
+                SortOption.NAME_DESC -> minerals.sortedByDescending { it.name.lowercase() }
+                SortOption.DATE_NEWEST -> minerals.sortedByDescending { it.updatedAt }
+                SortOption.DATE_OLDEST -> minerals.sortedBy { it.updatedAt }
+                SortOption.GROUP -> minerals.sortedWith(compareBy({ it.group }, { it.name.lowercase() }))
+                SortOption.HARDNESS_LOW -> minerals.sortedWith(compareBy({ it.mohsMin }, { it.name.lowercase() }))
+                SortOption.HARDNESS_HIGH -> minerals.sortedWith(compareByDescending<Mineral> { it.mohsMax }.thenBy { it.name.lowercase() })
+            }
         }
     }
 
-    override fun filterAdvancedFlow(criteria: FilterCriteria): Flow<List<Mineral>> {
+    override fun filterAdvancedFlow(criteria: FilterCriteria, sortOption: SortOption): Flow<List<Mineral>> {
         // If criteria is empty, return all minerals
         if (criteria.isEmpty()) {
-            return getAllFlow()
+            return getAllFlow(sortOption)
         }
 
         return mineralDao.filterAdvanced(
@@ -234,12 +257,23 @@ class MineralRepositoryImpl(
             val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
             val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
 
-            entities.map { entity ->
+            val minerals = entities.map { entity ->
                 entity.toDomain(
                     provenances[entity.id],
                     storages[entity.id],
                     photos[entity.id] ?: emptyList()
                 )
+            }
+
+            // Apply in-memory sorting (legacy flow for bulk operations)
+            when (sortOption) {
+                SortOption.NAME_ASC -> minerals.sortedBy { it.name.lowercase() }
+                SortOption.NAME_DESC -> minerals.sortedByDescending { it.name.lowercase() }
+                SortOption.DATE_NEWEST -> minerals.sortedByDescending { it.updatedAt }
+                SortOption.DATE_OLDEST -> minerals.sortedBy { it.updatedAt }
+                SortOption.GROUP -> minerals.sortedWith(compareBy({ it.group }, { it.name.lowercase() }))
+                SortOption.HARDNESS_LOW -> minerals.sortedWith(compareBy({ it.mohsMin }, { it.name.lowercase() }))
+                SortOption.HARDNESS_HIGH -> minerals.sortedWith(compareByDescending<Mineral> { it.mohsMax }.thenBy { it.name.lowercase() })
             }
         }
     }
@@ -281,7 +315,7 @@ class MineralRepositoryImpl(
     // ========== Paging 3 Support (v1.5.0) ==========
     // Optimized with batch loading to eliminate N+1 query problem
 
-    override fun getAllPaged(): Flow<PagingData<Mineral>> {
+    override fun getAllPaged(sortOption: SortOption): Flow<PagingData<Mineral>> {
         return Pager(
             config = PagingConfig(
                 pageSize = 20,
@@ -294,13 +328,21 @@ class MineralRepositoryImpl(
                     provenanceDao = provenanceDao,
                     storageDao = storageDao,
                     photoDao = photoDao,
-                    basePagingSource = mineralDao.getAllPaged()
+                    basePagingSource = when (sortOption) {
+                        SortOption.NAME_ASC -> mineralDao.getAllPagedSortedByNameAsc()
+                        SortOption.NAME_DESC -> mineralDao.getAllPagedSortedByNameDesc()
+                        SortOption.DATE_NEWEST -> mineralDao.getAllPagedSortedByDateDesc()
+                        SortOption.DATE_OLDEST -> mineralDao.getAllPagedSortedByDateAsc()
+                        SortOption.GROUP -> mineralDao.getAllPagedSortedByGroup()
+                        SortOption.HARDNESS_LOW -> mineralDao.getAllPagedSortedByHardnessAsc()
+                        SortOption.HARDNESS_HIGH -> mineralDao.getAllPagedSortedByHardnessDesc()
+                    }
                 )
             }
         ).flow
     }
 
-    override fun searchPaged(query: String): Flow<PagingData<Mineral>> {
+    override fun searchPaged(query: String, sortOption: SortOption): Flow<PagingData<Mineral>> {
         // Pre-format query with wildcards to prevent SQL injection
         val formattedQuery = "%$query%"
         return Pager(
@@ -315,17 +357,30 @@ class MineralRepositoryImpl(
                     provenanceDao = provenanceDao,
                     storageDao = storageDao,
                     photoDao = photoDao,
-                    basePagingSource = mineralDao.searchPaged(formattedQuery)
+                    basePagingSource = when (sortOption) {
+                        SortOption.NAME_ASC -> mineralDao.searchPagedSortedByNameAsc(formattedQuery)
+                        SortOption.NAME_DESC -> mineralDao.searchPagedSortedByNameDesc(formattedQuery)
+                        SortOption.DATE_NEWEST -> mineralDao.searchPagedSortedByDateDesc(formattedQuery)
+                        SortOption.DATE_OLDEST -> mineralDao.searchPagedSortedByDateAsc(formattedQuery)
+                        SortOption.GROUP -> mineralDao.searchPagedSortedByGroup(formattedQuery)
+                        SortOption.HARDNESS_LOW -> mineralDao.searchPagedSortedByHardnessAsc(formattedQuery)
+                        SortOption.HARDNESS_HIGH -> mineralDao.searchPagedSortedByHardnessDesc(formattedQuery)
+                    }
                 )
             }
         ).flow
     }
 
-    override fun filterAdvancedPaged(criteria: FilterCriteria): Flow<PagingData<Mineral>> {
+    override fun filterAdvancedPaged(criteria: FilterCriteria, sortOption: SortOption): Flow<PagingData<Mineral>> {
         // If criteria is empty, return all minerals
         if (criteria.isEmpty()) {
-            return getAllPaged()
+            return getAllPaged(sortOption)
         }
+
+        val groups = criteria.groups.takeIf { it.isNotEmpty() }
+        val countries = criteria.countries.takeIf { it.isNotEmpty() }
+        val crystalSystems = criteria.crystalSystems.takeIf { it.isNotEmpty() }
+        val statusTypes = criteria.statusTypes.takeIf { it.isNotEmpty() }
 
         return Pager(
             config = PagingConfig(
@@ -339,18 +394,36 @@ class MineralRepositoryImpl(
                     provenanceDao = provenanceDao,
                     storageDao = storageDao,
                     photoDao = photoDao,
-                    basePagingSource = mineralDao.filterAdvancedPaged(
-                        groups = criteria.groups.takeIf { it.isNotEmpty() },
-                        countries = criteria.countries.takeIf { it.isNotEmpty() },
-                        crystalSystems = criteria.crystalSystems.takeIf { it.isNotEmpty() },
-                        mohsMin = criteria.mohsMin,
-                        mohsMax = criteria.mohsMax,
-                        statusTypes = criteria.statusTypes.takeIf { it.isNotEmpty() },
-                        qualityMin = criteria.qualityMin,
-                        qualityMax = criteria.qualityMax,
-                        hasPhotos = criteria.hasPhotos,
-                        fluorescent = criteria.fluorescent
-                    )
+                    basePagingSource = when (sortOption) {
+                        SortOption.NAME_ASC -> mineralDao.filterAdvancedPagedSortedByNameAsc(
+                            groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                        )
+                        SortOption.NAME_DESC -> mineralDao.filterAdvancedPagedSortedByNameDesc(
+                            groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                        )
+                        SortOption.DATE_NEWEST -> mineralDao.filterAdvancedPagedSortedByDateDesc(
+                            groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                        )
+                        SortOption.DATE_OLDEST -> mineralDao.filterAdvancedPagedSortedByDateAsc(
+                            groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                        )
+                        SortOption.GROUP -> mineralDao.filterAdvancedPagedSortedByGroup(
+                            groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                        )
+                        SortOption.HARDNESS_LOW -> mineralDao.filterAdvancedPagedSortedByHardnessAsc(
+                            groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                        )
+                        SortOption.HARDNESS_HIGH -> mineralDao.filterAdvancedPagedSortedByHardnessDesc(
+                            groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                        )
+                    }
                 )
             }
         ).flow
