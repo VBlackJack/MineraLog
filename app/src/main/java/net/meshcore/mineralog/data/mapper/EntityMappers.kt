@@ -1,13 +1,19 @@
 package net.meshcore.mineralog.data.mapper
 
+import net.meshcore.mineralog.data.local.entity.MineralComponentEntity
 import net.meshcore.mineralog.data.local.entity.MineralEntity
 import net.meshcore.mineralog.data.local.entity.PhotoEntity
 import net.meshcore.mineralog.data.local.entity.ProvenanceEntity
+import net.meshcore.mineralog.data.local.entity.SimplePropertiesEntity
 import net.meshcore.mineralog.data.local.entity.StorageEntity
+import net.meshcore.mineralog.domain.model.ComponentRole
 import net.meshcore.mineralog.domain.model.Mineral
+import net.meshcore.mineralog.domain.model.MineralComponent
 import net.meshcore.mineralog.domain.model.Photo
 import net.meshcore.mineralog.domain.model.Provenance
+import net.meshcore.mineralog.domain.model.SimpleProperties
 import net.meshcore.mineralog.domain.model.Storage
+import java.util.UUID
 
 /**
  * Mappers for converting between Room entities and domain models.
@@ -167,5 +173,112 @@ fun Photo.toEntity(): PhotoEntity {
         caption = caption,
         takenAt = takenAt,
         fileName = fileName
+    )
+}
+
+// ========== v2.0 Mappers for Mineral Aggregates ==========
+
+/**
+ * Convert SimplePropertiesEntity to SimpleProperties domain model.
+ */
+fun SimplePropertiesEntity.toDomain(): SimpleProperties {
+    return SimpleProperties(
+        group = group,
+        mohsMin = mohsMin,
+        mohsMax = mohsMax,
+        density = density,
+        formula = formula,
+        crystalSystem = crystalSystem,
+        luster = luster,
+        diaphaneity = diaphaneity,
+        cleavage = cleavage,
+        fracture = fracture,
+        habit = habit,
+        streak = streak,
+        fluorescence = fluorescence
+    )
+}
+
+/**
+ * Convert SimpleProperties domain model to SimplePropertiesEntity.
+ * @param mineralId The ID of the mineral this properties entry belongs to.
+ */
+fun SimpleProperties.toEntity(mineralId: String): SimplePropertiesEntity {
+    return SimplePropertiesEntity(
+        id = "${mineralId}_props",
+        mineralId = mineralId,
+        group = group,
+        mohsMin = mohsMin,
+        mohsMax = mohsMax,
+        density = density,
+        formula = formula,
+        crystalSystem = crystalSystem,
+        luster = luster,
+        diaphaneity = diaphaneity,
+        cleavage = cleavage,
+        fracture = fracture,
+        habit = habit,
+        streak = streak,
+        fluorescence = fluorescence
+    )
+}
+
+/**
+ * Convert MineralComponentEntity to MineralComponent domain model.
+ */
+fun MineralComponentEntity.toDomain(): MineralComponent {
+    return MineralComponent(
+        id = id,
+        mineralName = mineralName,
+        mineralGroup = mineralGroup,
+        percentage = percentage,
+        role = ComponentRole.fromString(role),
+        mohsMin = mohsMin,
+        mohsMax = mohsMax,
+        density = density,
+        formula = formula,
+        crystalSystem = crystalSystem,
+        luster = luster,
+        diaphaneity = diaphaneity,
+        cleavage = cleavage,
+        fracture = fracture,
+        habit = habit,
+        streak = streak,
+        fluorescence = fluorescence,
+        notes = notes,
+        createdAt = createdAt,
+        updatedAt = updatedAt
+    )
+}
+
+/**
+ * Convert MineralComponent domain model to MineralComponentEntity.
+ * @param aggregateId The ID of the aggregate mineral this component belongs to.
+ * @param displayOrder The display order of this component (0-based index).
+ */
+fun MineralComponent.toEntity(aggregateId: String, displayOrder: Int): MineralComponentEntity {
+    return MineralComponentEntity(
+        id = id.ifEmpty { UUID.randomUUID().toString() },
+        aggregateId = aggregateId,
+        displayOrder = displayOrder,
+        mineralName = mineralName,
+        mineralGroup = mineralGroup,
+        percentage = percentage,
+        role = role.name,
+        mohsMin = mohsMin,
+        mohsMax = mohsMax,
+        density = density,
+        formula = formula,
+        crystalSystem = crystalSystem,
+        luster = luster,
+        diaphaneity = diaphaneity,
+        cleavage = cleavage,
+        fracture = fracture,
+        habit = habit,
+        streak = streak,
+        fluorescence = fluorescence,
+        notes = notes,
+        createdAt = createdAt,
+        updatedAt = updatedAt
     )
 }
