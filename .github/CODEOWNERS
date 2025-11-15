@@ -1,0 +1,33 @@
+# CODEOWNERS - Auto-assign reviewers for pull requests
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @VBlackJack
+
+# Documentation
+/docs/                   @VBlackJack
+/README.md               @VBlackJack
+/CONTRIBUTING.md         @VBlackJack
+/CHANGELOG.md            @VBlackJack
+*.md                     @VBlackJack
+
+# Architecture decisions
+/docs/adr/               @VBlackJack
+/docs/architecture/      @VBlackJack
+
+# QA & Testing
+/docs/qa/                @VBlackJack
+/app/src/test/           @VBlackJack
+/app/src/androidTest/    @VBlackJack
+
+# Specs & APIs
+/docs/specs/             @VBlackJack
+
+# Build & CI
+/.github/workflows/      @VBlackJack
+/gradle/                 @VBlackJack
+build.gradle.kts         @VBlackJack
+settings.gradle.kts      @VBlackJack
+
+# Security-sensitive
+/app/proguard-rules.pro  @VBlackJack
