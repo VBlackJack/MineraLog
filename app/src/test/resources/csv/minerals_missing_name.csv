@@ -1,0 +1,6 @@
+Name,Group,Formula,Mohs Min,Mohs Max,Notes
+Galena,Sulfides,PbS,2.5,2.5,Valid mineral with name
+,Halides,NaCl,2,2.5,Missing name - should be skipped with error
+Gypsum,Sulfates,CaSO4·2H2O,2,2,Valid gypsum
+"",Carbonates,MgCO3,3.5,4,Empty name - should be skipped with error
+Talc,Silicates,Mg3Si4O10(OH)2,1,1,Valid talc

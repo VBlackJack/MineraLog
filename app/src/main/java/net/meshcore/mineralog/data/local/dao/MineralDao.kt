@@ -81,6 +81,7 @@ interface MineralDao {
         LEFT JOIN provenances p ON m.provenanceId = p.id
         WHERE (:groups IS NULL OR m.`group` IN (:groups))
           AND (:countries IS NULL OR p.country IN (:countries))
+          AND (:crystalSystems IS NULL OR m.crystalSystem IN (:crystalSystems))
           AND (:mohsMin IS NULL OR m.mohsMax >= :mohsMin)
           AND (:mohsMax IS NULL OR m.mohsMin <= :mohsMax)
           AND (:statusTypes IS NULL OR m.statusType IN (:statusTypes))
@@ -97,6 +98,7 @@ interface MineralDao {
     fun filterAdvancedPaged(
         groups: List<String>? = null,
         countries: List<String>? = null,
+        crystalSystems: List<String>? = null,
         mohsMin: Float? = null,
         mohsMax: Float? = null,
         statusTypes: List<String>? = null,

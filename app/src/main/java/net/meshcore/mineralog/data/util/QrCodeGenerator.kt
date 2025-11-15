@@ -84,14 +84,14 @@ object QrCodeGenerator {
     /**
      * Encode mineral data as a QR-compatible string.
      *
-     * Format: "mineralog://mineral/{id}"
+     * Format: "mineralapp://mineral/{id}"
      * This allows the app to handle QR code scans via deep link.
      *
      * @param mineralId The mineral ID
      * @return Encoded string for QR code
      */
     fun encodeMineralUri(mineralId: String): String {
-        return "mineralog://mineral/$mineralId"
+        return "mineralapp://mineral/$mineralId"
     }
 
     /**
@@ -101,7 +101,10 @@ object QrCodeGenerator {
      * @return Mineral ID if valid, null otherwise
      */
     fun decodeMineralUri(data: String): String? {
-        return if (data.startsWith("mineralog://mineral/")) {
+        return if (data.startsWith("mineralapp://mineral/")) {
+            data.removePrefix("mineralapp://mineral/")
+        } else if (data.startsWith("mineralog://mineral/")) {
+            // Support legacy mineralog:// scheme for backwards compatibility
             data.removePrefix("mineralog://mineral/")
         } else {
             // Also support plain mineral IDs

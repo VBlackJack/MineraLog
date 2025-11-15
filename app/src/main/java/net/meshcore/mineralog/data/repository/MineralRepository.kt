@@ -342,6 +342,7 @@ class MineralRepositoryImpl(
                     basePagingSource = mineralDao.filterAdvancedPaged(
                         groups = criteria.groups.takeIf { it.isNotEmpty() },
                         countries = criteria.countries.takeIf { it.isNotEmpty() },
+                        crystalSystems = criteria.crystalSystems.takeIf { it.isNotEmpty() },
                         mohsMin = criteria.mohsMin,
                         mohsMax = criteria.mohsMax,
                         statusTypes = criteria.statusTypes.takeIf { it.isNotEmpty() },

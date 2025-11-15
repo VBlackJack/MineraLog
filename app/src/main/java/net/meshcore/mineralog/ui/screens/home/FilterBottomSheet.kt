@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import net.meshcore.mineralog.R
 import net.meshcore.mineralog.data.model.FilterCriteria
 import net.meshcore.mineralog.domain.model.FilterPreset
+import net.meshcore.mineralog.ui.components.MineralFieldValues
 import java.time.Instant
 
 /**
@@ -169,6 +171,29 @@ fun FilterBottomSheet(
                     ),
                     onSelectionChange = { selected ->
                         currentCriteria = currentCriteria.copy(countries = selected)
+                    }
+                )
+            }
+
+            // Crystal systems filter
+            val context = LocalContext.current
+            val crystalSystemsOptions = remember { MineralFieldValues.getCrystalSystems(context) }
+            FilterSection(
+                title = stringResource(R.string.filter_by_crystal_system),
+                expanded = "crystalSystems" in expandedSections,
+                onExpandChange = { expanded ->
+                    expandedSections = if (expanded) {
+                        expandedSections + "crystalSystems"
+                    } else {
+                        expandedSections - "crystalSystems"
+                    }
+                }
+            ) {
+                MultiSelectChips(
+                    selected = currentCriteria.crystalSystems,
+                    options = crystalSystemsOptions,
+                    onSelectionChange = { selected ->
+                        currentCriteria = currentCriteria.copy(crystalSystems = selected)
                     }
                 )
             }

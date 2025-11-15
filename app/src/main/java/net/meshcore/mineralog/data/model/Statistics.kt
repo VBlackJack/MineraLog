@@ -13,6 +13,7 @@ data class CollectionStatistics(
     // By category
     val byGroup: Map<String, Int> = emptyMap(), // e.g., {"Silicates": 15, "Oxides": 8}
     val byCountry: Map<String, Int> = emptyMap(), // e.g., {"USA": 10, "Brazil": 5}
+    val byCrystalSystem: Map<String, Int> = emptyMap(), // e.g., {"Cubic": 12, "Hexagonal": 8}
     val byHardness: Map<IntRange, Int> = emptyMap(), // e.g., {1..2: 3, 3..4: 7}
     val byStatus: Map<String, Int> = emptyMap(), // e.g., {"in_collection": 20, "on_display": 5}
 
@@ -27,7 +28,8 @@ data class CollectionStatistics(
 
     // Time-based
     val addedThisMonth: Int = 0,
-    val addedThisYear: Int = 0
+    val addedThisYear: Int = 0,
+    val addedByMonth: Map<String, Int> = emptyMap() // e.g., {"2025-01": 5, "2025-02": 8}
 )
 
 /**

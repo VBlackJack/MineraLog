@@ -428,6 +428,7 @@
     <string name="filter_presets">Préréglages enregistrés</string>
     <string name="filter_by_group">Filtrer par groupe</string>
     <string name="filter_by_country">Filtrer par pays</string>
+    <string name="filter_by_crystal_system">Filtrer par système cristallin</string>
     <string name="filter_by_hardness">Filtrer par dureté</string>
     <string name="filter_hardness_range" formatted="false">Dureté : %.1f - %.1f</string>
     <string name="filter_by_status">Filtrer par statut</string>

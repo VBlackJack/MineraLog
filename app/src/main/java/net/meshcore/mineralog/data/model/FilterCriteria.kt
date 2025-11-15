@@ -14,6 +14,9 @@ data class FilterCriteria(
     /** Filter by countries (OR logic: any match) */
     val countries: List<String> = emptyList(),
 
+    /** Filter by crystal systems (OR logic: any match) */
+    val crystalSystems: List<String> = emptyList(),
+
     /** Minimum Mohs hardness (inclusive) */
     val mohsMin: Float? = null,
 
@@ -41,6 +44,7 @@ data class FilterCriteria(
     fun isEmpty(): Boolean =
         groups.isEmpty() &&
         countries.isEmpty() &&
+        crystalSystems.isEmpty() &&
         mohsMin == null &&
         mohsMax == null &&
         statusTypes.isEmpty() &&
@@ -56,6 +60,7 @@ data class FilterCriteria(
         var count = 0
         if (groups.isNotEmpty()) count++
         if (countries.isNotEmpty()) count++
+        if (crystalSystems.isNotEmpty()) count++
         if (mohsMin != null || mohsMax != null) count++
         if (statusTypes.isNotEmpty()) count++
         if (qualityMin != null || qualityMax != null) count++
@@ -71,6 +76,7 @@ data class FilterCriteria(
         val parts = mutableListOf<String>()
         if (groups.isNotEmpty()) parts.add("Groups: ${groups.size}")
         if (countries.isNotEmpty()) parts.add("Countries: ${countries.size}")
+        if (crystalSystems.isNotEmpty()) parts.add("Crystal Systems: ${crystalSystems.size}")
         if (mohsMin != null || mohsMax != null) {
             val range = when {
                 mohsMin != null && mohsMax != null -> "$mohsMin-$mohsMax"

@@ -428,6 +428,7 @@
     <string name="filter_presets">Saved Presets</string>
     <string name="filter_by_group">Filter by Group</string>
     <string name="filter_by_country">Filter by Country</string>
+    <string name="filter_by_crystal_system">Filter by Crystal System</string>
     <string name="filter_by_hardness">Filter by Hardness</string>
     <string name="filter_hardness_range" formatted="false">Hardness: %.1f - %.1f</string>
     <string name="filter_by_status">Filter by Status</string>

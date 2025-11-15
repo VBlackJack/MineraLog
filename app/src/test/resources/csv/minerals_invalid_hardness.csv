@@ -1,0 +1,6 @@
+Name,Group,Formula,Mohs Min,Mohs Max,Notes
+Diamond,Native Elements,C,10,10,Valid diamond
+Corundum,Oxides,Al2O3,9,9,Valid corundum
+"Super Hard Mineral",Unknown,XYZ,12,15,Invalid: hardness exceeds 10
+"Negative Hardness",Unknown,ABC,-1,2,Invalid: negative hardness
+"Out of Range",Unknown,DEF,0.5,11,Invalid: max hardness exceeds 10
