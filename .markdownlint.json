@@ -1,0 +1,39 @@
+{
+  "default": true,
+  "MD003": { "style": "atx" },
+  "MD007": { "indent": 2 },
+  "MD013": {
+    "line_length": 120,
+    "code_blocks": false,
+    "tables": false,
+    "headings": false
+  },
+  "MD024": { "siblings_only": true },
+  "MD033": {
+    "allowed_elements": [
+      "details",
+      "summary",
+      "kbd",
+      "br",
+      "img",
+      "a",
+      "task_description",
+      "persona",
+      "task",
+      "tone",
+      "context_data",
+      "detailed_instructions",
+      "steps",
+      "step",
+      "rules",
+      "rule",
+      "output_format",
+      "constraint",
+      "format",
+      "response"
+    ]
+  },
+  "MD041": false,
+  "no-hard-tabs": true,
+  "no-trailing-spaces": true
+}
