@@ -1,0 +1,95 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for MineraLog
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please describe it in detail.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Use Case
+      description: What problem does this feature solve? What use case does it address?
+      placeholder: I'm always frustrated when... / I need to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see
+      placeholder: I would like to have...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe alternative solutions or features you've considered
+      placeholder: I've also thought about...
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: Which area does this feature relate to?
+      options:
+        - Mineral cataloging
+        - Photo management
+        - Search & filtering
+        - Import/Export
+        - QR codes & labels
+        - Storage tracking
+        - Statistics & charts
+        - Accessibility
+        - Internationalization
+        - Performance
+        - Security
+        - UI/UX
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority (Your Opinion)
+      description: How important is this feature to you?
+      options:
+        - Nice to have
+        - Useful
+        - Important
+        - Critical
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockup
+    attributes:
+      label: Mockups / Examples
+      description: If applicable, add mockups, screenshots from other apps, or examples
+      placeholder: Drag and drop images here
+
+  - type: textarea
+    id: technical
+    attributes:
+      label: Technical Considerations
+      description: If you have technical insights (APIs, libraries, implementation ideas), share them here
+      placeholder: This could use... / Similar to how X app does it...
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues/discussions to avoid duplicates
+          required: true
+        - label: This feature aligns with MineraLog's purpose (mineral collection management)
+          required: true
+        - label: I am willing to contribute to implementation (if possible)
+          required: false
