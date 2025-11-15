@@ -6,7 +6,7 @@
 
 ---
 
-## 📊 Overall Progress: **45%** (Phases 1-3 Complete)
+## 📊 Overall Progress: **60%** (Phases 1-4 Complete + Phase 5 Partial)
 
 ### ✅ **Completed Phases**
 
@@ -105,9 +105,55 @@
 
 ---
 
+#### **Phase 4: Repository Layer** ✅ (100%)
+
+**Extension Methods:**
+- ✅ `MineralRepositoryV2Extensions.kt` - Complete extension functions
+  - insertSimpleMineral() - Insert simple minerals with properties
+  - insertAggregate() - Insert aggregates with components
+  - updateAggregateComponents() - Update aggregate components
+  - getSimpleProperties() - Retrieve simple properties
+  - getAggregateComponents() - Retrieve components (one-shot and Flow)
+  - searchAggregatesByComponent() - Search by component name
+  - getAllSimpleMinerals(), getAllAggregates() - Type filtering
+  - countByType(), getTypeDistribution() - Statistics
+
+**Data Classes:**
+- ✅ `SimpleMineralData` - Wrapper for simple mineral creation
+- ✅ `AggregateMineralData` - Wrapper for aggregate creation
+
+**Features:**
+- ✅ Transaction support via database.withTransaction
+- ✅ Backward compatible with v1.x API
+- ✅ Component percentage validation helper
+- ✅ Reflection-based database access (clean API)
+
+**Commit:** (pending) - Phase 4 repository extensions
+
+---
+
+#### **Phase 5: UI Components** ⚡ (30%)
+
+**Completed:**
+- ✅ `MineralTypeSelector.kt` - Beautiful type selector composable
+  - Material 3 design with Cards
+  - Radio button integration
+  - Preview support
+  - Accessible (Role.RadioButton)
+
+**Pending:**
+- ⏳ ComponentEditorScreen - Add/edit components
+- ⏳ Add/EditMineralScreen integration
+- ⏳ Component list with drag-and-drop
+- ⏳ Percentage validation UI
+
+**Estimated Remaining:** 4-5 days
+
+---
+
 ### 🔄 **In Progress / Pending Phases**
 
-#### **Phase 3 (Continued): Sealed Class Refactoring** 🔄 (0%)
+#### **Phase 5 (Continued): UI Screens** 🔄 (30%)
 
 **Remaining Work:**
 - ⏳ Refactor `Mineral` from data class to sealed class
@@ -236,7 +282,7 @@
 
 ## 🗂️ Files Created/Modified
 
-### ✅ Created (12 files)
+### ✅ Created (15 files)
 
 **Entities:**
 - `app/src/main/java/net/meshcore/mineralog/data/local/entity/MineralType.kt`
@@ -254,9 +300,16 @@
 - `app/src/main/java/net/meshcore/mineralog/domain/model/SimpleProperties.kt`
 - `app/src/main/java/net/meshcore/mineralog/domain/model/MineralComponent.kt`
 
+**Repository Extensions:**
+- `app/src/main/java/net/meshcore/mineralog/data/repository/MineralRepositoryV2Extensions.kt`
+
+**UI Components:**
+- `app/src/main/java/net/meshcore/mineralog/ui/components/v2/MineralTypeSelector.kt`
+
 **Documentation:**
 - `DOCS/V2_IMPLEMENTATION_STATUS.md`
 - `DOCS/V2_USAGE_EXAMPLES.md`
+- `DOCS/V2_README.md`
 
 ### ✅ Modified (5 files)
 
