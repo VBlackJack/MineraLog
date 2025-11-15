@@ -5,6 +5,81 @@ All notable changes to MineraLog will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2025-01-15
+
+### ✨ Added
+
+**Comprehensive Sorting System (7 Options):**
+- **Sort by Name**: Ascending (A-Z) and Descending (Z-A)
+- **Sort by Date**: Newest first and Oldest first
+- **Sort by Mineral Group**: Alphabetical grouping
+- **Sort by Hardness**: Ascending (soft → hard) and Descending (hard → soft)
+- Sort button integrated in search bar with visual feedback (icon highlights when non-default sort active)
+- Material Design 3 bottom sheet with radio selection and descriptions
+- Full accessibility support with semantic descriptions
+
+**Data Layer:**
+- Added 21 new optimized DAO query methods for SQL-level sorting:
+  - 7 variants for `getAllPaged` (NAME_ASC, NAME_DESC, DATE_NEWEST, DATE_OLDEST, GROUP, HARDNESS_LOW, HARDNESS_HIGH)
+  - 7 variants for `searchPaged` (same sorting options with search query filter)
+  - 7 variants for `filterAdvancedPaged` (same sorting options with advanced filter criteria)
+- Hardness sorting: Uses `mohsMin ASC` for HARDNESS_LOW, `mohsMax DESC` for HARDNESS_HIGH
+- All queries include secondary sort by name for consistent ordering
+- In-memory sorting for legacy non-paged flows (bulk operations)
+
+**Repository Layer:**
+- Added `sortOption` parameter to all query methods with default `DATE_NEWEST`
+- Smart routing using `when()` expressions to appropriate DAO methods
+- Support for all 3 query types: getAll, search, and filter
+
+**ViewModel Layer:**
+- Added `_sortOption` state with reactive flows
+- `onSortOptionChange()` function for user interaction
+- Integrated sorting into both paged and non-paged data flows
+
+**Documentation:**
+- Added comprehensive v2.0 roadmap (`docs/ROADMAP_V2.0.md`)
+- Roadmap outlines mineral aggregates support (6 phases, 17 weeks, Jan-Jul 2025)
+- Updated README with detailed sorting feature description
+- Updated About dialog to reflect v1.9.0 and new sorting capability
+
+### 🚀 Improved
+
+- **Performance**: SQL-level sorting for paged lists (optimal performance on large datasets)
+- **Architecture**: Room-based approach with dedicated query methods (type-safe, no dynamic ORDER BY)
+- **User Experience**: One-tap access to sorting from search bar
+- **Accessibility**: Full ARIA labels and semantic descriptions for screen readers
+
+### 📚 Technical Details
+
+**Database Queries:**
+```sql
+-- Example: Hardness ascending with secondary name sort
+ORDER BY mohsMin ASC, name ASC
+
+-- Example: Hardness descending with secondary name sort
+ORDER BY mohsMax DESC, name ASC
+```
+
+**Files Modified:**
+- `app/src/main/java/net/meshcore/mineralog/data/local/dao/MineralDao.kt` (+317 lines, 21 methods)
+- `app/src/main/java/net/meshcore/mineralog/data/repository/MineralRepository.kt` (+98 lines)
+- `app/src/main/java/net/meshcore/mineralog/ui/screens/home/HomeViewModel.kt` (+15 lines)
+- `app/src/main/java/net/meshcore/mineralog/ui/screens/home/HomeScreen.kt` (+23 lines)
+
+**Architecture Note:**
+Room doesn't support dynamic ORDER BY clauses with PagingSource, so we create dedicated methods for each sort option. This trade-off ensures type safety and optimal performance.
+
+### 🎯 Future Roadmap
+
+- **v2.0 (Planned Jul 2025)**: Full support for mineral aggregates
+  - Sealed class `Mineral` with `Simple` and `Aggregate` variants
+  - Component-based model for aggregates (percentage, role, properties)
+  - Advanced filtering by components
+  - Statistics for aggregate analysis
+
+---
+
 ## [1.6.0] - 2025-11-14
 
 ### 🔒 Security Hardening (P0 Critical + P1 High-Priority Fixes)
