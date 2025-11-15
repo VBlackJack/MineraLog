@@ -453,6 +453,7 @@ fun SettingsScreen(
                         Text(stringResource(R.string.settings_about_feature_csv), style = MaterialTheme.typography.bodySmall)
                         Text(stringResource(R.string.settings_about_feature_qr), style = MaterialTheme.typography.bodySmall)
                         Text(stringResource(R.string.settings_about_feature_filter), style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.settings_about_feature_sort), style = MaterialTheme.typography.bodySmall)
                         Text(stringResource(R.string.settings_about_feature_stats), style = MaterialTheme.typography.bodySmall)
                     }
 
