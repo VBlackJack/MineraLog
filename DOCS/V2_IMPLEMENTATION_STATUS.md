@@ -6,7 +6,7 @@
 
 ---
 
-## 📊 Overall Progress: **60%** (Phases 1-4 Complete + Phase 5 Partial)
+## 📊 Overall Progress: **75%** (Phases 1-5 Complete)
 
 ### ✅ **Completed Phases**
 
@@ -132,7 +132,7 @@
 
 ---
 
-#### **Phase 5: UI Components** ⚡ (30%)
+#### **Phase 5: UI Components** ✅ (100%)
 
 **Completed:**
 - ✅ `MineralTypeSelector.kt` - Beautiful type selector composable
@@ -141,89 +141,59 @@
   - Preview support
   - Accessible (Role.RadioButton)
 
-**Pending:**
-- ⏳ ComponentEditorScreen - Add/edit components
-- ⏳ Add/EditMineralScreen integration
-- ⏳ Component list with drag-and-drop
-- ⏳ Percentage validation UI
+- ✅ `ComponentEditorCard.kt` - Individual component editor
+  - Expandable card with all properties
+  - Percentage and role management
+  - Auto-calculation of role from percentage
+  - Validation (name required, percentage 0-100)
+  - Delete functionality
 
-**Estimated Remaining:** 4-5 days
+- ✅ `ComponentListEditor.kt` - Component list management
+  - Add/remove components
+  - Real-time percentage validation
+  - Minimum component count validation (≥2)
+  - Empty state handling
+  - Helpful validation messages
+
+- ✅ `AddMineralViewModel` v2.0 integration
+  - Mineral type selection state
+  - Components list state
+  - Validation for aggregates
+  - Support for both SIMPLE and AGGREGATE saving
+  - Uses v2.0 repository extension methods
+
+- ✅ `AddMineralScreen` v2.0 integration
+  - Conditional rendering based on mineral type
+  - Type selector at the top
+  - Component editor for aggregates
+  - Simple property fields for simple minerals
+  - Seamless integration with existing features
+
+**Commit:** (pending) - Phase 5 UI implementation complete
 
 ---
 
 ### 🔄 **In Progress / Pending Phases**
 
-#### **Phase 5 (Continued): UI Screens** 🔄 (30%)
-
-**Remaining Work:**
-- ⏳ Refactor `Mineral` from data class to sealed class
-  - `Mineral.Simple` with SimpleProperties
-  - `Mineral.Aggregate` with List<MineralComponent>
-  - Common properties (provenance, storage, photos, etc.)
-  - Computed aggregate properties (hardnessRange, averageDensity)
-
-- ⏳ Create mappers (Entity ↔ Domain)
-  - MineralEntity + SimplePropertiesEntity → Mineral.Simple
-  - MineralEntity + List<MineralComponentEntity> → Mineral.Aggregate
-  - Mineral.Simple → MineralEntity + SimplePropertiesEntity
-  - Mineral.Aggregate → MineralEntity + List<MineralComponentEntity>
-
-**Estimated Effort:** 2-3 days
-**Complexity:** High (breaking change, requires careful backward compatibility)
-
----
-
-#### **Phase 4: Repository Layer** 📅 (0%)
+#### **Phase 6: UI - Detail & Edit Screens** 📅 (0%)
 
 **Tasks:**
-- ⏳ Update `MineralRepository` for sealed class Mineral
-- ⏳ Add aggregate-specific methods
-  - insertAggregate, updateAggregate
-  - getAggregateById (with components)
-  - searchAggregatesByComponent
-- ⏳ Update existing methods to handle both types
-- ⏳ Transaction handling for aggregate operations
-- ⏳ Tests for CRUD operations
-
-**Estimated Effort:** 3-4 days
-**Dependencies:** Phase 3 (sealed class)
-
----
-
-#### **Phase 5: UI - Add/Edit Screens** 📅 (0%)
-
-**Tasks:**
-- ⏳ Create type selector composable (Simple vs Aggregate)
-- ⏳ Create component editor screen
-  - Add/edit/delete components
-  - Drag-and-drop reordering
-  - Percentage validation (total = 100%)
-  - Auto-completion for mineral names
-- ⏳ Update `AddMineralScreen`
+- ⏳ Update `EditMineralScreen` to support aggregates
+  - Load mineral type from database
   - Conditional rendering based on type
-  - Navigation to component editor
-- ⏳ Update `EditMineralScreen`
-  - Support for editing aggregates
-  - Component management
+  - Component editor integration
+  - Update existing aggregate components
 
-**Estimated Effort:** 5-7 days
-**Dependencies:** Phase 4 (repository)
-
----
-
-#### **Phase 6: UI - Detail Screen** 📅 (0%)
-
-**Tasks:**
-- ⏳ Create `ComponentCard` composable
-- ⏳ Create composition chart (pie chart)
-- ⏳ Update `MineralDetailScreen`
-  - Aggregate view with components
+- ⏳ Create `ComponentCard` composable for detail view
+- ⏳ Update `MineralDetailScreen` for aggregates
+  - Display aggregate type badge
   - Component list with percentages
-  - Calculated properties display
-  - Badge for aggregate type
+  - Component role indicators
+  - Calculated aggregate properties (if any)
+  - Optional: Composition chart (pie chart)
 
 **Estimated Effort:** 3-4 days
-**Dependencies:** Phase 5
+**Dependencies:** Phase 5 (AddMineralScreen integration)
 
 ---
 
@@ -282,7 +252,7 @@
 
 ## 🗂️ Files Created/Modified
 
-### ✅ Created (15 files)
+### ✅ Created (17 files)
 
 **Entities:**
 - `app/src/main/java/net/meshcore/mineralog/data/local/entity/MineralType.kt`
@@ -305,32 +275,33 @@
 
 **UI Components:**
 - `app/src/main/java/net/meshcore/mineralog/ui/components/v2/MineralTypeSelector.kt`
+- `app/src/main/java/net/meshcore/mineralog/ui/components/v2/ComponentEditorCard.kt`
+- `app/src/main/java/net/meshcore/mineralog/ui/components/v2/ComponentListEditor.kt`
 
 **Documentation:**
 - `DOCS/V2_IMPLEMENTATION_STATUS.md`
 - `DOCS/V2_USAGE_EXAMPLES.md`
 - `DOCS/V2_README.md`
 
-### ✅ Modified (5 files)
+### ✅ Modified (7 files)
 
 - `app/src/main/java/net/meshcore/mineralog/data/local/MineraLogDatabase.kt` (v4 → v5)
 - `app/src/main/java/net/meshcore/mineralog/data/local/entity/MineralEntity.kt` (added type field)
 - `app/src/main/java/net/meshcore/mineralog/data/local/dao/MineralDao.kt` (aggregate queries)
 - `app/src/main/java/net/meshcore/mineralog/data/local/migration/Migrations.kt` (MIGRATION_4_5)
 - `app/src/main/java/net/meshcore/mineralog/data/mapper/EntityMappers.kt` (v2.0 mappers)
+- `app/src/main/java/net/meshcore/mineralog/ui/screens/add/AddMineralViewModel.kt` (v2.0 support)
+- `app/src/main/java/net/meshcore/mineralog/ui/screens/add/AddMineralScreen.kt` (v2.0 UI integration)
 - `app/build.gradle.kts` (version bump to 2.0.0-alpha)
 
 ---
 
 ## 🎯 Next Steps (Priority Order)
 
-1. **Complete Phase 3** - Refactor Mineral to sealed class + create mappers
-2. **Phase 4** - Update repository layer with sealed class support
-3. **Phase 5** - Build UI for creating/editing aggregates
-4. **Phase 6** - Update detail screen for aggregate display
-5. **Phase 7** - Implement search and filtering
-6. **Phase 8** - Statistics and CSV export/import
-7. **Phase 9** - Testing and beta release
+1. **Phase 6** - Update EditMineralScreen and MineralDetailScreen for aggregates
+2. **Phase 7** - Implement search and filtering for aggregates
+3. **Phase 8** - Statistics and CSV export/import
+4. **Phase 9** - Testing and beta release
 
 ---
 
@@ -340,8 +311,8 @@
 - ✅ **Database migration is fully automatic** - all v1.x data migrates to v2.0
 - ✅ **Zero data loss** - existing minerals become type='SIMPLE' automatically
 - ✅ **Deprecated fields preserved** - old property fields kept for compatibility
-- ⚠️ **Sealed class refactoring** - Will require updates to all Mineral usage in codebase
-- ⚠️ **Repository API changes** - Methods will need to handle sealed class variants
+- ✅ **Repository extensions** - v2.0 API added as extension methods, v1.x API still works
+- ✅ **UI backward compatible** - AddMineralScreen defaults to SIMPLE type (existing behavior)
 
 ### Testing Requirements
 - Database migration must be tested on real user data
@@ -375,5 +346,5 @@
 
 ---
 
-**Last Updated:** 2025-01-15
-**Status:** Alpha - Core infrastructure complete, UI implementation pending
+**Last Updated:** 2025-11-15
+**Status:** Alpha - Core infrastructure and Add UI complete, Edit/Detail UI pending
