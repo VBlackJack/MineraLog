@@ -44,7 +44,9 @@
     <string name="cd_filter">Filter</string>
     <string name="cd_delete">Delete</string>
     <string name="cd_edit">Edit</string>
+    <string name="cd_generate_qr_code">Generate QR code</string>
     <string name="cd_share">Share</string>
+    <string name="qr_label_generated_success">QR code label PDF generated successfully</string>
     <string name="cd_more_options">More options</string>
     <string name="cd_photo">Photo</string>
     <string name="cd_take_photo">Take photo</string>
@@ -199,8 +201,10 @@
     <string name="statistics_highlights">Highlights</string>
     <string name="statistics_by_group">Distribution by Group</string>
     <string name="statistics_by_country">Distribution by Country</string>
+    <string name="statistics_by_crystal_system">Distribution by Crystal System</string>
     <string name="statistics_by_hardness">Distribution by Hardness</string>
     <string name="statistics_by_status">Distribution by Status</string>
+    <string name="statistics_collection_evolution">Collection Evolution</string>
     <string name="statistics_empty_title">No Minerals Yet</string>
     <string name="statistics_empty_message">Add your first mineral to see statistics about your collection</string>
     <string name="stats_title">Statistics</string>

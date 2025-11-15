@@ -186,6 +186,19 @@ interface MineralDao {
     suspend fun getCountryDistribution(): Map<@MapColumn(columnName = "country") String, @MapColumn(columnName = "count") Int>
 
     /**
+     * Get distribution of minerals by crystal system.
+     * Returns map of crystal system name to count.
+     */
+    @Query("""
+        SELECT crystalSystem, COUNT(*) as count
+        FROM minerals
+        WHERE crystalSystem IS NOT NULL
+        GROUP BY crystalSystem
+        ORDER BY count DESC
+    """)
+    suspend fun getCrystalSystemDistribution(): Map<@MapColumn(columnName = "crystalSystem") String, @MapColumn(columnName = "count") Int>
+
+    /**
      * Get distribution by Mohs hardness ranges.
      * Returns map of hardness range string to count.
      * Ranges: "1-2", "2-3", ..., "9-10"
@@ -294,6 +307,20 @@ interface MineralDao {
         WHERE strftime('%Y', CAST(createdAt / 1000 AS INTEGER), 'unixepoch') = strftime('%Y', 'now')
     """)
     suspend fun getAddedThisYear(): Int
+
+    /**
+     * Get distribution of minerals added by month.
+     * Returns map of "YYYY-MM" format to count.
+     * Note: createdAt is stored as milliseconds since epoch, converted to seconds for SQLite.
+     */
+    @Query("""
+        SELECT strftime('%Y-%m', CAST(createdAt / 1000 AS INTEGER), 'unixepoch') as month, COUNT(*) as count
+        FROM minerals
+        WHERE createdAt IS NOT NULL
+        GROUP BY month
+        ORDER BY month DESC
+    """)
+    suspend fun getAddedByMonthDistribution(): Map<@MapColumn(columnName = "month") String, @MapColumn(columnName = "count") Int>
 
     /**
      * Get most common group (by count).

@@ -39,8 +39,10 @@ class StatisticsRepositoryImpl(
             val averageValueDeferred = async { mineralDao.getAverageValue() }
             val byGroupDeferred = async { mineralDao.getGroupDistribution() }
             val byCountryDeferred = async { mineralDao.getCountryDistribution() }
+            val byCrystalSystemDeferred = async { mineralDao.getCrystalSystemDistribution() }
             val byHardnessDeferred = async { mineralDao.getHardnessDistribution() }
             val byStatusDeferred = async { mineralDao.getStatusDistribution() }
+            val addedByMonthDeferred = async { mineralDao.getAddedByMonthDistribution() }
             val mostCommonGroupDeferred = async { mineralDao.getMostCommonGroup() }
             val mostCommonCountryDeferred = async { mineralDao.getMostCommonCountry() }
             val mostValuableDeferred = async { mineralDao.getMostValuableSpecimen() }
@@ -54,8 +56,10 @@ class StatisticsRepositoryImpl(
             val averageValue = averageValueDeferred.await()
             val byGroup = byGroupDeferred.await()
             val byCountry = byCountryDeferred.await()
+            val byCrystalSystem = byCrystalSystemDeferred.await()
             val byHardness = convertHardnessDistribution(byHardnessDeferred.await())
             val byStatus = byStatusDeferred.await()
+            val addedByMonth = addedByMonthDeferred.await()
             val mostCommonGroup = mostCommonGroupDeferred.await()
             val mostCommonCountry = mostCommonCountryDeferred.await()
             val mostValuable = mostValuableDeferred.await()?.let {
@@ -77,6 +81,7 @@ class StatisticsRepositoryImpl(
                 averageValue = averageValue,
                 byGroup = byGroup,
                 byCountry = byCountry,
+                byCrystalSystem = byCrystalSystem,
                 byHardness = byHardness,
                 byStatus = byStatus,
                 mostCommonGroup = mostCommonGroup,
@@ -85,7 +90,8 @@ class StatisticsRepositoryImpl(
                 averageCompleteness = averageCompleteness,
                 fullyDocumentedCount = fullyDocumentedCount,
                 addedThisMonth = addedThisMonth,
-                addedThisYear = addedThisYear
+                addedThisYear = addedThisYear,
+                addedByMonth = addedByMonth
             )
         }
 

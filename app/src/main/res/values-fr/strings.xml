@@ -44,7 +44,9 @@
     <string name="cd_filter">Filtrer</string>
     <string name="cd_delete">Supprimer</string>
     <string name="cd_edit">Modifier</string>
+    <string name="cd_generate_qr_code">Générer un QR code</string>
     <string name="cd_share">Partager</string>
+    <string name="qr_label_generated_success">PDF d\'étiquette QR code généré avec succès</string>
     <string name="cd_more_options">Plus d\'options</string>
     <string name="cd_photo">Photo</string>
     <string name="cd_take_photo">Prendre une photo</string>
@@ -199,8 +201,10 @@
     <string name="statistics_highlights">Points forts</string>
     <string name="statistics_by_group">Distribution par groupe</string>
     <string name="statistics_by_country">Distribution par pays</string>
+    <string name="statistics_by_crystal_system">Distribution par système cristallin</string>
     <string name="statistics_by_hardness">Distribution par dureté</string>
     <string name="statistics_by_status">Distribution par statut</string>
+    <string name="statistics_collection_evolution">Évolution de la collection</string>
     <string name="statistics_empty_title">Aucun minéral pour le moment</string>
     <string name="statistics_empty_message">Ajoutez votre premier minéral pour voir les statistiques de votre collection</string>
     <string name="stats_title">Statistiques</string>

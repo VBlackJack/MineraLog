@@ -307,6 +307,50 @@ private fun StatisticsContent(
             Spacer(modifier = Modifier.height(24.dp))
         }
 
+        // Distribution by Crystal System
+        if (statistics.byCrystalSystem.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.statistics_by_crystal_system),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Limit to top 10 for pie chart clarity
+                val topSystems = statistics.byCrystalSystem.entries
+                    .sortedByDescending { it.value }
+                    .take(10)
+                    .associate { it.key to it.value }
+
+                PieChart(
+                    data = topSystems,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .padding(16.dp)
+                        .semantics {
+                            contentDescription = buildString {
+                                append("Pie chart showing distribution by crystal system. ")
+                                append("${topSystems.size} systems displayed. ")
+                                topSystems.entries.forEachIndexed { index, entry ->
+                                    if (index < 3) {
+                                        append("${entry.key}: ${entry.value} minerals. ")
+                                    }
+                                }
+                                if (topSystems.size > 3) {
+                                    append("And ${topSystems.size - 3} more systems.")
+                                }
+                            }
+                        }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
         // Distribution by Hardness
         if (statistics.byHardness.isNotEmpty()) {
             Text(
@@ -373,6 +417,46 @@ private fun StatisticsContent(
                             }
                         },
                     maxBars = 10
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // Collection Evolution Over Time
+        if (statistics.addedByMonth.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.statistics_collection_evolution),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Sort by month chronologically and limit to last 12 months
+                val sortedByMonth = statistics.addedByMonth.entries
+                    .sortedBy { it.key }
+                    .toList()
+                    .takeLast(12)
+                    .associate { it.key to it.value }
+
+                BarChart(
+                    data = sortedByMonth,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = buildString {
+                                append("Bar chart showing collection evolution over time. ")
+                                append("${sortedByMonth.size} months displayed. ")
+                                val recentMonths = sortedByMonth.entries.toList().takeLast(3)
+                                recentMonths.forEach { entry ->
+                                    append("${entry.key}: ${entry.value} minerals added. ")
+                                }
+                            }
+                        },
+                    maxBars = 12
                 )
             }
         }

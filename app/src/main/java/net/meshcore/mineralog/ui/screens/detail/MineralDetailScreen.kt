@@ -1,5 +1,7 @@
 package net.meshcore.mineralog.ui.screens.detail
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -36,6 +38,9 @@ import net.meshcore.mineralog.domain.model.Mineral
 import net.meshcore.mineralog.ui.components.PhotoViewer
 import net.meshcore.mineralog.ui.screens.edit.PhotoItem
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +51,7 @@ fun MineralDetailScreen(
     onCameraClick: (String) -> Unit = {},
     viewModel: MineralDetailViewModel = viewModel(
         factory = MineralDetailViewModelFactory(
+            LocalContext.current.applicationContext,
             mineralId,
             (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository
         )
@@ -53,10 +59,41 @@ fun MineralDetailScreen(
 ) {
     val mineral by viewModel.mineral.collectAsState()
     val deleteState by viewModel.deleteState.collectAsState()
+    val qrGenerationState by viewModel.qrGenerationState.collectAsState()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     // Delete confirmation dialog state
     var showDeleteDialog by remember { mutableStateOf(false) }
+
+    // Snackbar host state for showing messages
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // PDF creation launcher for QR labels
+    val createPdfLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri ->
+        uri?.let { viewModel.generateQrLabel(it) }
+    }
+
+    // Handle QR generation state
+    LaunchedEffect(qrGenerationState) {
+        when (val state = qrGenerationState) {
+            is QrGenerationState.Success -> {
+                snackbarHostState.showSnackbar(
+                    context.getString(R.string.qr_label_generated_success)
+                )
+                viewModel.resetQrGenerationState()
+            }
+            is QrGenerationState.Error -> {
+                snackbarHostState.showSnackbar(
+                    state.message
+                )
+                viewModel.resetQrGenerationState()
+            }
+            else -> {}
+        }
+    }
 
     // Photo viewer state - at screen level to cover everything including TopAppBar
     var showPhotoViewer by rememberSaveable { mutableStateOf(false) }
@@ -81,6 +118,7 @@ fun MineralDetailScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(mineral?.name ?: stringResource(R.string.detail_loading)) },
@@ -113,6 +151,25 @@ fun MineralDetailScreen(
                         Icon(
                             Icons.Default.Edit,
                             contentDescription = stringResource(R.string.cd_edit),
+                            tint = if (mineral != null) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                            }
+                        )
+                    }
+                    // QR Code generation button
+                    IconButton(
+                        onClick = {
+                            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                            val fileName = "qr_label_${mineral?.name?.replace(" ", "_") ?: "mineral"}_$timestamp.pdf"
+                            createPdfLauncher.launch(fileName)
+                        },
+                        enabled = mineral != null && qrGenerationState !is QrGenerationState.Generating
+                    ) {
+                        Icon(
+                            Icons.Default.QrCode,
+                            contentDescription = stringResource(R.string.cd_generate_qr_code),
                             tint = if (mineral != null) {
                                 MaterialTheme.colorScheme.primary
                             } else {
