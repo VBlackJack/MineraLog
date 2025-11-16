@@ -29,12 +29,17 @@ object DatabaseKeyManager {
     private const val PREFS_NAME = "mineralog_db_prefs"
     private const val KEY_DB_PASSPHRASE = "db_passphrase"
 
+    // Lock for thread-safe passphrase generation
+    private val passphraseLock = Any()
+
     /**
      * Gets or generates the database passphrase.
+     * Thread-safe: uses synchronized block to prevent race conditions during first launch.
      *
      * @param context Application context
      * @return Database passphrase as ByteArray
      */
+    @Synchronized
     fun getOrCreatePassphrase(context: Context): ByteArray {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -113,6 +118,8 @@ object DatabaseKeyManager {
      * @return 32-byte random passphrase
      */
     private fun generateFallbackPassphrase(): ByteArray {
+        // Log warning when fallback is used (may indicate device security issues)
+        android.util.Log.w("DatabaseKeyManager", "Using fallback passphrase generation - Keystore extraction failed")
         val passphrase = ByteArray(32)
         java.security.SecureRandom().nextBytes(passphrase)
         return passphrase

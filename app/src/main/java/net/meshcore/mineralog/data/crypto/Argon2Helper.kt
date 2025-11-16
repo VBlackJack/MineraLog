@@ -52,33 +52,35 @@ class Argon2Helper(
      * @throws IllegalArgumentException if password is empty
      */
     fun deriveKey(password: CharArray, salt: ByteArray? = null): KeyDerivationResult {
-        require(password.isNotEmpty()) { "Password cannot be empty" }
-
-        val actualSalt = salt ?: generateSalt()
-
         try {
+            require(password.isNotEmpty()) { "Password cannot be empty" }
+
+            val actualSalt = salt ?: generateSalt()
+
             // Convert password to bytes (UTF-8)
             val passwordBytes = password.concatToString().toByteArray(Charsets.UTF_8)
 
-            // Derive key using Argon2id
-            val derivedKey = argon2.hash(
-                mode = MODE,
-                password = passwordBytes,
-                salt = actualSalt,
-                tCostInIterations = ITERATIONS,
-                mCostInKibibyte = MEMORY_COST_KB,
-                parallelism = PARALLELISM,
-                hashLengthInBytes = KEY_LENGTH_BYTES
-            )
+            try {
+                // Derive key using Argon2id
+                val derivedKey = argon2.hash(
+                    mode = MODE,
+                    password = passwordBytes,
+                    salt = actualSalt,
+                    tCostInIterations = ITERATIONS,
+                    mCostInKibibyte = MEMORY_COST_KB,
+                    parallelism = PARALLELISM,
+                    hashLengthInBytes = KEY_LENGTH_BYTES
+                )
 
-            // Clear sensitive data from memory
-            passwordBytes.fill(0)
-
-            return KeyDerivationResult(
-                key = derivedKey.rawHashAsByteArray(),
-                salt = actualSalt,
-                encodedSalt = Base64.encodeToString(actualSalt, Base64.NO_WRAP)
-            )
+                return KeyDerivationResult(
+                    key = derivedKey.rawHashAsByteArray(),
+                    salt = actualSalt,
+                    encodedSalt = Base64.encodeToString(actualSalt, Base64.NO_WRAP)
+                )
+            } finally {
+                // Clear sensitive data from memory
+                passwordBytes.fill(0)
+            }
         } finally {
             // Clear password from memory for security (use null character, not '0')
             password.fill('\u0000')

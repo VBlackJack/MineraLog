@@ -1,5 +1,6 @@
 package net.meshcore.mineralog.domain.model
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 import java.time.Instant
 
@@ -8,7 +9,10 @@ import java.time.Instant
  *
  * Represents an individual mineral that makes up part of an aggregate/rock specimen.
  * For example, in Granite: Quartz (35%), Feldspath (40%), Mica (20%), Biotite (5%).
+ *
+ * Performance: Marked @Immutable for Compose optimization.
  */
+@Immutable
 @Serializable
 data class MineralComponent(
     val id: String,

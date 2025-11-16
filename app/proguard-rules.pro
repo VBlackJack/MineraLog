@@ -166,9 +166,19 @@
 }
 
 # Remove all logging in release (including errors to prevent info leakage)
+# Security: Strip all log statements to prevent information disclosure
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+}
+
+# Remove custom AppLogger calls as well
+-assumenosideeffects class net.meshcore.mineralog.util.AppLogger {
+    public static *** v(...);
+    public static *** d(...);
     public static *** i(...);
     public static *** w(...);
     public static *** e(...);
