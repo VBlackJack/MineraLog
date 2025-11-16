@@ -1,0 +1,715 @@
+# État d'avancement - Bibliothèque de Minéraux de Référence
+# Version: 1.0
+# Dernière mise à jour: 2025-01-16
+
+project:
+  name: "Bibliothèque de Minéraux de Référence"
+  version: "1.0.0"
+  start_date: "2025-01-16"
+  target_completion: "TBD"
+  current_phase: "0 - Planification"
+  overall_progress: 0  # Pourcentage global (0-100)
+
+# ============================================================
+# PHASE 1 : Modèle de données et migration (MVP back-end)
+# ============================================================
+phase_1:
+  name: "Modèle de données et migration"
+  status: "not_started"  # not_started, in_progress, completed, blocked
+  priority: "critical"
+  estimated_days: 5
+  actual_days: 0
+  progress: 0  # 0-100
+  start_date: null
+  completion_date: null
+
+  tasks:
+    1_1_entity:
+      name: "Création de ReferenceMineralEntity"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer ReferenceMineralEntity.kt avec tous les champs"
+        - done: false
+          description: "Ajouter les indices appropriés"
+
+    1_2_dao:
+      name: "Création du DAO"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer ReferenceMineralDao.kt avec CRUD"
+        - done: false
+          description: "Ajouter requêtes de recherche"
+        - done: false
+          description: "Ajouter requêtes de filtrage"
+        - done: false
+          description: "Ajouter statistiques d'usage"
+
+    1_3_migration:
+      name: "Migration de base de données"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer MIGRATION_5_6.kt"
+        - done: false
+          description: "Créer table reference_minerals"
+        - done: false
+          description: "Ajouter referenceMineralId à simple_properties"
+        - done: false
+          description: "Ajouter referenceMineralId à mineral_components"
+        - done: false
+          description: "Ajouter colonnes spécimen-spécifiques"
+
+    1_4_dataset:
+      name: "Dataset initial"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer reference_minerals_initial.json avec 50-100 minéraux"
+        - done: false
+          description: "Implémenter logique de pré-population"
+
+    1_5_repository:
+      name: "Repository"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer ReferenceMineralRepository interface"
+        - done: false
+          description: "Créer ReferenceMineralRepositoryImpl"
+
+    1_6_database:
+      name: "Mise à jour de la base de données"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Modifier MineraLogDatabase (version 6)"
+        - done: false
+          description: "Ajouter ReferenceMineralEntity dans entities"
+        - done: false
+          description: "Ajouter ReferenceMineralDao"
+        - done: false
+          description: "Ajouter MIGRATION_5_6 dans le builder"
+
+    1_7_tests:
+      name: "Tests"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Tests unitaires ReferenceMineralDaoTest.kt"
+        - done: false
+          description: "Tests de migration Migration_5_6_Test.kt"
+        - done: false
+          description: "Tests du repository"
+
+  blockers: []
+  dependencies: []
+
+# ============================================================
+# PHASE 2 : Écran "Bibliothèque de minéraux" (consultation)
+# ============================================================
+phase_2:
+  name: "Écran Bibliothèque de minéraux"
+  status: "not_started"
+  priority: "critical"
+  estimated_days: 5
+  actual_days: 0
+  progress: 0
+  start_date: null
+  completion_date: null
+
+  tasks:
+    2_1_navigation:
+      name: "Navigation et architecture"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Ajouter 'Bibliothèque' dans la navigation principale"
+        - done: false
+          description: "Créer les routes de navigation"
+
+    2_2_list:
+      name: "Liste des minéraux de référence"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer ReferenceMineralListViewModel.kt"
+        - done: false
+          description: "Créer ReferenceMineralListScreen.kt"
+        - done: false
+          description: "Implémenter recherche temps réel"
+        - done: false
+          description: "Implémenter pagination (Paging 3)"
+
+    2_3_detail:
+      name: "Fiche détaillée"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer ReferenceMineralDetailViewModel.kt"
+        - done: false
+          description: "Créer ReferenceMineralDetailScreen.kt"
+        - done: false
+          description: "Afficher stats d'usage"
+
+    2_4_filters:
+      name: "Filtres et tri"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer ReferenceFilterSheet.kt (BottomSheet)"
+        - done: false
+          description: "Intégrer filtres dans la liste"
+
+    2_5_components:
+      name: "Composants réutilisables"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer ReferenceMineralCard.kt"
+
+    2_6_tests:
+      name: "Tests"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Tests UI (Previews)"
+        - done: false
+          description: "Tests de ViewModel"
+        - done: false
+          description: "Tests de navigation"
+
+  blockers: []
+  dependencies: ["phase_1"]
+
+# ============================================================
+# PHASE 3 : Autocomplétion dans AddMineralScreen (simples)
+# ============================================================
+phase_3:
+  name: "Autocomplétion minéraux simples"
+  status: "not_started"
+  priority: "critical"
+  estimated_days: 6
+  actual_days: 0
+  progress: 0
+  start_date: null
+  completion_date: null
+
+  tasks:
+    3_1_autocomplete:
+      name: "Composant d'autocomplétion réutilisable"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer ReferenceMineralAutocomplete.kt"
+        - done: false
+          description: "Implémenter debounce 300ms"
+        - done: false
+          description: "Affichage des suggestions"
+
+    3_2_viewmodel:
+      name: "Modification du ViewModel"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Ajouter StateFlow selectedReferenceMineral"
+        - done: false
+          description: "Fonction selectReferenceMineral (auto-remplissage)"
+        - done: false
+          description: "Fonction clearReferenceMineral"
+        - done: false
+          description: "Modifier logique de sauvegarde (referenceMineralId)"
+
+    3_3_screen:
+      name: "Modification de l'écran"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Intégrer ReferenceMineralAutocomplete"
+        - done: false
+          description: "Séparer sections (référence vs spécimen)"
+        - done: false
+          description: "Ajouter bouton 'Changer de minéral'"
+        - done: false
+          description: "Ajouter lien vers AddReferenceMineralScreen"
+
+    3_4_mappers:
+      name: "Mappers et logique de résolution"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Modifier EntityMappers.kt (resolveProperties)"
+
+    3_5_tests:
+      name: "Tests"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Tests du composant Autocomplete"
+        - done: false
+          description: "Tests du ViewModel"
+        - done: false
+          description: "Tests d'intégration"
+        - done: false
+          description: "Tests de compatibilité ascendante"
+
+  blockers: []
+  dependencies: ["phase_1"]
+
+# ============================================================
+# PHASE 4 : Autocomplétion dans ComponentEditorCard (agrégats)
+# ============================================================
+phase_4:
+  name: "Autocomplétion agrégats"
+  status: "not_started"
+  priority: "high"
+  estimated_days: 5
+  actual_days: 0
+  progress: 0
+  start_date: null
+  completion_date: null
+
+  tasks:
+    4_1_component_editor:
+      name: "Modification du ComponentEditorCard"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Remplacer nom par ReferenceMineralAutocomplete"
+        - done: false
+          description: "Ajouter section propriétés héritées"
+
+    4_2_viewmodel:
+      name: "Modification du ViewModel"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Adapter gestion composants (referenceMineralId)"
+        - done: false
+          description: "Fonction updateComponent avec auto-remplissage"
+
+    4_3_compact_mode:
+      name: "Mode compact optimisé"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Améliorer affichage compact"
+        - done: false
+          description: "Ajouter icône de lien bibliothèque"
+
+    4_4_validation:
+      name: "Validation intelligente"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Vérification somme pourcentages <= 100%"
+
+    4_5_tests:
+      name: "Tests"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Tests ComponentEditorCard avec référence"
+        - done: false
+          description: "Tests CRUD composants"
+        - done: false
+          description: "Tests cas limites"
+
+  blockers: []
+  dependencies: ["phase_1", "phase_3"]
+
+# ============================================================
+# PHASE 5 : Édition de la bibliothèque (CRUD complet)
+# ============================================================
+phase_5:
+  name: "Édition de la bibliothèque"
+  status: "not_started"
+  priority: "medium"
+  estimated_days: 4
+  actual_days: 0
+  progress: 0
+  start_date: null
+  completion_date: null
+
+  tasks:
+    5_1_add_screen:
+      name: "Écran d'ajout"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer AddReferenceMineralViewModel.kt"
+        - done: false
+          description: "Créer AddReferenceMineralScreen.kt"
+
+    5_2_edit_screen:
+      name: "Écran d'édition"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer EditReferenceMineralViewModel.kt"
+        - done: false
+          description: "Créer EditReferenceMineralScreen.kt"
+        - done: false
+          description: "Option 'Créer une copie personnalisée'"
+
+    5_3_deletion:
+      name: "Suppression avec vérification"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Implémenter vérification dépendances"
+        - done: false
+          description: "Dialogue de confirmation"
+        - done: false
+          description: "Nullification des références si suppression"
+
+    5_4_visual_markers:
+      name: "Marquage visuel"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Badge 'Personnalisé' sur minéraux user-defined"
+        - done: false
+          description: "Filtre 'Mes minéraux'"
+
+    5_5_tests:
+      name: "Tests"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Tests CRUD complets"
+        - done: false
+          description: "Tests validation"
+        - done: false
+          description: "Tests suppression avec dépendances"
+
+  blockers: []
+  dependencies: ["phase_2"]
+
+# ============================================================
+# PHASE 6 : Import/export CSV/ZIP (bibliothèque)
+# ============================================================
+phase_6:
+  name: "Import/export bibliothèque"
+  status: "not_started"
+  priority: "medium"
+  estimated_days: 5
+  actual_days: 0
+  progress: 0
+  start_date: null
+  completion_date: null
+
+  tasks:
+    6_1_export:
+      name: "Export de la bibliothèque"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Modifier BackupRepository pour export"
+        - done: false
+          description: "Générer reference_minerals.csv"
+        - done: false
+          description: "Option 'Exporter uniquement bibliothèque'"
+
+    6_2_import:
+      name: "Import de la bibliothèque"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Détecter reference_minerals.csv"
+        - done: false
+          description: "Parser le CSV"
+        - done: false
+          description: "Gestion des conflits (Fusionner/Renommer/Ignorer)"
+
+    6_3_linking:
+      name: "Liaison des entités"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Mapper les IDs (ancien → nouveau)"
+        - done: false
+          description: "Mettre à jour referenceMineralId dans entities liées"
+
+    6_4_documentation:
+      name: "Documentation"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer CSV_FORMAT.md"
+
+    6_5_tests:
+      name: "Tests"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Tests export/import round-trip"
+        - done: false
+          description: "Tests gestion conflits"
+        - done: false
+          description: "Tests compatibilité v5→v6"
+
+  blockers: []
+  dependencies: ["phase_3", "phase_4", "phase_5"]
+
+# ============================================================
+# PHASE 7 : Migration automatique des données existantes
+# ============================================================
+phase_7:
+  name: "Migration automatique"
+  status: "not_started"
+  priority: "high"
+  estimated_days: 6
+  actual_days: 0
+  progress: 0
+  start_date: null
+  completion_date: null
+
+  tasks:
+    7_1_algorithm:
+      name: "Algorithme de détection"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Créer AutoReferenceCreator.kt"
+        - done: false
+          description: "Fonction analyzeExistingMinerals"
+        - done: false
+          description: "Fonction detectCommonProperties"
+
+    7_2_one_shot:
+      name: "Logique de migration one-shot"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Flag dans SharedPreferences"
+        - done: false
+          description: "Fonction AutoReferenceCreator.run()"
+        - done: false
+          description: "Création des références + liaison"
+
+    7_3_report:
+      name: "Rapport de migration"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Dialogue de rapport utilisateur"
+
+    7_4_fuzzy_matching:
+      name: "Fuzzy matching (optionnel)"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Implémenter Levenshtein distance"
+
+    7_5_tests:
+      name: "Tests"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Tests sur données synthétiques"
+        - done: false
+          description: "Tests sur données réelles"
+        - done: false
+          description: "Tests de performances"
+
+  blockers: []
+  dependencies: ["phase_1"]
+
+# ============================================================
+# PHASE 8 : Polissage UX & accessibilité
+# ============================================================
+phase_8:
+  name: "Polissage UX"
+  status: "not_started"
+  priority: "low"
+  estimated_days: 4
+  actual_days: 0
+  progress: 0
+  start_date: null
+  completion_date: null
+
+  tasks:
+    8_1_animations:
+      name: "Animations et micro-interactions"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Animation fade-in auto-remplissage"
+        - done: false
+          description: "Animation slide changement minéral"
+        - done: false
+          description: "Animation collapse/expand sections"
+
+    8_2_feedback:
+      name: "Messages de feedback"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Toast sélection référence"
+        - done: false
+          description: "Snackbar avec undo suppression"
+        - done: false
+          description: "Skeleton screens"
+
+    8_3_accessibility:
+      name: "Accessibilité"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Tests TalkBack complets"
+        - done: false
+          description: "Vérification contrastes WCAG AA"
+        - done: false
+          description: "Support tailles de texte larges"
+
+    8_4_dark_mode:
+      name: "Mode sombre"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Vérifier tous les écrans"
+        - done: false
+          description: "Ajuster couleurs si nécessaire"
+
+    8_5_tooltips:
+      name: "Tooltips et aide"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Ajouter icônes '?' contextuelles"
+        - done: false
+          description: "Page d'aide dédiée"
+
+    8_6_statistics:
+      name: "Statistiques"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Section 'Bibliothèque' dans écran Statistiques"
+        - done: false
+          description: "Top 10 minéraux collectés (graphique)"
+
+    8_7_user_testing:
+      name: "Tests utilisateurs"
+      status: "not_started"
+      assignee: null
+      notes: ""
+      subtasks:
+        - done: false
+          description: "Recruter 5-10 beta testeurs"
+        - done: false
+          description: "Exécuter scénarios de test"
+        - done: false
+          description: "Collecter feedback (questionnaire)"
+
+  blockers: []
+  dependencies: ["phase_6", "phase_7"]
+
+# ============================================================
+# NOTES ET OBSERVATIONS
+# ============================================================
+notes:
+  - date: "2025-01-16"
+    author: "Claude"
+    content: "Roadmap initiale créée. Prêt pour démarrage de la Phase 1."
+
+# ============================================================
+# SESSIONS DE TRAVAIL
+# ============================================================
+sessions:
+  # Exemple:
+  # - date: "2025-01-17"
+  #   duration_hours: 2
+  #   phases_worked: ["phase_1"]
+  #   tasks_completed: ["1_1_entity"]
+  #   notes: "Création de l'entité ReferenceMineralEntity complétée"
