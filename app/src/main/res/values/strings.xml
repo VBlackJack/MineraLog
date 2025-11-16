@@ -69,6 +69,13 @@
     <string name="home_error_loading_more">Error loading more: %s</string>
     <string name="home_operation_in_progress">%s in progress...</string>
     <string name="home_generating_labels">Generating labels...</string>
+
+    <!-- Empty States (P1-9) -->
+    <string name="empty_collection_title">Your collection is empty</string>
+    <string name="empty_collection_subtitle">Start by adding your first mineral specimen</string>
+    <string name="empty_search_title">No results found</string>
+    <string name="empty_search_subtitle">Try adjusting your search or filters</string>
+    <string name="add_mineral">Add Mineral</string>
     <plurals name="home_mineral_count">
         <item quantity="one">%d mineral</item>
         <item quantity="other">%d minerals</item>
@@ -382,6 +389,7 @@
 
     <!-- Errors -->
     <string name="error_generic">An error occurred</string>
+    <string name="error_generic_title">Error</string>
     <string name="error_network">Network error</string>
     <string name="error_permission_denied">Permission denied</string>
     <string name="error_file_not_found">File not found</string>

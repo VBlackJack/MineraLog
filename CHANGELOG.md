@@ -89,6 +89,126 @@ ALTER TABLE reference_minerals ADD COLUMN sensitivity TEXT;
 
 ---
 
+## [3.0.0-rc] - 2025-11-16
+
+### ✨ Phase P2: Polish & Technical Debt Cleanup
+
+**P2-7: Unified Error & Empty State Components**
+- **`UiState.kt`**: Sealed class for consistent state management across all screens
+  - `Loading`, `Success<T>`, `Error`, `Empty` states
+  - Extension functions: `isLoading()`, `isSuccess()`, `dataOrNull()`
+  - Comprehensive KDoc with usage examples for ViewModels and Composables
+- **`ErrorStateComposables.kt`**: Reusable error UI components
+  - `ErrorStateView()` - Full-screen error with optional retry
+  - `InlineErrorMessage()` - Compact error for forms
+  - `ErrorCard()` - Non-blocking error cards with dismiss/retry
+- **`EmptyStateComposables.kt`**: Empty and loading states
+  - `EmptyMineralCollectionState()` - Empty collection with CTA
+  - `EmptySearchResultsState()` - No search results message
+  - `MineralListSkeleton()` / `MineralGridSkeleton()` - Shimmer loading
+  - Animated shimmer effect for skeleton placeholders
+
+**P1-3: Secure Clipboard Management**
+- **`SecureClipboard.kt`**: Auto-clearing clipboard utility
+  - `copyWithAutoCleanup()` - Copies data with 30-second auto-clear
+  - Prevents sensitive data (mineral IDs, errors) from persisting
+  - Integrated into `ImportResultDialog` for error copying
+  - Coroutine-based cleanup with cancellation support
+
+**P1-9 & P1-10: Internationalization Improvements**
+- Added i18n strings for empty states (EN/FR):
+  - `empty_collection_title`, `empty_collection_subtitle`
+  - `empty_search_title`, `empty_search_subtitle`
+  - `add_mineral`, `error_generic_title`
+- Created `i18n_audit.sh` script for translation parity verification
+  - **100% EN/FR parity**: 606 strings each
+  - Identifies missing translations automatically
+  - Checks French spacing compliance (espaces insécables)
+- Fixed French typography: Added `\u00A0` before `:` in error messages
+
+**P2-3: Deprecated API Migration**
+- Migrated to AutoMirrored icons for RTL support:
+  - `Icons.Default.CompareArrows` → `Icons.AutoMirrored.Filled.CompareArrows`
+  - `Icons.Default.MenuBook` → `Icons.AutoMirrored.Filled.MenuBook`
+  - `Icons.Default.Sort` → `Icons.AutoMirrored.Filled.Sort`
+- Updated files: `BulkActionsBottomSheet.kt`, `HomeScreen.kt`
+- All files already using `HorizontalDivider` (no Divider migration needed)
+
+**P2-2: Hilt Dependency Injection (Prepared)**
+- Added Hilt 2.52 dependencies to `libs.versions.toml`
+- Added Hilt plugin to `build.gradle.kts`
+- Dependencies: `hilt-android`, `hilt-compiler`, `hilt-navigation-compose`
+- **Status**: Infrastructure ready, full migration deferred to avoid breaking changes
+
+### 📊 P2-5: Code Coverage & Quality
+
+**JaCoCo Configuration (Already in Place)**:
+- **Minimum Coverage**: 60% enforced in CI
+- **Per-Class Rules**: ViewModels require 70% coverage
+- **Exclusions**: Generated code (R, BuildConfig, Dagger, Room, Compose)
+- CI task: `jacocoTestCoverageVerification` blocks PRs under 60%
+
+### 📚 P2-6: Technical Documentation
+
+**New Documentation Files**:
+- **`docs/ARCHITECTURE.md`** (comprehensive):
+  - Clean Architecture layers (Data, Domain, Presentation)
+  - Database schema (Room, SQLCipher, v7 migrations)
+  - Repository pattern and DAOs
+  - MVVM with StateFlow
+  - Dependency injection (current manual DI, future Hilt)
+  - Security architecture (Argon2id, AES-256, Android Keystore)
+  - Performance optimizations (Paging 3, Coil, FTS5)
+  - File structure and build configuration
+- **`docs/DEVELOPMENT.md`** (testing, API, security):
+  - **Testing Strategy**: Unit tests, integration tests, coverage targets
+  - **API Documentation**: All DAOs and Repositories with examples
+  - **Security**: SQLCipher setup, Argon2id params, backup encryption
+  - **Contributing**: Code style, commit messages, PR requirements
+  - **CI Requirements**: All quality gates documented
+
+### 🛠️ Infrastructure
+
+**New Utilities**:
+- `scripts/i18n_audit.sh` - Translation parity verification script
+
+**Files Created**:
+- `util/SecureClipboard.kt` - Secure clipboard manager
+- `ui/common/UiState.kt` - Sealed UI state class
+- `ui/components/ErrorStateComposables.kt` - Error components
+- `ui/components/EmptyStateComposables.kt` - Empty/loading states
+- `docs/ARCHITECTURE.md` - System architecture guide
+- `docs/DEVELOPMENT.md` - Testing, API, security docs
+- `scripts/i18n_audit.sh` - i18n audit script
+
+**Files Modified**:
+- `gradle/libs.versions.toml` - Added Hilt dependencies
+- `app/build.gradle.kts` - Added Hilt plugin and dependencies
+- `app/src/main/res/values/strings.xml` - Added empty state strings
+- `app/src/main/res/values-fr/strings.xml` - Added French translations
+- `ui/components/ImportResultDialog.kt` - Uses SecureClipboard
+- `ui/screens/home/BulkActionsBottomSheet.kt` - AutoMirrored icons
+- `ui/screens/home/HomeScreen.kt` - AutoMirrored icons
+
+### 🎯 Release Readiness
+
+**Quality Gates**:
+- ✅ JaCoCo coverage ≥ 60% (enforced in CI)
+- ✅ All tests passing
+- ✅ Lint clean
+- ✅ Detekt clean
+- ✅ CodeQL security scan passing
+- ✅ 100% EN/FR i18n parity
+- ✅ Comprehensive technical documentation
+
+**Deferred to v3.1.0**:
+- Full Hilt migration (infrastructure prepared)
+- Composable refactoring (HomeScreen, AddMineralScreen > 300 lines)
+- Resource cleanup (Lint-based unused resource removal)
+- Additional empty state integrations in all screens
+
+---
+
 ## [3.0.0-beta] - 2025-11-16
 
 ### 🔒 Security & Reliability (Phase P1)

@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -239,7 +241,7 @@ fun HomeScreen(
                     actions = {
                         // Library button
                         IconButton(onClick = onLibraryClick) {
-                            Icon(Icons.Default.MenuBook, contentDescription = "Bibliothèque")
+                            Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = "Bibliothèque")
                         }
                         // QR Scanner button
                         IconButton(onClick = onQrScanClick) {
@@ -300,7 +302,7 @@ fun HomeScreen(
                         // Sort button
                         IconButton(onClick = { showSortSheet = true }) {
                             Icon(
-                                Icons.Default.Sort,
+                                Icons.AutoMirrored.Filled.Sort,
                                 contentDescription = "Sort: ${sortOption.displayName}",
                                 tint = if (sortOption != SortOption.DATE_NEWEST) {
                                     MaterialTheme.colorScheme.primary
