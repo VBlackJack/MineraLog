@@ -3,15 +3,10 @@ package net.meshcore.mineralog.data.repository
 import android.content.Context
 import net.meshcore.mineralog.util.AppLogger
 import androidx.paging.PagingSource
-import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.Flow
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.local.dao.ReferenceMineralDao
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.local.initializer.ReferenceMineralDatasetLoader
-import net.meshcore.mineralog.util.AppLogger
 
 /**
  * Repository for managing the reference minerals library.

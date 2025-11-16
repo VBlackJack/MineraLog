@@ -3,7 +3,6 @@ package net.meshcore.mineralog.data.service
 import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
 import net.meshcore.mineralog.util.AppLogger
 import java.time.Instant
-import net.meshcore.mineralog.util.AppLogger
 
 /**
  * Mapper for converting ReferenceMineralEntity to/from CSV format.

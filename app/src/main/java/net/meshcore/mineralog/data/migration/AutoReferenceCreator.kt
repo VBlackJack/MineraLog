@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
+import net.meshcore.mineralog.data.local.entity.SimplePropertiesEntity
 import net.meshcore.mineralog.util.AppLogger
 import java.time.Instant
 import java.util.UUID

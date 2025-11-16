@@ -3,47 +3,26 @@ package net.meshcore.mineralog.ui.screens.edit
 import android.content.Context
 import net.meshcore.mineralog.util.AppLogger
 import android.net.Uri
-import net.meshcore.mineralog.util.AppLogger
 import androidx.lifecycle.ViewModel
-import net.meshcore.mineralog.util.AppLogger
 import androidx.lifecycle.ViewModelProvider
-import net.meshcore.mineralog.util.AppLogger
 import androidx.lifecycle.viewModelScope
-import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.MutableStateFlow
-import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.StateFlow
-import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.asStateFlow
-import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.debounce
-import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.launch
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.repository.MineralRepository
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.repository.MineralRepositoryImpl
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.repository.getMineralType
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.repository.getAggregateComponents
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.repository.updateAggregateComponents
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.domain.model.Mineral
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.domain.model.MineralComponent
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.domain.model.MineralType
-import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.domain.model.Photo
-import net.meshcore.mineralog.util.AppLogger
 import java.io.File
-import net.meshcore.mineralog.util.AppLogger
 import java.time.Instant
-import net.meshcore.mineralog.util.AppLogger
 import java.util.UUID
-import net.meshcore.mineralog.util.AppLogger
 
 sealed class UpdateMineralState {
     data object Idle : UpdateMineralState()

@@ -85,7 +85,7 @@ abstract class MineraLogDatabase : RoomDatabase() {
                         // DatabaseMigrationHelper.deleteBackup(migrationResult.backupPath)
                     }
                     is DatabaseMigrationHelper.MigrationResult.Error -> {
-                        AppLogger.e("MineraLogDB", "Migration failed: ${migrationResult.message}", migrationResult.cause)
+                        AppLogger.e("MineraLogDB", "Migration failed: ${migrationResult.message}", migrationResult.cause ?: Exception("Unknown error"))
                         // In production, you might want to show user a dialog or handle this gracefully
                         throw IllegalStateException("Failed to migrate database to encrypted format", migrationResult.cause)
                     }
