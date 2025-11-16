@@ -230,14 +230,6 @@ fun ComponentEditorCard(
                     )
 
                     OutlinedTextField(
-                        value = component.color ?: "",
-                        onValueChange = { onComponentChange(component.copy(color = it.takeIf { it.isNotBlank() })) },
-                        label = { Text("Couleur") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
                         value = component.notes ?: "",
                         onValueChange = { onComponentChange(component.copy(notes = it.takeIf { it.isNotBlank() })) },
                         label = { Text("Notes") },

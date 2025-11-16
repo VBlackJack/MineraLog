@@ -73,6 +73,7 @@ fun Mineral.toEntity(): MineralEntity {
         type = when (mineralType) {
             MineralType.AGGREGATE -> "AGGREGATE"
             MineralType.SIMPLE -> "SIMPLE"
+            MineralType.ROCK -> "ROCK"
         },
         group = group,
         formula = formula,

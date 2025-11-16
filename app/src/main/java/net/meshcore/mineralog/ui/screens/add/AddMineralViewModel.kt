@@ -337,20 +337,24 @@ class AddMineralViewModel(
             // v2.0: Validate aggregates
             if (_mineralType.value == MineralType.AGGREGATE) {
                 if (_components.value.size < 2) {
-                    _saveState.value = SaveMineralState.Error("Aggregate must have at least 2 components")
-                    return@launch
-                }
-
-                val totalPercentage = _components.value.mapNotNull { it.percentage }.sum()
-                if (totalPercentage !in 99f..101f) {
-                    _saveState.value = SaveMineralState.Error("Component percentages must sum to approximately 100%")
+                    _saveState.value = SaveMineralState.Error("Un agrégat doit avoir au moins 2 composants")
                     return@launch
                 }
 
                 // Check that all components have names
                 if (_components.value.any { it.mineralName.isBlank() }) {
-                    _saveState.value = SaveMineralState.Error("All components must have a name")
+                    _saveState.value = SaveMineralState.Error("Tous les composants doivent avoir un nom")
                     return@launch
+                }
+
+                // Only validate percentages if at least one is provided
+                val componentsWithPercentage = _components.value.filter { it.percentage != null }
+                if (componentsWithPercentage.isNotEmpty()) {
+                    val totalPercentage = componentsWithPercentage.mapNotNull { it.percentage }.sum()
+                    if (totalPercentage !in 95f..105f) {
+                        _saveState.value = SaveMineralState.Error("Les pourcentages doivent totaliser environ 100% (actuellement ${totalPercentage.toInt()}%)")
+                        return@launch
+                    }
                 }
             }
 

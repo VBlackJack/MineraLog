@@ -8,6 +8,7 @@ import net.meshcore.mineralog.data.local.entity.MineralEntity
 import net.meshcore.mineralog.data.mapper.toDomain
 import net.meshcore.mineralog.data.mapper.toEntity
 import net.meshcore.mineralog.domain.model.MineralComponent
+import net.meshcore.mineralog.domain.model.MineralType
 import net.meshcore.mineralog.domain.model.SimpleProperties
 import java.time.Instant
 import java.util.UUID
@@ -58,10 +59,7 @@ data class AggregateMineralData(
 suspend fun MineralRepositoryImpl.insertSimpleMineral(
     mineral: SimpleMineralData
 ): String {
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     return db.withTransaction {
         // Insert mineral entity
@@ -99,10 +97,7 @@ suspend fun MineralRepositoryImpl.insertAggregate(
         "Aggregate must have at least one component"
     }
 
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     return db.withTransaction {
         // Insert mineral entity
@@ -145,10 +140,7 @@ suspend fun MineralRepositoryImpl.updateAggregateComponents(
         "Aggregate must have at least one component"
     }
 
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     db.withTransaction {
         // Delete existing components
@@ -175,10 +167,7 @@ suspend fun MineralRepositoryImpl.updateAggregateComponents(
  * @return The simple properties, or null if not found or not a SIMPLE type mineral.
  */
 suspend fun MineralRepositoryImpl.getSimpleProperties(mineralId: String): SimpleProperties? {
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     val mineral = db.mineralDao().getById(mineralId)
     if (mineral?.type != "SIMPLE") return null
@@ -193,12 +182,7 @@ suspend fun MineralRepositoryImpl.getSimpleProperties(mineralId: String): Simple
  * @return The mineral type, or SIMPLE if not found.
  */
 suspend fun MineralRepositoryImpl.getMineralType(mineralId: String): MineralType {
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
-
-    val mineral = db.mineralDao().getById(mineralId)
+    val mineral = database.mineralDao().getById(mineralId)
     return when (mineral?.type) {
         "AGGREGATE" -> MineralType.AGGREGATE
         else -> MineralType.SIMPLE
@@ -212,10 +196,7 @@ suspend fun MineralRepositoryImpl.getMineralType(mineralId: String): MineralType
  * @return The list of components, or empty list if not found or not an AGGREGATE type mineral.
  */
 suspend fun MineralRepositoryImpl.getAggregateComponents(aggregateId: String): List<MineralComponent> {
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     val mineral = db.mineralDao().getById(aggregateId)
     if (mineral?.type != "AGGREGATE") return emptyList()
@@ -231,10 +212,7 @@ suspend fun MineralRepositoryImpl.getAggregateComponents(aggregateId: String): L
  * @return A Flow of component lists.
  */
 fun MineralRepositoryImpl.getAggregateComponentsFlow(aggregateId: String): Flow<List<MineralComponent>> {
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     return db.mineralComponentDao().getByAggregateIdFlow(aggregateId)
         .map { entities -> entities.map { it.toDomain() } }
@@ -247,10 +225,7 @@ fun MineralRepositoryImpl.getAggregateComponentsFlow(aggregateId: String): Flow<
  * @return A Flow of minerals containing the specified component.
  */
 fun MineralRepositoryImpl.searchAggregatesByComponent(componentName: String): Flow<List<MineralEntity>> {
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     return db.mineralComponentDao().searchAggregatesByComponent(componentName)
 }
@@ -261,10 +236,7 @@ fun MineralRepositoryImpl.searchAggregatesByComponent(componentName: String): Fl
  * @return A Flow of all simple (non-aggregate) minerals.
  */
 fun MineralRepositoryImpl.getAllSimpleMinerals(): Flow<List<MineralEntity>> {
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     return db.mineralDao().getAllSimpleMinerals()
 }
@@ -275,10 +247,7 @@ fun MineralRepositoryImpl.getAllSimpleMinerals(): Flow<List<MineralEntity>> {
  * @return A Flow of all aggregate minerals.
  */
 fun MineralRepositoryImpl.getAllAggregates(): Flow<List<MineralEntity>> {
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     return db.mineralDao().getAllAggregates()
 }
@@ -290,10 +259,7 @@ fun MineralRepositoryImpl.getAllAggregates(): Flow<List<MineralEntity>> {
  * @return The count of minerals of the specified type.
  */
 suspend fun MineralRepositoryImpl.countByType(type: String): Int {
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     return db.mineralDao().countByType(type)
 }
@@ -304,10 +270,7 @@ suspend fun MineralRepositoryImpl.countByType(type: String): Int {
  * @return A map of type names to counts.
  */
 suspend fun MineralRepositoryImpl.getTypeDistribution(): Map<String, Int> {
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     return db.mineralDao().getTypeDistribution()
 }
@@ -330,10 +293,7 @@ fun validateComponentPercentages(components: List<MineralComponent>): Boolean {
  * @return The number of components.
  */
 suspend fun MineralRepositoryImpl.getComponentCount(aggregateId: String): Int {
-    val db = this.javaClass.getDeclaredField("database").let { field ->
-        field.isAccessible = true
-        field.get(this) as MineraLogDatabase
-    }
+    val db = database
 
     return db.mineralComponentDao().countByAggregateId(aggregateId)
 }

@@ -545,18 +545,6 @@ interface MineralDao {
     suspend fun getStatusDistribution(): Map<@MapColumn(columnName = "statusType") String, @MapColumn(columnName = "count") Int>
 
     /**
-     * Get distribution by mineral type (v2.0).
-     * Returns count of SIMPLE vs AGGREGATE minerals.
-     */
-    @Query("""
-        SELECT type, COUNT(*) as count
-        FROM minerals
-        GROUP BY type
-        ORDER BY count DESC
-    """)
-    suspend fun getTypeDistribution(): Map<@MapColumn(columnName = "type") String, @MapColumn(columnName = "count") Int>
-
-    /**
      * Get total estimated value of all minerals.
      * Sums the estimatedValue field from provenance.
      */

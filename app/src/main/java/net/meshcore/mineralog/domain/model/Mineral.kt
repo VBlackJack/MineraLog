@@ -45,7 +45,9 @@ data class Mineral(
     val updatedAt: Instant = Instant.now(),
     val provenance: Provenance? = null,
     val storage: Storage? = null,
-    val photos: List<Photo> = emptyList()
+    val photos: List<Photo> = emptyList(),
+    // v2.0: Aggregate components (only for AGGREGATE type minerals)
+    val components: List<MineralComponent> = emptyList()
 )
 
 @Serializable

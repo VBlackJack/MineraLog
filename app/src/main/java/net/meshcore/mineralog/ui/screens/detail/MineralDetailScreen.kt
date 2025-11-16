@@ -550,7 +550,7 @@ fun MineralDetailContent(
         }
 
         // v2.0: Aggregate components section (only for aggregates)
-        if (mineralType == MineralType.AGGREGATE && components.isNotEmpty()) {
+        if (mineral.mineralType == MineralType.AGGREGATE && mineral.components.isNotEmpty()) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -560,14 +560,14 @@ fun MineralDetailContent(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "${components.size} composant${if (components.size > 1) "s" else ""}",
+                        text = "${mineral.components.size} composant${if (mineral.components.size > 1) "s" else ""}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    components.forEach { component ->
+                    mineral.components.forEach { component ->
                         ComponentCard(
                             component = component,
                             modifier = Modifier.fillMaxWidth()

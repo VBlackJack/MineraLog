@@ -61,7 +61,7 @@ interface MineralRepository {
 }
 
 class MineralRepositoryImpl(
-    private val database: MineraLogDatabase,
+    internal val database: MineraLogDatabase,
     private val mineralDao: MineralDao,
     private val provenanceDao: ProvenanceDao,
     private val storageDao: StorageDao,

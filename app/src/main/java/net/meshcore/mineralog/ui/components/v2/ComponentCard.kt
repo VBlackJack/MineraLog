@@ -122,7 +122,7 @@ fun ComponentCard(
                 ) {
                     if (component.mohsMin != null || component.mohsMax != null ||
                         component.density != null || component.crystalSystem != null ||
-                        component.luster != null || component.color != null ||
+                        component.luster != null ||
                         component.notes != null) {
                         HorizontalDivider()
                     }
@@ -141,10 +141,6 @@ fun ComponentCard(
 
                     component.luster?.let { luster ->
                         PropertyRow(label = "Éclat", value = luster)
-                    }
-
-                    component.color?.let { color ->
-                        PropertyRow(label = "Couleur", value = color)
                     }
 
                     component.notes?.let { notes ->
@@ -208,8 +204,7 @@ private fun ComponentCardPreview() {
                     mohsMax = 7f,
                     density = 2.65f,
                     crystalSystem = "Hexagonal",
-                    luster = "Vitreux",
-                    color = "Incolore à blanc"
+                    luster = "Vitreux"
                 ),
                 modifier = Modifier.padding(16.dp)
             )
@@ -235,7 +230,6 @@ private fun ComponentCardExpandedPreview() {
                     density = 2.56f,
                     crystalSystem = "Triclinique",
                     luster = "Vitreux",
-                    color = "Rose à blanc",
                     notes = "Le feldspath est un minéral très commun dans les roches granitiques."
                 ),
                 modifier = Modifier.padding(16.dp),

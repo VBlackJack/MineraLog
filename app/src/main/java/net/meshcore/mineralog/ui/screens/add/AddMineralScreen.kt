@@ -95,6 +95,18 @@ fun AddMineralScreen(
             habit.isNotBlank() || crystalSystem.isNotBlank() || tags.isNotBlank()
     var showDiscardDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show error messages
+    LaunchedEffect(saveState) {
+        if (saveState is SaveMineralState.Error) {
+            snackbarHostState.showSnackbar(
+                message = (saveState as SaveMineralState.Error).message,
+                duration = SnackbarDuration.Long
+            )
+            viewModel.resetSaveState()
+        }
+    }
 
     // Save action for keyboard submit
     val saveAction: () -> Unit = {
@@ -137,6 +149,7 @@ fun AddMineralScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.add_mineral_title)) },
