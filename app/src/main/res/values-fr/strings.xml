@@ -57,7 +57,7 @@
     <!-- Home Screen -->
     <string name="home_title">MineraLog</string>
     <string name="home_search_placeholder">Rechercher des minéraux…</string>
-    <string name="home_empty_state">Aucun minéral pour le moment. Ajoutez le premier !</string>
+    <string name="home_empty_state">Aucun minéral pour le moment. Ajoutez le premier\u00A0!</string>
     <string name="home_empty_search">Aucun minéral trouvé</string>
     <string name="home_empty_state_title">Votre collection est vide</string>
     <string name="home_empty_state_message">Commencez à constituer votre collection minérale en ajoutant votre premier spécimen</string>
@@ -65,10 +65,17 @@
     <string name="home_no_results_title">Aucun résultat trouvé</string>
     <string name="home_no_results_message">Aucun minéral ne correspond à \"%s\"</string>
     <string name="home_no_results_with_filters">avec les filtres actuels</string>
-    <string name="home_error_loading">Erreur de chargement des minéraux : %s</string>
-    <string name="home_error_loading_more">Erreur de chargement supplémentaire : %s</string>
+    <string name="home_error_loading">Erreur de chargement des minéraux\u00A0: %s</string>
+    <string name="home_error_loading_more">Erreur de chargement supplémentaire\u00A0: %s</string>
     <string name="home_operation_in_progress">%s en cours...</string>
     <string name="home_generating_labels">Génération des étiquettes...</string>
+
+    <!-- Empty States (P1-9) -->
+    <string name="empty_collection_title">Votre collection est vide</string>
+    <string name="empty_collection_subtitle">Commencez par ajouter votre premier spécimen</string>
+    <string name="empty_search_title">Aucun résultat trouvé</string>
+    <string name="empty_search_subtitle">Essayez d\'ajuster votre recherche ou vos filtres</string>
+    <string name="add_mineral">Ajouter un minéral</string>
     <plurals name="home_mineral_count">
         <item quantity="one">%d minéral</item>
         <item quantity="other">%d minéraux</item>
@@ -382,6 +389,7 @@
 
     <!-- Errors -->
     <string name="error_generic">Une erreur s\'est produite</string>
+    <string name="error_generic_title">Erreur</string>
     <string name="error_network">Erreur réseau</string>
     <string name="error_permission_denied">Permission refusée</string>
     <string name="error_file_not_found">Fichier introuvable</string>

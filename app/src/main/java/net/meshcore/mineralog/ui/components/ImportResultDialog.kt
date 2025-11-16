@@ -1,7 +1,5 @@
 package net.meshcore.mineralog.ui.components
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import net.meshcore.mineralog.R
 import net.meshcore.mineralog.data.repository.ImportResult
+import net.meshcore.mineralog.util.SecureClipboard
 
 /**
  * Dialog to display CSV import results with statistics and error details.
@@ -254,6 +253,7 @@ fun ImportResultDialog(
 
 /**
  * Copy import errors to clipboard for sharing/debugging.
+ * Uses SecureClipboard to auto-clear after 30 seconds for security.
  */
 private fun copyErrorsToClipboard(context: Context, result: ImportResult) {
     val errorText = buildString {
@@ -270,9 +270,13 @@ private fun copyErrorsToClipboard(context: Context, result: ImportResult) {
         }
     }
 
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val clip = ClipData.newPlainText("CSV Import Errors", errorText)
-    clipboard.setPrimaryClip(clip)
+    // Copy with auto-clear after 30 seconds for security
+    SecureClipboard.copyWithAutoCleanup(
+        context = context,
+        label = "CSV Import Errors",
+        text = errorText,
+        delayMs = 30_000L
+    )
 
     // Note: Snackbar notification should be handled by the caller
 }
