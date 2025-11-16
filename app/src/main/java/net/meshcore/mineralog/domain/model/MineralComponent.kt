@@ -13,6 +13,10 @@ import java.time.Instant
 data class MineralComponent(
     val id: String,
 
+    // v3.0: Reference mineral link
+    // When set, this component's properties inherit from a reference mineral template
+    val referenceMineralId: String? = null,
+
     // Component identification
     val mineralName: String,
     val mineralGroup: String? = null,
