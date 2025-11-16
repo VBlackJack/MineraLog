@@ -1,14 +1,23 @@
 package net.meshcore.mineralog.ui.screens.reference
 
 import androidx.lifecycle.ViewModel
+import net.meshcore.mineralog.util.AppLogger
 import androidx.lifecycle.ViewModelProvider
+import net.meshcore.mineralog.util.AppLogger
 import androidx.lifecycle.viewModelScope
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.MutableStateFlow
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.StateFlow
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.asStateFlow
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.launch
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.repository.ReferenceMineralRepository
+import net.meshcore.mineralog.util.AppLogger
 
 /**
  * ViewModel for the Reference Mineral detail screen.
@@ -83,7 +92,7 @@ class ReferenceMineralDetailViewModel(
                 _totalUsageCount.value = referenceMineralRepository.getTotalUsageCount(referenceMineralId)
             } catch (e: Exception) {
                 // Silently fail for statistics - not critical
-                android.util.Log.e("RefMineralDetailVM", "Failed to load usage stats", e)
+                AppLogger.e("RefMineralDetailVM", "Failed to load usage stats", e)
             }
         }
     }

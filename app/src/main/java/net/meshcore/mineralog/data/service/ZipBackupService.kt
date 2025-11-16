@@ -1,27 +1,49 @@
 package net.meshcore.mineralog.data.service
 
 import android.content.Context
+import net.meshcore.mineralog.util.AppLogger
 import android.net.Uri
+import net.meshcore.mineralog.util.AppLogger
 import androidx.room.withTransaction
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.Dispatchers
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.first
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.withContext
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.serialization.encodeToString
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.serialization.json.Json
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.crypto.DecryptionException
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.local.MineraLogDatabase
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.mapper.toDomain
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.mapper.toEntity
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.model.BackupManifest
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.repository.ImportMode
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.repository.ImportResult
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.domain.model.Mineral
+import net.meshcore.mineralog.util.AppLogger
 import java.io.File
+import net.meshcore.mineralog.util.AppLogger
 import java.util.UUID
+import net.meshcore.mineralog.util.AppLogger
 import java.util.zip.ZipEntry
+import net.meshcore.mineralog.util.AppLogger
 import java.util.zip.ZipInputStream
+import net.meshcore.mineralog.util.AppLogger
 import java.util.zip.ZipOutputStream
+import net.meshcore.mineralog.util.AppLogger
 
 /**
  * Service responsible for ZIP backup operations (export and import).
@@ -321,7 +343,7 @@ class ZipBackupService(
                                     val (refImported, refErrors) = importReferenceMinerals(referenceMinerals, mode)
                                     errors.addAll(refErrors.map { "Reference minerals: $it" })
                                     // Note: refImported is not added to main import count to keep it separate
-                                    android.util.Log.i("ZipBackupService", "Imported $refImported reference minerals")
+                                    AppLogger.i("ZipBackupService", "Imported $refImported reference minerals")
                                 }
                             } catch (e: Exception) {
                                 errors.add("Failed to import reference minerals: ${e.message}")

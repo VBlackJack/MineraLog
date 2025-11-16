@@ -1,11 +1,17 @@
 package net.meshcore.mineralog.data.repository
 
 import android.content.Context
+import net.meshcore.mineralog.util.AppLogger
 import androidx.paging.PagingSource
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.Flow
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.local.dao.ReferenceMineralDao
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.local.initializer.ReferenceMineralDatasetLoader
+import net.meshcore.mineralog.util.AppLogger
 
 /**
  * Repository for managing the reference minerals library.
@@ -194,7 +200,7 @@ class ReferenceMineralRepositoryImpl(
     override suspend fun populateInitialDataset(context: Context): Int {
         // Check if database is already populated
         if (!isEmpty()) {
-            android.util.Log.d("RefMineralRepo", "Database already populated, skipping initial dataset load")
+            AppLogger.d("RefMineralRepo", "Database already populated, skipping initial dataset load")
             return 0
         }
 
@@ -202,10 +208,10 @@ class ReferenceMineralRepositoryImpl(
             val loader = ReferenceMineralDatasetLoader(context)
             val minerals = loader.loadInitialDataset()
             insertAll(minerals)
-            android.util.Log.i("RefMineralRepo", "Successfully loaded ${minerals.size} reference minerals")
+            AppLogger.i("RefMineralRepo", "Successfully loaded ${minerals.size} reference minerals")
             minerals.size
         } catch (e: Exception) {
-            android.util.Log.e("RefMineralRepo", "Failed to load initial dataset", e)
+            AppLogger.e("RefMineralRepo", "Failed to load initial dataset", e)
             // Don't throw - we can continue without initial data
             0
         }

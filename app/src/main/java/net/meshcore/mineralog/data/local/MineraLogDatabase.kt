@@ -31,6 +31,7 @@ import net.meshcore.mineralog.data.local.migration.MIGRATION_3_4
 import net.meshcore.mineralog.data.local.migration.MIGRATION_4_5
 import net.meshcore.mineralog.data.local.migration.MIGRATION_5_6
 import net.meshcore.mineralog.data.local.migration.MIGRATION_6_7
+import net.meshcore.mineralog.util.AppLogger
 
 /**
  * Main Room database for MineraLog application.
@@ -79,12 +80,12 @@ abstract class MineraLogDatabase : RoomDatabase() {
                 val migrationResult = DatabaseMigrationHelper.migrateIfNeeded(context)
                 when (migrationResult) {
                     is DatabaseMigrationHelper.MigrationResult.Success -> {
-                        android.util.Log.i("MineraLogDB", "Database migrated to encrypted format. Backup at: ${migrationResult.backupPath}")
+                        AppLogger.i("MineraLogDB", "Database migrated to encrypted format. Backup at: ${migrationResult.backupPath}")
                         // Optionally delete backup after verification in production
                         // DatabaseMigrationHelper.deleteBackup(migrationResult.backupPath)
                     }
                     is DatabaseMigrationHelper.MigrationResult.Error -> {
-                        android.util.Log.e("MineraLogDB", "Migration failed: ${migrationResult.message}", migrationResult.cause)
+                        AppLogger.e("MineraLogDB", "Migration failed: ${migrationResult.message}", migrationResult.cause)
                         // In production, you might want to show user a dialog or handle this gracefully
                         throw IllegalStateException("Failed to migrate database to encrypted format", migrationResult.cause)
                     }
@@ -123,7 +124,7 @@ abstract class MineraLogDatabase : RoomDatabase() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
                             // Database created with encryption enabled
-                            android.util.Log.i("MineraLogDB", "Encrypted database created")
+                            AppLogger.i("MineraLogDB", "Encrypted database created")
                             // Note: Initial reference minerals dataset population happens
                             // at application startup via a dedicated initializer or repository check.
                             // See ReferenceMineralRepository.populateInitialDataset()
@@ -132,7 +133,7 @@ abstract class MineraLogDatabase : RoomDatabase() {
                         override fun onOpen(db: SupportSQLiteDatabase) {
                             super.onOpen(db)
                             // Database opened successfully with encryption
-                            android.util.Log.d("MineraLogDB", "Encrypted database opened")
+                            AppLogger.d("MineraLogDB", "Encrypted database opened")
                         }
                     })
                     .build()
