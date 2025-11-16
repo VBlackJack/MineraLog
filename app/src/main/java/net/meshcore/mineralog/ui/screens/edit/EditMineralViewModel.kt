@@ -11,7 +11,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.repository.MineralRepository
+import net.meshcore.mineralog.data.repository.MineralRepositoryImpl
+import net.meshcore.mineralog.data.repository.getMineralType
+import net.meshcore.mineralog.data.repository.getAggregateComponents
+import net.meshcore.mineralog.data.repository.updateAggregateComponents
 import net.meshcore.mineralog.domain.model.Mineral
+import net.meshcore.mineralog.domain.model.MineralComponent
+import net.meshcore.mineralog.domain.model.MineralType
 import net.meshcore.mineralog.domain.model.Photo
 import java.io.File
 import java.time.Instant
@@ -88,6 +94,14 @@ class EditMineralViewModel(
     private val _updateState = MutableStateFlow<UpdateMineralState>(UpdateMineralState.Idle)
     val updateState: StateFlow<UpdateMineralState> = _updateState.asStateFlow()
 
+    // v2.0: Mineral type (read-only, loaded from database)
+    private val _mineralType = MutableStateFlow(MineralType.SIMPLE)
+    val mineralType: StateFlow<MineralType> = _mineralType.asStateFlow()
+
+    // v2.0: Components for aggregate minerals
+    private val _components = MutableStateFlow<List<MineralComponent>>(emptyList())
+    val components: StateFlow<List<MineralComponent>> = _components.asStateFlow()
+
     private var originalMineral: Mineral? = null
 
     init {
@@ -110,6 +124,9 @@ class EditMineralViewModel(
         viewModelScope.launch {
             _updateState.value = UpdateMineralState.Loading
             try {
+                // v2.0: Load mineral type first
+                _mineralType.value = (mineralRepository as MineralRepositoryImpl).getMineralType(mineralId)
+
                 mineralRepository.getByIdFlow(mineralId).collect { mineral ->
                     if (mineral != null) {
                         originalMineral = mineral
@@ -135,6 +152,12 @@ class EditMineralViewModel(
                                 caption = photo.caption,
                                 isExisting = true
                             )
+                        }
+
+                        // v2.0: Load components if this is an aggregate
+                        if (_mineralType.value == MineralType.AGGREGATE) {
+                            _components.value = (mineralRepository as MineralRepositoryImpl)
+                                .getAggregateComponents(mineralId)
                         }
 
                         _updateState.value = UpdateMineralState.Idle
@@ -195,6 +218,11 @@ class EditMineralViewModel(
 
     fun onTagsChange(value: String) {
         _tags.value = value
+    }
+
+    // v2.0: Component management
+    fun onComponentsChange(components: List<MineralComponent>) {
+        _components.value = components
     }
 
     private fun updateTagSuggestions(input: String) {
@@ -263,6 +291,26 @@ class EditMineralViewModel(
                 return@launch
             }
 
+            // v2.0: Validate aggregates
+            if (_mineralType.value == MineralType.AGGREGATE) {
+                if (_components.value.size < 2) {
+                    _updateState.value = UpdateMineralState.Error("Aggregate must have at least 2 components")
+                    return@launch
+                }
+
+                val totalPercentage = _components.value.mapNotNull { it.percentage }.sum()
+                if (totalPercentage !in 99f..101f) {
+                    _updateState.value = UpdateMineralState.Error("Component percentages must sum to approximately 100%")
+                    return@launch
+                }
+
+                // Check that all components have names
+                if (_components.value.any { it.mineralName.isBlank() }) {
+                    _updateState.value = UpdateMineralState.Error("All components must have a name")
+                    return@launch
+                }
+            }
+
             _updateState.value = UpdateMineralState.Saving
 
             try {
@@ -296,6 +344,14 @@ class EditMineralViewModel(
                 )
 
                 mineralRepository.update(updatedMineral)
+
+                // v2.0: Update components if this is an aggregate
+                if (_mineralType.value == MineralType.AGGREGATE) {
+                    (mineralRepository as MineralRepositoryImpl).updateAggregateComponents(
+                        aggregateId = mineralId,
+                        components = _components.value
+                    )
+                }
 
                 // Handle photos
                 // Delete removed photos

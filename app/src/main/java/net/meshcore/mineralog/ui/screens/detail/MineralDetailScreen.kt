@@ -35,7 +35,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.domain.model.Mineral
+import net.meshcore.mineralog.domain.model.MineralType
 import net.meshcore.mineralog.ui.components.PhotoViewer
+import net.meshcore.mineralog.ui.components.v2.ComponentCard
 import net.meshcore.mineralog.ui.screens.edit.PhotoItem
 import java.io.File
 import java.text.SimpleDateFormat
@@ -60,6 +62,11 @@ fun MineralDetailScreen(
     val mineral by viewModel.mineral.collectAsState()
     val deleteState by viewModel.deleteState.collectAsState()
     val qrGenerationState by viewModel.qrGenerationState.collectAsState()
+
+    // v2.0: Mineral type and components
+    val mineralType by viewModel.mineralType.collectAsState()
+    val components by viewModel.components.collectAsState()
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -537,6 +544,35 @@ fun MineralDetailContent(
                                     )
                                 }
                         }
+                    }
+                }
+            }
+        }
+
+        // v2.0: Aggregate components section (only for aggregates)
+        if (mineralType == MineralType.AGGREGATE && components.isNotEmpty()) {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Composition de l'agrégat",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "${components.size} composant${if (components.size > 1) "s" else ""}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    components.forEach { component ->
+                        ComponentCard(
+                            component = component,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }

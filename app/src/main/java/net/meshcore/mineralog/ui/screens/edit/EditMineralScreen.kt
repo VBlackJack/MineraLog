@@ -31,6 +31,8 @@ import net.meshcore.mineralog.ui.components.TooltipDropdownField
 import net.meshcore.mineralog.ui.components.MineralFieldTooltips
 import net.meshcore.mineralog.ui.components.MineralFieldValues
 import net.meshcore.mineralog.ui.components.PhotoManager
+import net.meshcore.mineralog.ui.components.v2.ComponentListEditor
+import net.meshcore.mineralog.domain.model.MineralType
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,6 +65,10 @@ fun EditMineralScreen(
     val tagSuggestions by viewModel.tagSuggestions.collectAsState()
     val photos by viewModel.photos.collectAsState()
     val updateState by viewModel.updateState.collectAsState()
+
+    // v2.0: Mineral type and components
+    val mineralType by viewModel.mineralType.collectAsState()
+    val components by viewModel.components.collectAsState()
 
     val isSaving = updateState is UpdateMineralState.Saving
     val isLoading = updateState is UpdateMineralState.Loading
@@ -207,6 +213,45 @@ fun EditMineralScreen(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
+                // v2.0: Mineral type indicator (read-only)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Type:",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = if (mineralType == MineralType.AGGREGATE) "Agrégat" else "Minéral Simple",
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            },
+                            enabled = false
+                        )
+                        Text(
+                            text = "(non modifiable)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
                 OutlinedTextField(
                     value = name,
                     onValueChange = { viewModel.onNameChange(it) },
@@ -254,8 +299,10 @@ fun EditMineralScreen(
                     maxLines = 8
                 )
 
-                // Technical Properties Section
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                // v2.0: Conditional content based on mineral type
+                if (mineralType == MineralType.SIMPLE) {
+                    // Technical Properties Section (Simple minerals only)
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 Text(
                     text = stringResource(R.string.section_technical_properties),
@@ -338,6 +385,28 @@ fun EditMineralScreen(
                     placeholder = stringResource(R.string.field_crystal_system_placeholder),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                 )
+                } else {
+                    // v2.0: Component editor for aggregates
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                    Text(
+                        text = "Composants de l'agrégat",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    Text(
+                        text = "Modifiez les minéraux qui composent cet agrégat. Les pourcentages doivent totaliser ~100%.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    ComponentListEditor(
+                        components = components,
+                        onComponentsChange = { viewModel.onComponentsChange(it) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
                 // Tags Section
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
