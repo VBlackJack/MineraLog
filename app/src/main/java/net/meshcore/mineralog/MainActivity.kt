@@ -5,7 +5,6 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.os.LocaleList
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -29,6 +28,7 @@ import net.meshcore.mineralog.ui.dialogs.MigrationReportDialog
 import net.meshcore.mineralog.ui.navigation.MineraLogNavHost
 import net.meshcore.mineralog.ui.screens.main.MigrationViewModel
 import net.meshcore.mineralog.ui.theme.MineraLogTheme
+import net.meshcore.mineralog.util.AppLogger
 import java.util.Locale
 import java.util.UUID
 
@@ -55,8 +55,8 @@ class MainActivity : ComponentActivity() {
                 UUID.fromString(id)
                 id // Return the valid ID
             } catch (e: IllegalArgumentException) {
-                // Log security event and ignore invalid deep link
-                Log.w("MainActivity", "Invalid deep link UUID rejected: $id", e)
+                // Log security event without exposing the invalid UUID
+                AppLogger.w("MainActivity", "Invalid deep link UUID rejected")
                 null
             }
         }

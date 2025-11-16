@@ -26,10 +26,15 @@
 -keep class com.lambdapioneer.argon2kt.Argon2Mode { *; }
 -keep class com.lambdapioneer.argon2kt.Argon2Version { *; }
 
-# SQLCipher - CRITICAL: Keep all classes and native methods
--keep class net.sqlcipher.** { *; }
--keep class net.sqlcipher.database.** { *; }
--keep interface net.sqlcipher.** { *; }
+# SQLCipher - CRITICAL: Keep public API only (optimized - was keeping everything)
+-keep class net.sqlcipher.database.SQLiteDatabase { public *; }
+-keep class net.sqlcipher.database.SQLiteOpenHelper { public *; }
+-keep class net.sqlcipher.database.SQLiteStatement { public *; }
+-keep class net.sqlcipher.database.SQLiteCursor { public *; }
+-keep interface net.sqlcipher.database.SQLiteDatabase$CursorFactory { *; }
+-keepclassmembers class net.sqlcipher.** {
+    native <methods>;
+}
 -dontwarn net.sqlcipher.**
 
 # EncryptedSharedPreferences & MasterKey - CRITICAL for database key persistence
@@ -84,13 +89,18 @@
 -keep class com.google.mlkit.vision.barcode.BarcodeScannerOptions { *; }
 -keep class com.google.mlkit.vision.common.InputImage { *; }
 
-# Keep Google Maps - minimum required
+# Keep Google Maps - minimum required (optimized)
 -keep class com.google.android.gms.maps.CameraUpdateFactory { *; }
 -keep class com.google.android.gms.maps.GoogleMap { *; }
 -keep class com.google.android.gms.maps.model.LatLng { *; }
 -keep class com.google.android.gms.maps.model.MarkerOptions { *; }
 -keep class com.google.android.gms.maps.model.CameraPosition { *; }
--keep class com.google.maps.android.compose.** { *; }
+# Maps Compose - Keep only public API (was keeping everything with **)
+-keep class com.google.maps.android.compose.GoogleMap { *; }
+-keep class com.google.maps.android.compose.Marker { *; }
+-keep class com.google.maps.android.compose.CameraPositionState { *; }
+-keep class com.google.maps.android.compose.MapProperties { *; }
+-keep class com.google.maps.android.compose.MapUiSettings { *; }
 
 # Okio - minimum required
 -dontwarn okio.**
@@ -156,8 +166,10 @@
 -keep class coil.transform.Transformation { *; }
 -dontwarn coil.**
 
-# DataStore
--keep class androidx.datastore.*.** { *; }
+# DataStore - Keep only necessary classes (was keeping everything)
+-keep class androidx.datastore.preferences.core.Preferences { *; }
+-keep class androidx.datastore.preferences.core.PreferencesKeys { *; }
+-keep class androidx.datastore.core.DataStore { *; }
 
 # WorkManager
 -keep class * extends androidx.work.Worker
@@ -165,23 +177,24 @@
     <init>(...);
 }
 
-# Remove all logging in release (including errors to prevent info leakage)
-# Security: Strip all log statements to prevent information disclosure
+# Remove verbose/debug/info logging in release but KEEP errors for production debugging
+# Security: Strip verbose logs but keep errors for crash diagnostics
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
     public static *** i(...);
     public static *** w(...);
-    public static *** e(...);
+    # Keep Log.e() - public static *** e(...);  # KEPT for production debugging
 }
 
-# Remove custom AppLogger calls as well
+# Remove custom AppLogger verbose logs but keep errors
+# AppLogger already filters logs by BuildConfig.DEBUG, but ProGuard provides additional safety
 -assumenosideeffects class net.meshcore.mineralog.util.AppLogger {
     public static *** v(...);
     public static *** d(...);
     public static *** i(...);
     public static *** w(...);
-    public static *** e(...);
+    # Keep AppLogger.e() - public static *** e(...);  # KEPT for production debugging
 }
 
 # Optimize and obfuscate
