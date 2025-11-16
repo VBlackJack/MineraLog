@@ -7,8 +7,8 @@ project:
   version: "1.0.0"
   start_date: "2025-01-16"
   target_completion: "TBD"
-  current_phase: "4 - Autocomplétion composants agrégats"
-  overall_progress: 50  # Pourcentage global (0-100) - Phases 1-4 completed (4/8)
+  current_phase: "5 - Édition de la bibliothèque (CRUD)"
+  overall_progress: 56  # Pourcentage global (0-100) - Phases 1-4 completed + Phase 5 at 50% (4.5/8)
 
 # ============================================================
 # PHASE 1 : Modèle de données et migration (MVP back-end)
@@ -370,31 +370,31 @@ phase_4:
 # ============================================================
 phase_5:
   name: "Édition de la bibliothèque"
-  status: "not_started"
+  status: "in_progress"
   priority: "medium"
   estimated_days: 4
-  actual_days: 0
-  progress: 0
-  start_date: null
+  actual_days: 1
+  progress: 50
+  start_date: "2025-01-16"
   completion_date: null
 
   tasks:
     5_1_add_screen:
       name: "Écran d'ajout"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "Complete form with 24 fields, validation, duplicate checking"
       subtasks:
-        - done: false
+        - done: true
           description: "Créer AddReferenceMineralViewModel.kt"
-        - done: false
+        - done: true
           description: "Créer AddReferenceMineralScreen.kt"
 
     5_2_edit_screen:
       name: "Écran d'édition"
       status: "not_started"
       assignee: null
-      notes: ""
+      notes: "Navigation route prepared, needs ViewModel and Screen implementation"
       subtasks:
         - done: false
           description: "Créer EditReferenceMineralViewModel.kt"
@@ -405,24 +405,24 @@ phase_5:
 
     5_3_deletion:
       name: "Suppression avec vérification"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "Delete state management with confirmation dialog and dependency checking"
       subtasks:
-        - done: false
+        - done: true
           description: "Implémenter vérification dépendances"
-        - done: false
+        - done: true
           description: "Dialogue de confirmation"
-        - done: false
+        - done: true
           description: "Nullification des références si suppression"
 
     5_4_visual_markers:
       name: "Marquage visuel"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "in_progress"
+      assignee: "Claude"
+      notes: "Edit/Delete buttons visible for user-defined minerals, filter not yet implemented"
       subtasks:
-        - done: false
+        - done: true
           description: "Badge 'Personnalisé' sur minéraux user-defined"
         - done: false
           description: "Filtre 'Mes minéraux'"
@@ -766,3 +766,30 @@ sessions:
       - Percentage validation already present in AddMineralViewModel
       Files modified: 2 (MineralComponent.kt, ComponentEditorCard.kt)
       Tests deferred for future session
+
+  - date: "2025-01-16"
+    duration_hours: 2
+    phases_worked: ["phase_5"]
+    tasks_completed: ["5_1_add_screen", "5_3_deletion", "5_4_visual_markers (partial)"]
+    notes: |
+      🔄 Phase 5 à 50% (Add/Delete complété, Edit reste à faire)
+      - Created AddReferenceMineralViewModel with complete form state (24 fields)
+      - Created AddReferenceMineralScreen with organized sections:
+        * Identification, Chemistry, Physical/Crystallographic/Optical Properties
+        * Special Properties, Notes and Source
+      - Added validation for required fields (nameFr, nameEn)
+      - Implemented duplicate name checking
+      - Auto-marks new minerals as isUserDefined=true
+      - Added delete logic to ReferenceMineralDetailViewModel:
+        * DeleteState management with confirmation dialog
+        * Dependency checking shows usage count
+        * Sets referenceMineralId to NULL for linked entities
+      - Updated ReferenceMineralDetailScreen:
+        * Added Edit/Delete buttons in TopAppBar (user-defined only)
+        * Delete confirmation dialog with usage warning
+        * Loading states for delete operation
+      - Updated ReferenceMineralListScreen with FAB for adding minerals
+      - Added navigation routes (AddReferenceMineral, EditReferenceMineral placeholder)
+      Files created: 2, Files modified: 4
+      Commit: 7dad5b0
+      Next: Implement EditReferenceMineralViewModel and EditReferenceMineralScreen
