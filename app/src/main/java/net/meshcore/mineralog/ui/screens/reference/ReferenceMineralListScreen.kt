@@ -19,6 +19,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import net.meshcore.mineralog.MineraLogApplication
+import net.meshcore.mineralog.ui.components.SkeletonMineralCard
 
 /**
  * Reference Mineral Library screen - displays a paginated list of reference minerals.
@@ -142,11 +143,15 @@ fun ReferenceMineralListScreen(
             // Minerals list
             when (mineralsPaged.loadState.refresh) {
                 is LoadState.Loading -> {
-                    Box(
+                    // Show skeleton loading cards
+                    LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        CircularProgressIndicator()
+                        items(8) {
+                            SkeletonMineralCard()
+                        }
                     }
                 }
                 is LoadState.Error -> {

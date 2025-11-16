@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
+import net.meshcore.mineralog.ui.components.SkeletonMineralDetail
 
 /**
  * Reference Mineral Detail screen - displays complete information about a reference mineral.
@@ -170,13 +171,14 @@ fun ReferenceMineralDetailScreen(
     ) { paddingValues ->
         when {
             isLoading -> {
-                Box(
+                // Show skeleton loading
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
+                        .padding(paddingValues)
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    CircularProgressIndicator()
+                    SkeletonMineralDetail()
                 }
             }
             error != null -> {
