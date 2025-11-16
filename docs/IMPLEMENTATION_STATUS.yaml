@@ -524,55 +524,55 @@ phase_6:
 # ============================================================
 phase_7:
   name: "Migration automatique"
-  status: "not_started"
+  status: "in_progress"
   priority: "high"
   estimated_days: 6
-  actual_days: 0
-  progress: 0
-  start_date: null
+  actual_days: 1
+  progress: 70
+  start_date: "2025-01-16"
   completion_date: null
 
   tasks:
     7_1_algorithm:
       name: "Algorithme de détection"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "Full backend implementation complete"
       subtasks:
-        - done: false
+        - done: true
           description: "Créer AutoReferenceCreator.kt"
-        - done: false
+        - done: true
           description: "Fonction analyzeExistingMinerals"
-        - done: false
+        - done: true
           description: "Fonction detectCommonProperties"
 
     7_2_one_shot:
       name: "Logique de migration one-shot"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "Backend ready, UI integration pending"
       subtasks:
-        - done: false
+        - done: true
           description: "Flag dans SharedPreferences"
-        - done: false
+        - done: true
           description: "Fonction AutoReferenceCreator.run()"
-        - done: false
+        - done: true
           description: "Création des références + liaison"
 
     7_3_report:
       name: "Rapport de migration"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "in_progress"
+      assignee: "Claude"
+      notes: "MigrationReport data class created, UI dialog pending"
       subtasks:
         - done: false
-          description: "Dialogue de rapport utilisateur"
+          description: "Dialogue de rapport utilisateur - DEFERRED"
 
     7_4_fuzzy_matching:
       name: "Fuzzy matching (optionnel)"
       status: "not_started"
       assignee: null
-      notes: ""
+      notes: "Optional feature - deferred for future"
       subtasks:
         - done: false
           description: "Implémenter Levenshtein distance"
@@ -581,7 +581,7 @@ phase_7:
       name: "Tests"
       status: "not_started"
       assignee: null
-      notes: ""
+      notes: "Deferred for future session"
       subtasks:
         - done: false
           description: "Tests sur données synthétiques"
@@ -864,3 +864,37 @@ sessions:
       Files modified: 1 (ZipBackupService.kt)
       Overall progress: 75% (6/8 phases completed)
       Note: UI for "Export library only" option deferred (automatic in backups)
+
+  - date: "2025-01-16"
+    duration_hours: 1.5
+    phases_worked: ["phase_7"]
+    tasks_completed: ["7_1_algorithm", "7_2_one_shot", "7_3_report (partial)"]
+    notes: |
+      🔄 Phase 7 à 70% (Backend complété, UI différée)
+      - Created AutoReferenceCreator.kt for automatic migration:
+        * analyzeSimpleSpecimens(): Groups simple specimens by normalized name
+        * analyzeComponents(): Groups aggregate components by normalized name
+        * mergeGroups(): Combines simple and component data
+        * detectCommonProperties(): Creates reference if >70% agreement
+        * calculateAgreementScore(): Calculates property consensus percentage
+        * createReferencesAndLink(): Creates references and links specimens
+        * run(): Main migration function with SharedPreferences flag
+        * MigrationReport data class with statistics
+      - Extended SimplePropertiesDao:
+        * getAllDirect(): Get all properties without Flow (for migration)
+        * updateReferenceMineralId(): Link specimen to reference
+      - Extended MineralComponentDao:
+        * getAllDirect(): Get all components without Flow (for migration)
+        * updateReferenceMineralId(): Link component to reference
+      - Migration algorithm:
+        * Groups minerals by normalized name (lowercase, trim)
+        * Minimum 2 occurrences to create reference
+        * Detects most common values for each property
+        * Creates reference only if >=70% property agreement
+        * Marks references as isUserDefined=true
+        * Transaction-based for atomicity
+        * Tracks divergent minerals for user review
+      Files created: 1 (AutoReferenceCreator.kt)
+      Files modified: 2 (SimplePropertiesDao.kt, MineralComponentDao.kt)
+      Overall progress: 70% Phase 7 (backend complete, UI integration pending)
+      Next: Create MigrationDialog UI and integrate in MainActivity
