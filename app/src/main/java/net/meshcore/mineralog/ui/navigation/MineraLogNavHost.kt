@@ -29,6 +29,7 @@ import net.meshcore.mineralog.ui.screens.gallery.PhotoGalleryScreen
 import net.meshcore.mineralog.ui.screens.gallery.FullscreenPhotoViewerScreen
 import net.meshcore.mineralog.ui.screens.reference.ReferenceMineralListScreen
 import net.meshcore.mineralog.ui.screens.reference.ReferenceMineralDetailScreen
+import net.meshcore.mineralog.ui.screens.reference.AddReferenceMineralScreen
 import java.util.UUID
 
 sealed class Screen(val route: String) {
@@ -58,6 +59,10 @@ sealed class Screen(val route: String) {
     data object ReferenceLibrary : Screen("reference_library")
     data object ReferenceDetail : Screen("reference_detail/{referenceMineralId}") {
         fun createRoute(referenceMineralId: String) = "reference_detail/$referenceMineralId"
+    }
+    data object AddReferenceMineral : Screen("add_reference_mineral")
+    data object EditReferenceMineral : Screen("edit_reference_mineral/{referenceMineralId}") {
+        fun createRoute(referenceMineralId: String) = "edit_reference_mineral/$referenceMineralId"
     }
 }
 
@@ -307,6 +312,9 @@ fun MineraLogNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 onMineralClick = { referenceMineralId ->
                     navController.navigate(Screen.ReferenceDetail.createRoute(referenceMineralId))
+                },
+                onAddClick = {
+                    navController.navigate(Screen.AddReferenceMineral.route)
                 }
             )
         }
@@ -320,8 +328,35 @@ fun MineraLogNavHost(
             val referenceMineralId = backStackEntry.arguments?.getString("referenceMineralId") ?: return@composable
             ReferenceMineralDetailScreen(
                 referenceMineralId = referenceMineralId,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = { id ->
+                    navController.navigate(Screen.EditReferenceMineral.createRoute(id))
+                }
             )
         }
+
+        composable(Screen.AddReferenceMineral.route) {
+            AddReferenceMineralScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onMineralAdded = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // TODO: Add EditReferenceMineralScreen when implemented
+        // composable(
+        //     route = Screen.EditReferenceMineral.route,
+        //     arguments = listOf(
+        //         navArgument("referenceMineralId") { type = NavType.StringType }
+        //     )
+        // ) { backStackEntry ->
+        //     val referenceMineralId = backStackEntry.arguments?.getString("referenceMineralId") ?: return@composable
+        //     EditReferenceMineralScreen(
+        //         referenceMineralId = referenceMineralId,
+        //         onNavigateBack = { navController.popBackStack() },
+        //         onMineralUpdated = { navController.popBackStack() }
+        //     )
+        // }
     }
 }

@@ -3,6 +3,7 @@ package net.meshcore.mineralog.ui.screens.reference
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -26,6 +27,7 @@ import net.meshcore.mineralog.MineraLogApplication
 fun ReferenceMineralListScreen(
     onNavigateBack: () -> Unit,
     onMineralClick: (String) -> Unit,
+    onAddClick: () -> Unit = {},
     viewModel: ReferenceMineralListViewModel = viewModel(
         factory = ReferenceMineralListViewModelFactory(
             referenceMineralRepository = (LocalContext.current.applicationContext as MineraLogApplication).referenceMineralRepository
@@ -58,6 +60,17 @@ fun ReferenceMineralListScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddClick,
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Ajouter un minéral de référence"
+                )
+            }
         }
     ) { paddingValues ->
         Column(
