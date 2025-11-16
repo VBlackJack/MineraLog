@@ -30,6 +30,7 @@ import net.meshcore.mineralog.data.local.migration.MIGRATION_2_3
 import net.meshcore.mineralog.data.local.migration.MIGRATION_3_4
 import net.meshcore.mineralog.data.local.migration.MIGRATION_4_5
 import net.meshcore.mineralog.data.local.migration.MIGRATION_5_6
+import net.meshcore.mineralog.data.local.migration.MIGRATION_6_7
 
 /**
  * Main Room database for MineraLog application.
@@ -39,6 +40,7 @@ import net.meshcore.mineralog.data.local.migration.MIGRATION_5_6
  * Version 4: Added currency field to provenances table for multi-currency support (v1.4.1).
  * Version 5: Added support for mineral aggregates with simple_properties and mineral_components tables (v2.0.0).
  * Version 6: Added reference_minerals table for mineral library and referenceMineralId links (v3.0.0).
+ * Version 7: Extended reference_minerals with collector-focused fields (care, safety, identification, geology) (v3.0.0).
  */
 @Database(
     entities = [
@@ -51,7 +53,7 @@ import net.meshcore.mineralog.data.local.migration.MIGRATION_5_6
         PhotoEntity::class,
         FilterPresetEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -112,7 +114,8 @@ abstract class MineraLogDatabase : RoomDatabase() {
                         MIGRATION_2_3,
                         MIGRATION_3_4,
                         MIGRATION_4_5,
-                        MIGRATION_5_6
+                        MIGRATION_5_6,
+                        MIGRATION_6_7
                     ) // Proper migrations for schema evolution
                     // Note: fallbackToDestructiveMigration() has been removed to protect user data
                     // All migrations must be properly defined before releasing new schema versions

@@ -426,5 +426,114 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
 }
 
 /**
+ * Migration from version 6 to version 7.
+ *
+ * Changes:
+ * - Add collector-focused fields to reference_minerals table:
+ *   - Care & Safety: careInstructions, sensitivity, hazards, storageRecommendations
+ *   - Identification: identificationTips, diagnosticProperties, colors, varieties, confusionWith
+ *   - Geology: geologicalEnvironment, typicalLocations, associatedMinerals
+ *   - Additional: uses, rarity, collectingDifficulty, historicalInfo, etymology
+ *
+ * v3.0.0 enhancement: Comprehensive reference mineral information for collectors
+ *
+ * These fields transform the reference library from basic scientific data
+ * to a complete collector's resource with practical care, identification,
+ * and safety information.
+ */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // Practical information & Safety
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN careInstructions TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN sensitivity TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN hazards TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN storageRecommendations TEXT DEFAULT NULL
+        """.trimIndent())
+
+        // Identification & Recognition
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN identificationTips TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN diagnosticProperties TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN colors TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN varieties TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN confusionWith TEXT DEFAULT NULL
+        """.trimIndent())
+
+        // Geological context
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN geologicalEnvironment TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN typicalLocations TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN associatedMinerals TEXT DEFAULT NULL
+        """.trimIndent())
+
+        // Additional information
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN uses TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN rarity TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN collectingDifficulty TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN historicalInfo TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN etymology TEXT DEFAULT NULL
+        """.trimIndent())
+    }
+}
+
+/**
  * Future migrations will be added here as the schema evolves.
  */

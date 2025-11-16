@@ -39,6 +39,23 @@ import java.util.UUID
  * @property fluorescence Fluorescence behavior under UV light (e.g., "LW:blue,SW:green", "none", "Variable").
  * @property magnetism Magnetic properties (e.g., "Non-magnetic", "Weakly magnetic", "Strongly magnetic").
  * @property radioactivity Radioactivity level (e.g., "None", "Weak", "Moderate", "Strong").
+ * @property careInstructions Care and maintenance instructions for collectors.
+ * @property sensitivity Sensitivity to environmental factors (e.g., "Soluble in water", "Degrades in acids", "Fades in UV light").
+ * @property hazards Safety hazards and toxicity information (e.g., "Toxic - contains arsenic", "Radioactive", "Sharp edges").
+ * @property storageRecommendations Storage recommendations (e.g., "Keep dry", "Avoid direct sunlight", "Store separately").
+ * @property identificationTips Practical tips for identifying this mineral in the field or collection.
+ * @property diagnosticProperties Main diagnostic properties that distinguish this mineral.
+ * @property colors Possible colors, comma-separated (e.g., "Colorless,White,Purple,Yellow").
+ * @property varieties Notable varieties or color variants (e.g., "Amethyst (purple), Citrine (yellow), Rose quartz (pink)").
+ * @property confusionWith Minerals that might be confused with this one (e.g., "Can be confused with calcite or dolomite").
+ * @property geologicalEnvironment Geological formation environment (e.g., "Hydrothermal veins", "Pegmatites", "Sedimentary").
+ * @property typicalLocations Famous or typical localities (e.g., "Brazil, Madagascar, USA (Arkansas)").
+ * @property associatedMinerals Minerals frequently found together (e.g., "Feldspar, Mica, Tourmaline").
+ * @property uses Industrial, ornamental, or other uses (e.g., "Gemstone, Glass manufacturing, Electronics").
+ * @property rarity Rarity level (e.g., "Common", "Uncommon", "Rare", "Very rare", "Extremely rare").
+ * @property collectingDifficulty Difficulty of obtaining for collectors (e.g., "Easy to find", "Requires dealer", "Museum-grade only").
+ * @property historicalInfo Historical context, discovery, or cultural significance.
+ * @property etymology Origin and meaning of the mineral's name.
  * @property notes Additional reference notes, mineralogical context, or important observations.
  * @property isUserDefined True if this mineral was created by the user, false if from the standard library.
  * @property source Data source or reference (e.g., "mindat.org", "webmineral.com", "User-defined").
@@ -88,6 +105,31 @@ data class ReferenceMineralEntity(
     val fluorescence: String? = null,
     val magnetism: String? = null,
     val radioactivity: String? = null,
+
+    // Practical information & Safety
+    val careInstructions: String? = null,         // Care and maintenance instructions
+    val sensitivity: String? = null,              // Sensitivity (water, acids, UV light, heat, air)
+    val hazards: String? = null,                  // Hazards/toxicity with risk level
+    val storageRecommendations: String? = null,   // Storage recommendations
+
+    // Identification & Recognition
+    val identificationTips: String? = null,       // How to identify the mineral
+    val diagnosticProperties: String? = null,     // Main diagnostic properties
+    val colors: String? = null,                   // Possible colors (comma-separated)
+    val varieties: String? = null,                // Notable varieties
+    val confusionWith: String? = null,            // Risk of confusion with other minerals
+
+    // Geological context
+    val geologicalEnvironment: String? = null,    // Geological formation environment
+    val typicalLocations: String? = null,         // Typical/famous localities
+    val associatedMinerals: String? = null,       // Frequently associated minerals
+
+    // Additional information
+    val uses: String? = null,                     // Uses (industrial, jewelry, collection)
+    val rarity: String? = null,                   // Rarity (Common, Uncommon, Rare, Very rare)
+    val collectingDifficulty: String? = null,     // Difficulty of obtaining
+    val historicalInfo: String? = null,           // Historical information
+    val etymology: String? = null,                // Etymology of the name
 
     // Metadata
     val notes: String? = null,
