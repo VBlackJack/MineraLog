@@ -33,17 +33,21 @@ class CsvBackupService(
         try {
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
                 outputStream.bufferedWriter().use { writer ->
-                    // Write CSV header
-                    writer.write("Name,Group,Formula,Streak,Luster,Mohs Min,Mohs Max,")
+                    // Write CSV header (v2.0: added Mineral Type and Component columns)
+                    writer.write("Mineral Type,Name,Group,Formula,Streak,Luster,Mohs Min,Mohs Max,")
                     writer.write("Crystal System,Specific Gravity,Cleavage,Fracture,")
                     writer.write("Diaphaneity,Habit,Fluorescence,Radioactive,Magnetic,")
                     writer.write("Dimensions (mm),Weight (g),Status,Status Type,Quality Rating,Completeness,")
                     writer.write("Provenance Country,Provenance Locality,Provenance Site,")
                     writer.write("Provenance Acquired At,Provenance Source,Price,Estimated Value,Currency,")
-                    writer.write("Storage Place,Storage Container,Storage Box,Storage Slot,Notes,Tags\n")
+                    writer.write("Storage Place,Storage Container,Storage Box,Storage Slot,Notes,Tags,")
+                    writer.write("Component Names,Component Percentages,Component Roles\n")
 
                     // Write data rows
                     minerals.forEach { mineral ->
+                        // v2.0: Write mineral type
+                        writer.write(csvMapper.escapeCSV(mineral.mineralType.name))
+                        writer.write(",")
                         writer.write(csvMapper.escapeCSV(mineral.name))
                         writer.write(",")
                         writer.write(csvMapper.escapeCSV(mineral.group ?: ""))
@@ -115,6 +119,9 @@ class CsvBackupService(
                         writer.write(csvMapper.escapeCSV(mineral.notes ?: ""))
                         writer.write(",")
                         writer.write(csvMapper.escapeCSV(mineral.tags.joinToString("; ")))
+                        writer.write(",")
+                        // v2.0: Component columns (TODO: fetch from repository for aggregates)
+                        writer.write(",,") // Empty for now: Component Names, Percentages, Roles
                         writer.write("\n")
                     }
                 }

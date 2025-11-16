@@ -706,6 +706,46 @@ interface MineralDao {
         fluorescent: Boolean? = null,
         mineralTypes: List<String>? = null
     ): Flow<List<MineralEntity>>
+
+    // ========== v2.0 Statistics Queries for Aggregates ==========
+
+    /**
+     * Get type distribution (SIMPLE vs AGGREGATE).
+     * Returns map of type to count.
+     */
+    @Query("""
+        SELECT type, COUNT(*) as count
+        FROM minerals
+        GROUP BY type
+        ORDER BY count DESC
+    """)
+    suspend fun getTypeDistribution(): Map<@MapColumn(columnName = "type") String, @MapColumn(columnName = "count") Int>
+
+    /**
+     * Get most frequent components across all aggregates.
+     * Returns list of component names ordered by frequency.
+     */
+    @Query("""
+        SELECT mineralName, COUNT(*) as count
+        FROM mineral_components
+        GROUP BY mineralName
+        ORDER BY count DESC
+        LIMIT 10
+    """)
+    suspend fun getMostFrequentComponents(): Map<@MapColumn(columnName = "mineralName") String, @MapColumn(columnName = "count") Int>
+
+    /**
+     * Get average number of components per aggregate.
+     */
+    @Query("""
+        SELECT AVG(componentCount) as avgCount
+        FROM (
+            SELECT aggregateId, COUNT(*) as componentCount
+            FROM mineral_components
+            GROUP BY aggregateId
+        )
+    """)
+    suspend fun getAverageComponentCount(): Double?
 }
 
 /**
