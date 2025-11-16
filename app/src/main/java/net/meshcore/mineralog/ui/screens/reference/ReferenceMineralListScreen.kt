@@ -2,6 +2,7 @@ package net.meshcore.mineralog.ui.screens.reference
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -37,6 +38,8 @@ fun ReferenceMineralListScreen(
     val mineralsPaged = viewModel.mineralsPaged.collectAsLazyPagingItems()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val totalCount by viewModel.totalCount.collectAsState()
+    val userDefinedCount by viewModel.userDefinedCount.collectAsState()
+    val showOnlyUserDefined by viewModel.showOnlyUserDefined.collectAsState()
 
     Scaffold(
         topBar = {
@@ -97,11 +100,43 @@ fun ReferenceMineralListScreen(
             // Count info
             if (totalCount > 0) {
                 Text(
-                    text = "$totalCount minéraux dans la bibliothèque",
+                    text = if (showOnlyUserDefined) {
+                        "$userDefinedCount minéral${if (userDefinedCount > 1) "ux" else ""} personnalisé${if (userDefinedCount > 1) "s" else ""}"
+                    } else {
+                        "$totalCount minéraux dans la bibliothèque"
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
+            }
+
+            // Filter chips
+            if (userDefinedCount > 0) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item {
+                        FilterChip(
+                            selected = showOnlyUserDefined,
+                            onClick = { viewModel.toggleUserDefinedFilter() },
+                            label = { Text("Mes minéraux ($userDefinedCount)") },
+                            leadingIcon = if (showOnlyUserDefined) {
+                                {
+                                    Icon(
+                                        imageVector = androidx.compose.material.icons.Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                    )
+                                }
+                            } else null
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
             }
 
             // Minerals list

@@ -7,8 +7,8 @@ project:
   version: "1.0.0"
   start_date: "2025-01-16"
   target_completion: "TBD"
-  current_phase: "5 - Édition de la bibliothèque (CRUD)"
-  overall_progress: 56  # Pourcentage global (0-100) - Phases 1-4 completed + Phase 5 at 50% (4.5/8)
+  current_phase: "6 - Import/export CSV/ZIP"
+  overall_progress: 63  # Pourcentage global (0-100) - Phases 1-5 completed (5/8 = 62.5%)
 
 # ============================================================
 # PHASE 1 : Modèle de données et migration (MVP back-end)
@@ -370,13 +370,13 @@ phase_4:
 # ============================================================
 phase_5:
   name: "Édition de la bibliothèque"
-  status: "in_progress"
+  status: "completed"
   priority: "medium"
   estimated_days: 4
-  actual_days: 1
-  progress: 50
+  actual_days: 2
+  progress: 100
   start_date: "2025-01-16"
-  completion_date: null
+  completion_date: "2025-01-16"
 
   tasks:
     5_1_add_screen:
@@ -392,15 +392,15 @@ phase_5:
 
     5_2_edit_screen:
       name: "Écran d'édition"
-      status: "not_started"
-      assignee: null
-      notes: "Navigation route prepared, needs ViewModel and Screen implementation"
+      status: "completed"
+      assignee: "Claude"
+      notes: "Full edit functionality with load state, update, and custom copy creation"
       subtasks:
-        - done: false
+        - done: true
           description: "Créer EditReferenceMineralViewModel.kt"
-        - done: false
+        - done: true
           description: "Créer EditReferenceMineralScreen.kt"
-        - done: false
+        - done: true
           description: "Option 'Créer une copie personnalisée'"
 
     5_3_deletion:
@@ -418,20 +418,20 @@ phase_5:
 
     5_4_visual_markers:
       name: "Marquage visuel"
-      status: "in_progress"
+      status: "completed"
       assignee: "Claude"
-      notes: "Edit/Delete buttons visible for user-defined minerals, filter not yet implemented"
+      notes: "Edit/Delete buttons and 'My minerals' filter fully implemented"
       subtasks:
         - done: true
           description: "Badge 'Personnalisé' sur minéraux user-defined"
-        - done: false
+        - done: true
           description: "Filtre 'Mes minéraux'"
 
     5_5_tests:
       name: "Tests"
       status: "not_started"
       assignee: null
-      notes: ""
+      notes: "Deferred for future session"
       subtasks:
         - done: false
           description: "Tests CRUD complets"
@@ -793,3 +793,39 @@ sessions:
       Files created: 2, Files modified: 4
       Commit: 7dad5b0
       Next: Implement EditReferenceMineralViewModel and EditReferenceMineralScreen
+
+  - date: "2025-01-16"
+    duration_hours: 2
+    phases_worked: ["phase_5"]
+    tasks_completed: ["5_2_edit_screen", "5_4_visual_markers"]
+    notes: |
+      ✅ Phase 5 complétée à 100% (Edit functionality + 'My minerals' filter)
+      - Created EditReferenceMineralViewModel:
+        * Load state management (Loading, Success, Error)
+        * Pre-population of all 24 fields from existing mineral
+        * update() function for user-defined minerals
+        * createCustomCopy() function for standard minerals
+        * Validation with duplicate name checking
+        * Standard mineral warning dialog
+      - Created EditReferenceMineralScreen:
+        * Full form with all sections (same as Add screen)
+        * Different TopAppBar actions based on mineral type:
+          - "Mettre à jour" button for user-defined minerals
+          - "Créer une copie" button for standard minerals
+        * Info card showing mineral type (standard vs. personalized)
+        * Loading state with spinner
+        * Error state with user-friendly message
+      - Added "My minerals" filter in ReferenceMineralListScreen:
+        * FilterChip with count badge
+        * Toggle functionality in ViewModel
+        * Dynamic pagination using filterPaged() with isUserDefined parameter
+        * Updated count display based on filter state
+      - Updated ReferenceMineralListViewModel:
+        * showOnlyUserDefined StateFlow
+        * toggleUserDefinedFilter() function
+        * Reactive pagination with flatMapLatest
+        * userDefinedCount tracking
+      - Wired EditReferenceMineralScreen in navigation (MineraLogNavHost)
+      Files created: 2 (EditReferenceMineralViewModel.kt, EditReferenceMineralScreen.kt)
+      Files modified: 3 (ReferenceMineralListViewModel.kt, ReferenceMineralListScreen.kt, MineraLogNavHost.kt)
+      Overall progress: 63% (5/8 phases completed)

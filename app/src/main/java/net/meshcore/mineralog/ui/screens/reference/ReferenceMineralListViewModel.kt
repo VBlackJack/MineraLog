@@ -3,16 +3,14 @@ package net.meshcore.mineralog.ui.screens.reference
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pag
-
-er
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
 import net.meshcore.mineralog.data.repository.ReferenceMineralRepository
 
 /**
@@ -29,9 +27,24 @@ class ReferenceMineralListViewModel(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    // Paginated minerals list
-    val mineralsPaged = referenceMineralRepository.getAllPaged()
-        .cachedIn(viewModelScope)
+    // "My minerals" filter (user-defined only)
+    private val _showOnlyUserDefined = MutableStateFlow(false)
+    val showOnlyUserDefined: StateFlow<Boolean> = _showOnlyUserDefined.asStateFlow()
+
+    // Paginated minerals list with filter support
+    val mineralsPaged = _showOnlyUserDefined.flatMapLatest { showUserDefinedOnly ->
+        Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = {
+                referenceMineralRepository.filterPaged(
+                    isUserDefined = if (showUserDefinedOnly) true else null
+                )
+            }
+        ).flow
+    }.cachedIn(viewModelScope)
 
     // Filter metadata
     val distinctGroups = referenceMineralRepository.getDistinctGroups()
@@ -41,8 +54,12 @@ class ReferenceMineralListViewModel(
     private val _totalCount = MutableStateFlow(0)
     val totalCount: StateFlow<Int> = _totalCount.asStateFlow()
 
+    // User-defined minerals count
+    private val _userDefinedCount = MutableStateFlow(0)
+    val userDefinedCount: StateFlow<Int> = _userDefinedCount.asStateFlow()
+
     init {
-        loadTotalCount()
+        loadCounts()
     }
 
     /**
@@ -62,15 +79,23 @@ class ReferenceMineralListViewModel(
     }
 
     /**
+     * Toggle the "My minerals" filter.
+     */
+    fun toggleUserDefinedFilter() {
+        _showOnlyUserDefined.value = !_showOnlyUserDefined.value
+    }
+
+    /**
      * Refresh the list.
      */
     fun refresh() {
-        loadTotalCount()
+        loadCounts()
     }
 
-    private fun loadTotalCount() {
+    private fun loadCounts() {
         viewModelScope.launch {
             _totalCount.value = referenceMineralRepository.count()
+            _userDefinedCount.value = referenceMineralRepository.countUserDefined()
         }
     }
 }
