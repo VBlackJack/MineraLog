@@ -30,6 +30,7 @@ import net.meshcore.mineralog.ui.screens.gallery.FullscreenPhotoViewerScreen
 import net.meshcore.mineralog.ui.screens.reference.ReferenceMineralListScreen
 import net.meshcore.mineralog.ui.screens.reference.ReferenceMineralDetailScreen
 import net.meshcore.mineralog.ui.screens.reference.AddReferenceMineralScreen
+import net.meshcore.mineralog.ui.screens.reference.EditReferenceMineralScreen
 import java.util.UUID
 
 sealed class Screen(val route: String) {
@@ -344,19 +345,18 @@ fun MineraLogNavHost(
             )
         }
 
-        // TODO: Add EditReferenceMineralScreen when implemented
-        // composable(
-        //     route = Screen.EditReferenceMineral.route,
-        //     arguments = listOf(
-        //         navArgument("referenceMineralId") { type = NavType.StringType }
-        //     )
-        // ) { backStackEntry ->
-        //     val referenceMineralId = backStackEntry.arguments?.getString("referenceMineralId") ?: return@composable
-        //     EditReferenceMineralScreen(
-        //         referenceMineralId = referenceMineralId,
-        //         onNavigateBack = { navController.popBackStack() },
-        //         onMineralUpdated = { navController.popBackStack() }
-        //     )
-        // }
+        composable(
+            route = Screen.EditReferenceMineral.route,
+            arguments = listOf(
+                navArgument("referenceMineralId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val referenceMineralId = backStackEntry.arguments?.getString("referenceMineralId") ?: return@composable
+            EditReferenceMineralScreen(
+                mineralId = referenceMineralId,
+                onNavigateBack = { navController.popBackStack() },
+                onMineralUpdated = { navController.popBackStack() }
+            )
+        }
     }
 }
