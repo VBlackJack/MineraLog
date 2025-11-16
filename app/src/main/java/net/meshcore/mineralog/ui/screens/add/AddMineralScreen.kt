@@ -33,6 +33,9 @@ import net.meshcore.mineralog.ui.components.TooltipDropdownField
 import net.meshcore.mineralog.ui.components.MineralFieldTooltips
 import net.meshcore.mineralog.ui.components.MineralFieldValues
 import net.meshcore.mineralog.ui.components.PhotoManager
+import net.meshcore.mineralog.ui.components.v2.MineralTypeSelector
+import net.meshcore.mineralog.ui.components.v2.ComponentListEditor
+import net.meshcore.mineralog.domain.model.MineralType
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,6 +67,10 @@ fun AddMineralScreen(
     val photos by viewModel.photos.collectAsState()
     val saveState by viewModel.saveState.collectAsState()
     val draftSavedIndicator by viewModel.draftSavedIndicator.collectAsState()
+
+    // v2.0: Mineral type and components
+    val mineralType by viewModel.mineralType.collectAsState()
+    val components by viewModel.components.collectAsState()
 
     val context = LocalContext.current
     val photosDir = remember {
@@ -204,6 +211,15 @@ fun AddMineralScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
+            // v2.0: Mineral type selector
+            MineralTypeSelector(
+                selectedType = mineralType,
+                onTypeSelected = { viewModel.onMineralTypeChange(it) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
             OutlinedTextField(
                 value = name,
                 onValueChange = { viewModel.onNameChange(it) },
@@ -251,8 +267,10 @@ fun AddMineralScreen(
                 maxLines = 8
             )
 
-            // Technical Properties Section
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            // v2.0: Conditional content based on mineral type
+            if (mineralType == MineralType.SIMPLE) {
+                // Technical Properties Section (Simple minerals only)
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             Text(
                 text = stringResource(R.string.section_technical_properties),
@@ -335,6 +353,28 @@ fun AddMineralScreen(
                 placeholder = stringResource(R.string.field_crystal_system_placeholder),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
+            } else {
+                // v2.0: Component editor for aggregates
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                Text(
+                    text = "Composants de l'agrégat",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Text(
+                    text = "Définissez les minéraux qui composent cet agrégat. Les pourcentages doivent totaliser ~100%.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                ComponentListEditor(
+                    components = components,
+                    onComponentsChange = { viewModel.onComponentsChange(it) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             // Quick Win #8: Tags with autocomplete
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

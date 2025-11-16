@@ -14,8 +14,16 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.repository.MineralRepository
+import net.meshcore.mineralog.data.repository.MineralRepositoryImpl
 import net.meshcore.mineralog.data.repository.SettingsRepository
+import net.meshcore.mineralog.data.repository.SimpleMineralData
+import net.meshcore.mineralog.data.repository.AggregateMineralData
+import net.meshcore.mineralog.data.repository.insertSimpleMineral
+import net.meshcore.mineralog.data.repository.insertAggregate
 import net.meshcore.mineralog.domain.model.Mineral
+import net.meshcore.mineralog.domain.model.MineralComponent
+import net.meshcore.mineralog.domain.model.MineralType
+import net.meshcore.mineralog.domain.model.SimpleProperties
 import net.meshcore.mineralog.domain.model.Photo
 import net.meshcore.mineralog.ui.screens.edit.PhotoItem
 import java.io.File
@@ -88,6 +96,14 @@ class AddMineralViewModel(
 
     private val _draftSavedIndicator = MutableStateFlow(false)
     val draftSavedIndicator: StateFlow<Boolean> = _draftSavedIndicator.asStateFlow()
+
+    // v2.0: Mineral type selection (SIMPLE or AGGREGATE)
+    private val _mineralType = MutableStateFlow(MineralType.SIMPLE)
+    val mineralType: StateFlow<MineralType> = _mineralType.asStateFlow()
+
+    // v2.0: Components for aggregate minerals
+    private val _components = MutableStateFlow<List<MineralComponent>>(emptyList())
+    val components: StateFlow<List<MineralComponent>> = _components.asStateFlow()
 
     init {
         // Load draft on initialization
@@ -236,6 +252,20 @@ class AddMineralViewModel(
         _tags.value = value
     }
 
+    // v2.0: Mineral type selection
+    fun onMineralTypeChange(type: MineralType) {
+        _mineralType.value = type
+        // Clear components when switching to SIMPLE
+        if (type == MineralType.SIMPLE) {
+            _components.value = emptyList()
+        }
+    }
+
+    // v2.0: Component management
+    fun onComponentsChange(components: List<MineralComponent>) {
+        _components.value = components
+    }
+
     private fun updateTagSuggestions(input: String) {
         if (input.isBlank()) {
             _tagSuggestions.value = emptyList()
@@ -304,34 +334,76 @@ class AddMineralViewModel(
                 return@launch
             }
 
+            // v2.0: Validate aggregates
+            if (_mineralType.value == MineralType.AGGREGATE) {
+                if (_components.value.size < 2) {
+                    _saveState.value = SaveMineralState.Error("Aggregate must have at least 2 components")
+                    return@launch
+                }
+
+                val totalPercentage = _components.value.mapNotNull { it.percentage }.sum()
+                if (totalPercentage !in 99f..101f) {
+                    _saveState.value = SaveMineralState.Error("Component percentages must sum to approximately 100%")
+                    return@launch
+                }
+
+                // Check that all components have names
+                if (_components.value.any { it.mineralName.isBlank() }) {
+                    _saveState.value = SaveMineralState.Error("All components must have a name")
+                    return@launch
+                }
+            }
+
             _saveState.value = SaveMineralState.Saving
 
             try {
-                val mineralId = UUID.randomUUID().toString()
+                val mineralId: String
+
                 // Quick Win #8: Parse tags from comma-separated string
                 val tagsList = _tags.value.split(",")
                     .map { it.trim() }
                     .filter { it.isNotBlank() }
 
-                val mineral = Mineral(
-                    id = mineralId,
-                    name = _name.value.trim(),
-                    group = _group.value.trim().takeIf { it.isNotBlank() },
-                    formula = _formula.value.trim().takeIf { it.isNotBlank() },
-                    notes = _notes.value.trim().takeIf { it.isNotBlank() },
-                    diaphaneity = _diaphaneity.value.trim().takeIf { it.isNotBlank() },
-                    cleavage = _cleavage.value.trim().takeIf { it.isNotBlank() },
-                    fracture = _fracture.value.trim().takeIf { it.isNotBlank() },
-                    luster = _luster.value.trim().takeIf { it.isNotBlank() },
-                    streak = _streak.value.trim().takeIf { it.isNotBlank() },
-                    habit = _habit.value.trim().takeIf { it.isNotBlank() },
-                    crystalSystem = _crystalSystem.value.trim().takeIf { it.isNotBlank() },
-                    tags = tagsList,
-                    status = "incomplete",
-                    createdAt = Instant.now(),
-                    updatedAt = Instant.now()
-                )
-                mineralRepository.insert(mineral)
+                // v2.0: Save based on mineral type
+                if (_mineralType.value == MineralType.SIMPLE) {
+                    // Save as simple mineral using v2.0 API
+                    val properties = SimpleProperties(
+                        group = _group.value.trim().takeIf { it.isNotBlank() },
+                        formula = _formula.value.trim().takeIf { it.isNotBlank() },
+                        crystalSystem = _crystalSystem.value.trim().takeIf { it.isNotBlank() },
+                        cleavage = _cleavage.value.trim().takeIf { it.isNotBlank() },
+                        fracture = _fracture.value.trim().takeIf { it.isNotBlank() },
+                        luster = _luster.value.trim().takeIf { it.isNotBlank() },
+                        streak = _streak.value.trim().takeIf { it.isNotBlank() },
+                        diaphaneity = _diaphaneity.value.trim().takeIf { it.isNotBlank() },
+                        habit = _habit.value.trim().takeIf { it.isNotBlank() }
+                    )
+
+                    val simpleMineralData = SimpleMineralData(
+                        name = _name.value.trim(),
+                        properties = properties,
+                        notes = _notes.value.trim().takeIf { it.isNotBlank() },
+                        tags = tagsList,
+                        statusType = "in_collection",
+                        createdAt = Instant.now(),
+                        updatedAt = Instant.now()
+                    )
+
+                    mineralId = (mineralRepository as MineralRepositoryImpl).insertSimpleMineral(simpleMineralData)
+                } else {
+                    // Save as aggregate using v2.0 API
+                    val aggregateData = AggregateMineralData(
+                        name = _name.value.trim(),
+                        components = _components.value,
+                        notes = _notes.value.trim().takeIf { it.isNotBlank() },
+                        tags = tagsList,
+                        statusType = "in_collection",
+                        createdAt = Instant.now(),
+                        updatedAt = Instant.now()
+                    )
+
+                    mineralId = (mineralRepository as MineralRepositoryImpl).insertAggregate(aggregateData)
+                }
 
                 // Insert photos - BUGFIX: Actually copy the file from URI
                 _photos.value.forEach { photoItem ->
@@ -367,6 +439,7 @@ class AddMineralViewModel(
                 // Clear draft and photos after successful save
                 settingsRepository.clearDraft()
                 _photos.value = emptyList()
+                _components.value = emptyList()
 
                 onSuccess(mineralId)
             } catch (e: Exception) {
