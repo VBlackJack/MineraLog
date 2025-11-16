@@ -5,6 +5,139 @@ All notable changes to MineraLog will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-alpha] - 2025-01-16
+
+### ✨ Added
+
+**Reference Mineral Library (Major Feature):**
+- **Complete Reference Database**: Comprehensive mineral library with scientific and collector-focused information
+- **17 New Fields for Collectors**:
+  - **Care & Safety**: careInstructions, sensitivity, hazards, storageRecommendations
+  - **Identification**: identificationTips, diagnosticProperties, colors, varieties, confusionWith
+  - **Geological Context**: geologicalEnvironment, typicalLocations, associatedMinerals
+  - **Additional Info**: uses, rarity, collectingDifficulty, historicalInfo, etymology
+- **Smart Linking**: Link specimens to reference minerals for auto-filled properties
+- **User-Defined Minerals**: Create custom reference minerals or modify standard ones
+- **Reference Browsing**: Paginated list with search and filtering by group
+- **Bilingual Support**: French and English names for all minerals
+
+**Database Schema v7:**
+- Database migration 6 → 7 with 17 new columns in reference_minerals table
+- Preserved all user data during migration
+- Added referenceMineralId links in simple_properties and mineral_components
+
+**UI Enhancements:**
+- Reference Mineral Library screen with Material 3 design
+- Add/Edit reference mineral screens with comprehensive forms
+- Detail view showing all mineral properties
+- Filter chips for user-defined minerals
+- Skeleton loading states
+
+### 🔧 Changed
+
+- **Version**: Bumped to 3.0.0-alpha (versionCode 30)
+- **BuildConfig**: All screens now use dynamic version from BuildConfig.VERSION_NAME
+- Fixed version inconsistencies (was showing 1.8.0 in settings, 1.9.0 in about)
+
+### 🐛 Fixed
+
+- Fixed compilation errors in v3.0 codebase:
+  - AutoReferenceCreator.kt: Changed `group.nameKey` to `group.normalizedName`
+  - Added missing icon imports (Icons.Filled.Check, Icons.Filled.Info)
+  - Fixed smart cast issues in AddMineralScreen and ComponentEditorCard
+  - Added missing Flow.first() imports in ViewModels
+
+### 📚 Documentation
+
+- **Archived 44 obsolete files** into organized _archive/ structure:
+  - Sprints (8), Releases (4), QA (7), Audits (6), Bugfixes (4), Planning (6), etc.
+- **Streamlined docs/**: Reduced from 54 to 15 essential files
+- Retained: README, developer/user guides, specs, architecture docs
+- Added comprehensive prompt for mineral library data generation
+
+### 🔄 Database Migrations
+
+**MIGRATION_6_7**: Extended reference_minerals table
+```sql
+ALTER TABLE reference_minerals ADD COLUMN careInstructions TEXT;
+ALTER TABLE reference_minerals ADD COLUMN sensitivity TEXT;
+-- ... (15 additional columns)
+```
+
+### 📁 Files Changed
+
+**New Files:**
+- `ReferenceMineralListScreen.kt` - Library browser
+- `ReferenceMineralDetailScreen.kt` - Mineral details
+- `AddReferenceMineralScreen.kt` - Add new minerals
+- `EditReferenceMineralScreen.kt` - Edit minerals
+- Various ViewModels and ViewModelFactories
+
+**Modified Files:**
+- `ReferenceMineralEntity.kt` (+42 lines, 17 new fields)
+- `MineraLogDatabase.kt` (version 6 → 7)
+- `Migrations.kt` (+109 lines, MIGRATION_6_7)
+- `build.gradle.kts` (versionName = "3.0.0-alpha", versionCode = 30)
+- `strings.xml` (both EN and FR) - Updated version strings
+
+### 🎯 Next Steps
+
+- Populate reference library with 300-500 minerals using Claude Code web
+- Implement reference mineral selection in specimen creation
+- Add auto-fill functionality based on selected reference
+- Enhanced search and filtering in library
+
+---
+
+## [2.0.0] - 2025-11-16
+
+### ✨ Added
+
+**Mineral Aggregates Support (Major Feature):**
+- **Three Mineral Types**: SIMPLE, AGGREGATE, ROCK
+- **Component System**: Define components for aggregates with percentages and roles
+- **Component Properties**: Each component can have its own mineralogical properties
+- **Component Editor**: Drag-and-drop reordering, inline editing
+- **Percentage Validation**: Smart validation (optional or must sum to ~100%)
+
+**Database Schema v5:**
+- Added `type` column to minerals table (SIMPLE/AGGREGATE/ROCK)
+- Created `simple_properties` table for simple mineral properties
+- Created `mineral_components` table for aggregate components
+- Migrated existing minerals to new structure (all as type=SIMPLE)
+- Foreign keys with CASCADE delete
+
+**Database Schema v6:**
+- Created `reference_minerals` table (mineral library foundation)
+- Added `referenceMineralId` links to simple_properties and mineral_components
+- Added specimen-specific fields: colorVariety, actualDiaphaneity, qualityNotes
+
+**UI Enhancements:**
+- Type selector in Add/Edit screens (SIMPLE/AGGREGATE/ROCK)
+- Component management interface with Material 3 cards
+- Percentage indicators and validation feedback
+- Type badges on mineral cards
+- Detail view adapted for aggregates
+
+### 🐛 Fixed
+
+- Snackbar error display in AddMineralScreen
+- Percentage validation now conditional (only when percentages provided)
+- Smart cast issues resolved
+- R8 obfuscation compatibility (removed Java reflection)
+
+### 🔧 Changed
+
+- Extracted mineral properties to separate tables for better data modeling
+- Deprecated old property columns in minerals table (kept for compatibility)
+
+### 📚 Documentation
+
+- Added V2_README.md, V2_USAGE_EXAMPLES.md, V2_IMPLEMENTATION_STATUS.md
+- Updated ROADMAP_V2.0.md with implementation details
+
+---
+
 ## [1.9.0] - 2025-01-15
 
 ### ✨ Added
