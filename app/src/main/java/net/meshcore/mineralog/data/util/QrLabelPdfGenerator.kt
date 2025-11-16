@@ -56,8 +56,8 @@ class QrLabelPdfGenerator(
         minerals: List<Mineral>,
         outputUri: Uri
     ): Result<Unit> = withContext(Dispatchers.IO) {
+        val document = PdfDocument()
         try {
-            val document = PdfDocument()
             val totalPages = (minerals.size + LABELS_PER_PAGE - 1) / LABELS_PER_PAGE
 
             var mineralIndex = 0
@@ -86,13 +86,23 @@ class QrLabelPdfGenerator(
             }
 
             // Write to file
-            context.contentResolver.openOutputStream(outputUri)?.use { output ->
-                document.writeTo(output)
+            try {
+                context.contentResolver.openOutputStream(outputUri)?.use { output ->
+                    document.writeTo(output)
+                } ?: throw java.io.IOException("Failed to open output stream")
+            } finally {
+                // Always close document even if write fails
+                document.close()
             }
-            document.close()
 
             Result.success(Unit)
         } catch (e: Exception) {
+            // Ensure document is closed on any exception
+            try {
+                document.close()
+            } catch (closeException: Exception) {
+                // Ignore close exception, throw original
+            }
             Result.failure(e)
         }
     }

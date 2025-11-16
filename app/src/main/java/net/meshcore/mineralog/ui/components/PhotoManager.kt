@@ -88,15 +88,25 @@ fun PhotoManager(
 
             Button(  // BUGFIX: Changed from OutlinedButton to Button for better visibility
                 onClick = {
-                    // Create temp file for camera
-                    val photoFile = File(photosDir, "temp_${System.currentTimeMillis()}.jpg")
-                    val photoUri = androidx.core.content.FileProvider.getUriForFile(
-                        context,
-                        "net.meshcore.mineralog.fileprovider",
-                        photoFile
-                    )
-                    onTakePhoto(photoUri)
-                    cameraLauncher.launch(photoUri)
+                    try {
+                        // Ensure photos directory exists
+                        if (!photosDir.exists()) {
+                            photosDir.mkdirs()
+                        }
+
+                        // Create temp file for camera
+                        val photoFile = File(photosDir, "temp_${System.currentTimeMillis()}.jpg")
+                        val photoUri = androidx.core.content.FileProvider.getUriForFile(
+                            context,
+                            "net.meshcore.mineralog.fileprovider",
+                            photoFile
+                        )
+                        onTakePhoto(photoUri)
+                        cameraLauncher.launch(photoUri)
+                    } catch (e: Exception) {
+                        // Log error but don't crash - could show a toast to user
+                        android.util.Log.e("PhotoManager", "Failed to launch camera", e)
+                    }
                 },
                 modifier = Modifier.weight(1f),
                 enabled = true  // BUGFIX: Explicitly enabled
@@ -324,16 +334,29 @@ fun PhotoCard(
                         .height(140.dp)
                         .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                 ) {
+                    val context = androidx.compose.ui.platform.LocalContext.current
                     if (photo.uri != null) {
                         AsyncImage(
-                            model = photo.uri,
+                            model = coil.request.ImageRequest.Builder(context)
+                                .data(photo.uri)
+                                .crossfade(true)
+                                .size(600, 600) // Constrain size for memory efficiency
+                                .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                                .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                                .build(),
                             contentDescription = "Photo",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
                     } else if (photo.isExisting) {
                         AsyncImage(
-                            model = File(photosDir, photo.fileName),
+                            model = coil.request.ImageRequest.Builder(context)
+                                .data(File(photosDir, photo.fileName))
+                                .crossfade(true)
+                                .size(600, 600) // Constrain size for memory efficiency
+                                .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                                .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                                .build(),
                             contentDescription = "Photo",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop

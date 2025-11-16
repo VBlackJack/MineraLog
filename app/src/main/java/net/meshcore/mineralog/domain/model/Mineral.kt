@@ -1,12 +1,16 @@
 package net.meshcore.mineralog.domain.model
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 import java.time.Instant
 
 /**
  * Domain model for a complete mineral specimen with all related data.
  * Used for business logic and UI display.
+ *
+ * Performance: Marked @Immutable for Compose optimization - prevents unnecessary recompositions.
  */
+@Immutable
 @Serializable
 data class Mineral(
     val id: String,
@@ -55,6 +59,7 @@ data class Mineral(
     val components: List<MineralComponent> = emptyList()
 )
 
+@Immutable
 @Serializable
 data class Provenance(
     val id: String,
@@ -78,6 +83,7 @@ data class Provenance(
     val acquisitionNotes: String? = null
 )
 
+@Immutable
 @Serializable
 data class Storage(
     val id: String,
@@ -90,6 +96,7 @@ data class Storage(
     val qrContent: String? = null
 )
 
+@Immutable
 @Serializable
 data class Photo(
     val id: String,

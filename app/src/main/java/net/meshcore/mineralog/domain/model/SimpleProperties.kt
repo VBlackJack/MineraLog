@@ -1,5 +1,6 @@
 package net.meshcore.mineralog.domain.model
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 
 /**
@@ -8,7 +9,10 @@ import kotlinx.serialization.Serializable
  * This model contains all the mineralogical properties that define a simple mineral specimen.
  * Used only for minerals of type SIMPLE. For AGGREGATE minerals, properties are stored
  * per component in the MineralComponent model.
+ *
+ * Performance: Marked @Immutable for Compose optimization.
  */
+@Immutable
 @Serializable
 data class SimpleProperties(
     // v3.0: Reference mineral link

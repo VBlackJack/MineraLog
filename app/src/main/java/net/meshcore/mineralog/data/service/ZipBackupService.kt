@@ -200,12 +200,12 @@ class ZipBackupService(
                             totalCompressedBytes += if (entryCompressedSize > 0) entryCompressedSize else entryUncompressedSize
                             totalDecompressedBytes += entryUncompressedSize
 
-                            // Check decompression ratio
-                            if (totalCompressedBytes > 0) {
-                                val ratio = totalDecompressedBytes / totalCompressedBytes
+                            // Check decompression ratio (ZIP bomb protection)
+                            if (totalCompressedBytes > 0 && totalDecompressedBytes > 0) {
+                                val ratio = totalDecompressedBytes.toDouble() / totalCompressedBytes.toDouble()
                                 if (ratio > MAX_DECOMPRESSION_RATIO) {
-                                    val message = "Potential ZIP bomb detected: decompression ratio $ratio:1 " +
-                                        "exceeds limit of $MAX_DECOMPRESSION_RATIO:1"
+                                    val message = "Potential ZIP bomb detected: decompression ratio %.1f:1 exceeds limit of %d:1"
+                                        .format(ratio, MAX_DECOMPRESSION_RATIO)
                                     return@withContext Result.failure(Exception(message))
                                 }
                             }
