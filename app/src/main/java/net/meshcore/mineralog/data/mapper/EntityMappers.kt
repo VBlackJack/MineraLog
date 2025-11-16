@@ -50,6 +50,11 @@ fun MineralEntity.toDomain(
         radioactive = radioactive,
         dimensionsMm = dimensionsMm,
         weightGr = weightGr,
+        // v3.1: Aggregate-specific fields
+        rockType = rockType,
+        texture = texture,
+        dominantMinerals = dominantMinerals,
+        interestingFeatures = interestingFeatures,
         notes = notes,
         tags = tags?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList(),
         status = status,
@@ -92,6 +97,11 @@ fun Mineral.toEntity(): MineralEntity {
         radioactive = radioactive,
         dimensionsMm = dimensionsMm,
         weightGr = weightGr,
+        // v3.1: Aggregate-specific fields
+        rockType = rockType,
+        texture = texture,
+        dominantMinerals = dominantMinerals,
+        interestingFeatures = interestingFeatures,
         notes = notes,
         tags = tags.joinToString(","),
         status = status,
@@ -117,7 +127,13 @@ fun ProvenanceEntity.toDomain(): Provenance {
         source = source,
         price = price,
         estimatedValue = estimatedValue,
-        currency = currency
+        currency = currency,
+        // v3.1: Collector-focused fields
+        mineName = mineName,
+        collectorName = collectorName,
+        dealer = dealer,
+        catalogNumber = catalogNumber,
+        acquisitionNotes = acquisitionNotes
     )
 }
 
@@ -134,7 +150,13 @@ fun Provenance.toEntity(): ProvenanceEntity {
         source = source,
         price = price,
         estimatedValue = estimatedValue,
-        currency = currency
+        currency = currency,
+        // v3.1: Collector-focused fields
+        mineName = mineName,
+        collectorName = collectorName,
+        dealer = dealer,
+        catalogNumber = catalogNumber,
+        acquisitionNotes = acquisitionNotes
     )
 }
 

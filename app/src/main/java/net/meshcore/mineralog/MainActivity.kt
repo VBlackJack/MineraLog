@@ -22,6 +22,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.meshcore.mineralog.data.migration.AutoReferenceCreator
 import net.meshcore.mineralog.ui.dialogs.MigrationReportDialog
 import net.meshcore.mineralog.ui.navigation.MineraLogNavHost
@@ -112,7 +114,11 @@ fun MineraLogApp(
 
     // Trigger migration check on first composition
     LaunchedEffect(Unit) {
+        android.util.Log.i("MineraLog", "=== Application started, checking reference minerals ===")
         migrationViewModel.checkAndRunMigration()
+
+        // NOTE: Initial dataset loading is now handled by ReferenceMineralListScreen
+        // to avoid double-loading and to show progress to the user
     }
 
     // Observe migration state

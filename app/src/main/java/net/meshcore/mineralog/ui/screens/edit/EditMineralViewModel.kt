@@ -103,6 +103,35 @@ class EditMineralViewModel(
     private val _components = MutableStateFlow<List<MineralComponent>>(emptyList())
     val components: StateFlow<List<MineralComponent>> = _components.asStateFlow()
 
+
+    // v3.1: Provenance fields
+    private val _mineName = MutableStateFlow("")
+    val mineName: StateFlow<String> = _mineName.asStateFlow()
+
+    private val _dealer = MutableStateFlow("")
+    val dealer: StateFlow<String> = _dealer.asStateFlow()
+
+    private val _catalogNumber = MutableStateFlow("")
+    val catalogNumber: StateFlow<String> = _catalogNumber.asStateFlow()
+
+    private val _collectorName = MutableStateFlow("")
+    val collectorName: StateFlow<String> = _collectorName.asStateFlow()
+
+    private val _acquisitionNotes = MutableStateFlow("")
+    val acquisitionNotes: StateFlow<String> = _acquisitionNotes.asStateFlow()
+
+    // v3.1: Aggregate-specific fields
+    private val _rockType = MutableStateFlow("")
+    val rockType: StateFlow<String> = _rockType.asStateFlow()
+
+    private val _texture = MutableStateFlow("")
+    val texture: StateFlow<String> = _texture.asStateFlow()
+
+    private val _dominantMinerals = MutableStateFlow("")
+    val dominantMinerals: StateFlow<String> = _dominantMinerals.asStateFlow()
+
+    private val _interestingFeatures = MutableStateFlow("")
+    val interestingFeatures: StateFlow<String> = _interestingFeatures.asStateFlow()
     private var originalMineral: Mineral? = null
 
     init {
@@ -154,6 +183,19 @@ class EditMineralViewModel(
                                 isExisting = true
                             )
                         }
+
+                        // v3.1: Load provenance fields
+                        _mineName.value = mineral.provenance?.mineName ?: ""
+                        _dealer.value = mineral.provenance?.dealer ?: ""
+                        _catalogNumber.value = mineral.provenance?.catalogNumber ?: ""
+                        _collectorName.value = mineral.provenance?.collectorName ?: ""
+                        _acquisitionNotes.value = mineral.provenance?.acquisitionNotes ?: ""
+
+                        // v3.1: Load aggregate fields
+                        _rockType.value = mineral.rockType ?: ""
+                        _texture.value = mineral.texture ?: ""
+                        _dominantMinerals.value = mineral.dominantMinerals ?: ""
+                        _interestingFeatures.value = mineral.interestingFeatures ?: ""
 
                         // v2.0: Load components if this is an aggregate
                         if (_mineralType.value == MineralType.AGGREGATE) {
@@ -219,6 +261,44 @@ class EditMineralViewModel(
 
     fun onTagsChange(value: String) {
         _tags.value = value
+    }
+
+    // v3.1: Provenance field updates
+    fun onMineNameChange(value: String) {
+        _mineName.value = value
+    }
+
+    fun onDealerChange(value: String) {
+        _dealer.value = value
+    }
+
+    fun onCatalogNumberChange(value: String) {
+        _catalogNumber.value = value
+    }
+
+    fun onCollectorNameChange(value: String) {
+        _collectorName.value = value
+    }
+
+    fun onAcquisitionNotesChange(value: String) {
+        _acquisitionNotes.value = value
+    }
+
+    // v3.1: Aggregate field updates
+    fun onRockTypeChange(value: String) {
+        _rockType.value = value
+    }
+
+    fun onTextureChange(value: String) {
+        _texture.value = value
+    }
+
+    fun onDominantMineralsChange(value: String) {
+        _dominantMinerals.value = value
+    }
+
+    fun onInterestingFeaturesChange(value: String) {
+        _interestingFeatures.value = value
     }
 
     // v2.0: Component management
@@ -323,6 +403,38 @@ class EditMineralViewModel(
                     .map { it.trim() }
                     .filter { it.isNotBlank() }
 
+                // v3.1: Create or update Provenance object
+                val updatedProvenance = if (
+                    _mineName.value.isNotBlank() ||
+                    _dealer.value.isNotBlank() ||
+                    _catalogNumber.value.isNotBlank() ||
+                    _collectorName.value.isNotBlank() ||
+                    _acquisitionNotes.value.isNotBlank() ||
+                    originalMineral?.provenance != null
+                ) {
+                    net.meshcore.mineralog.domain.model.Provenance(
+                        id = originalMineral?.provenance?.id ?: UUID.randomUUID().toString(),
+                        mineralId = mineralId,
+                        site = originalMineral?.provenance?.site,
+                        locality = originalMineral?.provenance?.locality,
+                        country = originalMineral?.provenance?.country,
+                        latitude = originalMineral?.provenance?.latitude,
+                        longitude = originalMineral?.provenance?.longitude,
+                        acquiredAt = originalMineral?.provenance?.acquiredAt,
+                        source = originalMineral?.provenance?.source,
+                        price = originalMineral?.provenance?.price,
+                        estimatedValue = originalMineral?.provenance?.estimatedValue,
+                        currency = originalMineral?.provenance?.currency,
+                        mineName = _mineName.value.trim().takeIf { it.isNotBlank() },
+                        dealer = _dealer.value.trim().takeIf { it.isNotBlank() },
+                        catalogNumber = _catalogNumber.value.trim().takeIf { it.isNotBlank() },
+                        collectorName = _collectorName.value.trim().takeIf { it.isNotBlank() },
+                        acquisitionNotes = _acquisitionNotes.value.trim().takeIf { it.isNotBlank() }
+                    )
+                } else {
+                    null
+                }
+
                 val updatedMineral = Mineral(
                     id = mineralId,
                     name = _name.value.trim(),
@@ -336,6 +448,11 @@ class EditMineralViewModel(
                     streak = _streak.value.trim().takeIf { it.isNotBlank() },
                     habit = _habit.value.trim().takeIf { it.isNotBlank() },
                     crystalSystem = _crystalSystem.value.trim().takeIf { it.isNotBlank() },
+                    // v3.1: Aggregate fields
+                    rockType = _rockType.value.trim().takeIf { it.isNotBlank() },
+                    texture = _texture.value.trim().takeIf { it.isNotBlank() },
+                    dominantMinerals = _dominantMinerals.value.trim().takeIf { it.isNotBlank() },
+                    interestingFeatures = _interestingFeatures.value.trim().takeIf { it.isNotBlank() },
                     tags = tagsList,
                     status = originalMineral?.status ?: "incomplete",
                     statusType = originalMineral?.statusType ?: "in_collection",
@@ -344,7 +461,7 @@ class EditMineralViewModel(
                     completeness = originalMineral?.completeness ?: 0,
                     createdAt = originalMineral?.createdAt ?: Instant.now(),
                     updatedAt = Instant.now(),
-                    provenance = originalMineral?.provenance,
+                    provenance = updatedProvenance,
                     storage = originalMineral?.storage
                 )
 

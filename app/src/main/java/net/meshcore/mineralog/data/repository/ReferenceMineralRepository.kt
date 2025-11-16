@@ -169,6 +169,8 @@ class ReferenceMineralRepositoryImpl(
     }
 
     override suspend fun count(): Int {
+        // NOTE: Auto-loading disabled to avoid multiple simultaneous loads
+        // Loading is now explicitly handled by the UI (ReferenceMineralListScreen)
         return referenceMineralDao.count()
     }
 
@@ -194,19 +196,30 @@ class ReferenceMineralRepositoryImpl(
 
     override suspend fun populateInitialDataset(context: Context): Int {
         // Check if database is already populated
-        if (!isEmpty()) {
-            AppLogger.d("RefMineralRepo", "Database already populated, skipping initial dataset load")
-            return 0
+        val currentCount = referenceMineralDao.count()
+        if (currentCount > 0) {
+            AppLogger.d("RefMineralRepo", "Database already has $currentCount minerals, skipping load")
+            return currentCount
         }
 
         return try {
+            AppLogger.i("RefMineralRepo", "🔄 Starting initial dataset load...")
+
             val loader = ReferenceMineralDatasetLoader(context)
+            AppLogger.i("RefMineralRepo", "📖 Loading JSON from assets...")
             val minerals = loader.loadInitialDataset()
+            AppLogger.i("RefMineralRepo", "✅ Parsed ${minerals.size} minerals from JSON")
+
+            AppLogger.i("RefMineralRepo", "💾 Inserting ${minerals.size} minerals into database...")
+            val startTime = System.currentTimeMillis()
             insertAll(minerals)
-            AppLogger.i("RefMineralRepo", "Successfully loaded ${minerals.size} reference minerals")
+            val duration = System.currentTimeMillis() - startTime
+
+            AppLogger.i("RefMineralRepo", "✅ Successfully loaded ${minerals.size} reference minerals in ${duration}ms")
             minerals.size
         } catch (e: Exception) {
-            AppLogger.e("RefMineralRepo", "Failed to load initial dataset", e)
+            AppLogger.e("RefMineralRepo", "❌ Failed to load initial dataset", e)
+            android.util.Log.e("RefMineralRepo", "ERROR: ${e.message}", e)
             // Don't throw - we can continue without initial data
             0
         }

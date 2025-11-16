@@ -70,6 +70,19 @@ fun EditMineralScreen(
     val mineralType by viewModel.mineralType.collectAsState()
     val components by viewModel.components.collectAsState()
 
+    // v3.1: Provenance fields
+    val mineName by viewModel.mineName.collectAsState()
+    val dealer by viewModel.dealer.collectAsState()
+    val catalogNumber by viewModel.catalogNumber.collectAsState()
+    val collectorName by viewModel.collectorName.collectAsState()
+    val acquisitionNotes by viewModel.acquisitionNotes.collectAsState()
+
+    // v3.1: Aggregate fields
+    val rockType by viewModel.rockType.collectAsState()
+    val texture by viewModel.texture.collectAsState()
+    val dominantMinerals by viewModel.dominantMinerals.collectAsState()
+    val interestingFeatures by viewModel.interestingFeatures.collectAsState()
+
     val isSaving = updateState is UpdateMineralState.Saving
     val isLoading = updateState is UpdateMineralState.Loading
     var showDiscardDialog by remember { mutableStateOf(false) }
@@ -406,7 +419,122 @@ fun EditMineralScreen(
                         onComponentsChange = { viewModel.onComponentsChange(it) },
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    // v3.1: Aggregate Properties Section
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+                    Text(
+                        text = "Propriétés de l'Agrégat",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    Text(
+                        text = "Caractéristiques spécifiques à cet agrégat rocheux",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    OutlinedTextField(
+                        value = rockType,
+                        onValueChange = { viewModel.onRockTypeChange(it) },
+                        label = { Text("Type de roche") },
+                        placeholder = { Text("Ex: Ignée, Sédimentaire, Métamorphique") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
+
+                    OutlinedTextField(
+                        value = texture,
+                        onValueChange = { viewModel.onTextureChange(it) },
+                        label = { Text("Texture") },
+                        placeholder = { Text("Ex: Grenue, Porphyrique, Vitreuse") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
+
+                    OutlinedTextField(
+                        value = dominantMinerals,
+                        onValueChange = { viewModel.onDominantMineralsChange(it) },
+                        label = { Text("Minéraux dominants visibles") },
+                        placeholder = { Text("Ex: Quartz, Feldspath, Mica") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
+
+                    OutlinedTextField(
+                        value = interestingFeatures,
+                        onValueChange = { viewModel.onInterestingFeaturesChange(it) },
+                        label = { Text("Caractéristiques intéressantes") },
+                        placeholder = { Text("Ex: Veines de quartz, inclusion de grenat") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        maxLines = 6
+                    )
                 }
+
+                // v3.1: Provenance Section
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                Text(
+                    text = "Provenance & Acquisition",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Text(
+                    text = "Informations sur la provenance et l'acquisition du spécimen",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                OutlinedTextField(
+                    value = mineName,
+                    onValueChange = { viewModel.onMineNameChange(it) },
+                    label = { Text("Nom de la mine") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                OutlinedTextField(
+                    value = dealer,
+                    onValueChange = { viewModel.onDealerChange(it) },
+                    label = { Text("Fournisseur/Dealer") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                OutlinedTextField(
+                    value = catalogNumber,
+                    onValueChange = { viewModel.onCatalogNumberChange(it) },
+                    label = { Text("Numéro de catalogue") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                OutlinedTextField(
+                    value = collectorName,
+                    onValueChange = { viewModel.onCollectorNameChange(it) },
+                    label = { Text("Nom du collectionneur") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                OutlinedTextField(
+                    value = acquisitionNotes,
+                    onValueChange = { viewModel.onAcquisitionNotesChange(it) },
+                    label = { Text("Notes d'acquisition") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3,
+                    maxLines = 6
+                )
 
                 // Tags Section
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

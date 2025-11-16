@@ -36,16 +36,27 @@ class ReferenceMineralDatasetLoader(private val context: Context) {
      * @throws Exception if the file cannot be read or parsed.
      */
     fun loadInitialDataset(): List<ReferenceMineralEntity> {
+        android.util.Log.i("DatasetLoader", "🔍 Opening reference_minerals_initial.json from assets...")
         val jsonString = context.assets.open("reference_minerals_initial.json")
             .bufferedReader()
             .use { it.readText() }
 
+        android.util.Log.i("DatasetLoader", "📝 Read ${jsonString.length} bytes of JSON")
+        android.util.Log.i("DatasetLoader", "🔄 Parsing JSON...")
         val dataset = json.decodeFromString<MineralDataset>(jsonString)
+        android.util.Log.i("DatasetLoader", "✅ Parsed dataset with ${dataset.minerals.size} minerals")
         val now = Instant.now()
 
-        return dataset.minerals.map { dto ->
+        android.util.Log.i("DatasetLoader", "🔧 Transforming ${dataset.minerals.size} DTOs to entities...")
+        val entities = dataset.minerals.map { dto ->
+            // Combiner toxicity dans hazards si présent
+            val combinedHazards = listOfNotNull(
+                dto.hazards,
+                dto.toxicity?.let { "Toxicité: $it" }
+            ).joinToString(". ").takeIf { it.isNotEmpty() }
+
             ReferenceMineralEntity(
-                id = UUID.randomUUID().toString(),
+                id = dto.id ?: UUID.randomUUID().toString(),
                 nameFr = dto.nameFr,
                 nameEn = dto.nameEn,
                 synonyms = dto.synonyms,
@@ -60,17 +71,37 @@ class ReferenceMineralDatasetLoader(private val context: Context) {
                 habit = dto.habit,
                 luster = dto.luster,
                 streak = dto.streak,
-                diaphaneity = dto.diaphaneity,
+                diaphaneity = dto.transparency ?: dto.diaphaneity,
                 fluorescence = dto.fluorescence,
                 magnetism = dto.magnetism,
                 radioactivity = dto.radioactivity,
+                careInstructions = dto.careInstructions,
+                sensitivity = dto.sensitivity,
+                hazards = combinedHazards,
+                storageRecommendations = dto.storageRecommendations,
+                identificationTips = dto.identificationTips,
+                diagnosticProperties = dto.diagnosticProperties,
+                colors = dto.color ?: dto.colors,
+                varieties = dto.varietiesAndForms ?: dto.varieties,
+                confusionWith = dto.commonConfusions ?: dto.confusionWith,
+                geologicalEnvironment = dto.formationEnvironment ?: dto.geologicalEnvironment,
+                typicalLocations = dto.typicalLocations,
+                associatedMinerals = dto.associatedMinerals,
+                uses = dto.uses,
+                rarity = dto.rarity,
+                collectingDifficulty = dto.collectingDifficulty,
+                historicalInfo = dto.historicalNotes ?: dto.historicalInfo,
+                etymology = dto.etymology,
                 notes = dto.notes,
-                isUserDefined = false, // Initial dataset minerals are not user-defined
-                source = dataset.source ?: "Standard library",
-                createdAt = now,
-                updatedAt = now
+                isUserDefined = dto.isUserDefined ?: false,
+                source = dto.source ?: dataset.source ?: "Standard library",
+                createdAt = dto.createdAt?.let { Instant.parse(it) } ?: now,
+                updatedAt = dto.updatedAt?.let { Instant.parse(it) } ?: now
             )
         }
+
+        android.util.Log.i("DatasetLoader", "✅ Transformed ${entities.size} entities successfully")
+        return entities
     }
 
     /**
@@ -95,6 +126,7 @@ class ReferenceMineralDatasetLoader(private val context: Context) {
 
     @Serializable
     private data class MineralDto(
+        val id: String? = null,
         val nameFr: String,
         val nameEn: String,
         val synonyms: String? = null,
@@ -113,6 +145,35 @@ class ReferenceMineralDatasetLoader(private val context: Context) {
         val fluorescence: String? = null,
         val magnetism: String? = null,
         val radioactivity: String? = null,
-        val notes: String? = null
+        val careInstructions: String? = null,
+        val sensitivity: String? = null,
+        val hazards: String? = null,
+        val storageRecommendations: String? = null,
+        val identificationTips: String? = null,
+        val diagnosticProperties: String? = null,
+        val colors: String? = null,
+        val varieties: String? = null,
+        val confusionWith: String? = null,
+        val geologicalEnvironment: String? = null,
+        val typicalLocations: String? = null,
+        val associatedMinerals: String? = null,
+        val uses: String? = null,
+        val rarity: String? = null,
+        val collectingDifficulty: String? = null,
+        val historicalInfo: String? = null,
+        val etymology: String? = null,
+        val notes: String? = null,
+        val isUserDefined: Boolean? = null,
+        val source: String? = null,
+        val createdAt: String? = null,
+        val updatedAt: String? = null,
+        // Legacy/alternative field names for backward compatibility
+        val color: String? = null,
+        val transparency: String? = null,
+        val toxicity: String? = null,
+        val commonConfusions: String? = null,
+        val formationEnvironment: String? = null,
+        val varietiesAndForms: String? = null,
+        val historicalNotes: String? = null
     )
 }

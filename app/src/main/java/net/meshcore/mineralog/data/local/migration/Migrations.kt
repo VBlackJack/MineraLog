@@ -535,5 +535,91 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
 }
 
 /**
+ * Migration from version 7 to version 8.
+ *
+ * Changes:
+ * - Add collector-focused fields to provenances table:
+ *   - mineName: Specific mine or quarry name
+ *   - collectorName: Original collector's name if source="collected"
+ *   - dealer: Dealer or vendor name if source="purchase"
+ *   - catalogNumber: Museum catalog number, dealer reference, or collection ID
+ *   - acquisitionNotes: Additional notes about acquisition, provenance chain, or authenticity
+ * - Add aggregate-specific fields to minerals table (for type=AGGREGATE or ROCK):
+ *   - rockType: Type of rock/aggregate (Granite, Basalte, Pegmatite, etc.)
+ *   - texture: Texture description (Grenu, Porphyrique, Microgrenu, etc.)
+ *   - dominantMinerals: Comma-separated list of visually dominant minerals
+ *   - interestingFeatures: Notable characteristics for collectors
+ *
+ * v3.1.0 enhancement: Aggregate-focused fields
+ *
+ * These fields optimize the database for aggregate and rock specimens where:
+ * - Provenance information (mine name, dealer, catalog number) is more valuable
+ *   than chemical formulas
+ * - Visual/textural properties are more relevant than crystallographic data
+ * - Collector context (where obtained, from whom, reference numbers) is essential
+ *
+ * Backward compatibility:
+ * - All new fields are nullable (default NULL)
+ * - Existing specimens remain unchanged
+ * - SIMPLE specimens can still use existing deprecated mineralogical fields
+ */
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // ===== Add collector-focused fields to provenances table =====
+
+        db.execSQL("""
+            ALTER TABLE provenances
+            ADD COLUMN mineName TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE provenances
+            ADD COLUMN collectorName TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE provenances
+            ADD COLUMN dealer TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE provenances
+            ADD COLUMN catalogNumber TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE provenances
+            ADD COLUMN acquisitionNotes TEXT DEFAULT NULL
+        """.trimIndent())
+
+        // ===== Add aggregate-specific fields to minerals table =====
+
+        db.execSQL("""
+            ALTER TABLE minerals
+            ADD COLUMN rockType TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE minerals
+            ADD COLUMN texture TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE minerals
+            ADD COLUMN dominantMinerals TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE minerals
+            ADD COLUMN interestingFeatures TEXT DEFAULT NULL
+        """.trimIndent())
+
+        // Note: No indices created for these fields as they are primarily used for display
+        // rather than filtering. If filtering by rockType or texture becomes a common
+        // use case, indices can be added in a future migration.
+    }
+}
+
+/**
  * Future migrations will be added here as the schema evolves.
  */

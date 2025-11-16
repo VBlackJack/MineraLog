@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,6 +17,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
@@ -39,9 +43,11 @@ fun ReferenceMineralListScreen(
 ) {
     val mineralsPaged = viewModel.mineralsPaged.collectAsLazyPagingItems()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
     val totalCount by viewModel.totalCount.collectAsState()
     val userDefinedCount by viewModel.userDefinedCount.collectAsState()
     val showOnlyUserDefined by viewModel.showOnlyUserDefined.collectAsState()
+    val isSearching = searchQuery.isNotEmpty()
 
     Scaffold(
         topBar = {
@@ -84,8 +90,7 @@ fun ReferenceMineralListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Search bar (placeholder for future enhancement)
-            /*
+            // Search bar
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { viewModel.onSearchQueryChange(it) },
@@ -96,9 +101,18 @@ fun ReferenceMineralListScreen(
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = "Rechercher")
                 },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.clearSearch() }) {
+                            Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Default.Close,
+                                contentDescription = "Effacer"
+                            )
+                        }
+                    }
+                },
                 singleLine = true
             )
-            */
 
             // Count info
             if (totalCount > 0) {
@@ -142,9 +156,42 @@ fun ReferenceMineralListScreen(
                 Spacer(Modifier.height(8.dp))
             }
 
-            // Minerals list
-            when (mineralsPaged.loadState.refresh) {
-                is LoadState.Loading -> {
+            // Minerals list - search results or paginated list
+            if (isSearching) {
+                // Show search results
+                if (searchResults.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Aucun résultat pour \"$searchQuery\"",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(
+                            count = searchResults.size,
+                            key = { searchResults[it].id }
+                        ) { index ->
+                            val mineral = searchResults[index]
+                            ReferenceMineralCard(
+                                mineral = mineral,
+                                onClick = { onMineralClick(mineral.id) }
+                            )
+                        }
+                    }
+                }
+            } else {
+                // Show paginated list
+                when (mineralsPaged.loadState.refresh) {
+                    is LoadState.Loading -> {
                     // Show skeleton loading cards
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -184,21 +231,110 @@ fun ReferenceMineralListScreen(
                 else -> {
                     if (mineralsPaged.itemCount == 0) {
                         // Empty state
+                        val context = LocalContext.current
+                        val application = context.applicationContext as MineraLogApplication
+                        val scope = rememberCoroutineScope()
+                        var isLoading by remember { mutableStateOf(false) }
+                        var errorMessage by remember { mutableStateOf<String?>(null) }
+
+                        LaunchedEffect(Unit) {
+                            // Auto-load on first display - MUST run on IO thread to avoid ANR
+                            if (!isLoading) {
+                                isLoading = true
+                                try {
+                                    android.util.Log.e("RefScreen", "🚀 STARTING LOAD...")
+                                    // Run heavy I/O work on background thread
+                                    val count = withContext(Dispatchers.IO) {
+                                        android.util.Log.e("RefScreen", "📞 Calling populateInitialDataset...")
+                                        application.referenceMineralRepository.populateInitialDataset(context)
+                                    }
+                                    android.util.Log.e("RefScreen", "✅ Load returned count: $count")
+                                    if (count > 0) {
+                                        viewModel.refresh()
+                                        mineralsPaged.refresh()
+                                    } else {
+                                        errorMessage = "Chargement retourné 0 minéraux"
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("RefScreen", "❌ EXCEPTION: ${e.message}", e)
+                                    errorMessage = "ERREUR: ${e.javaClass.simpleName}: ${e.message}"
+                                    e.printStackTrace()
+                                } finally {
+                                    isLoading = false
+                                }
+                            }
+                        }
+
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "Bibliothèque vide",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = "Aucun minéral de référence disponible",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(top = 8.dp)
-                                )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(32.dp)
+                            ) {
+                                if (isLoading) {
+                                    CircularProgressIndicator()
+                                    Text(
+                                        text = "Chargement de la bibliothèque...",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(top = 16.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        text = "Bibliothèque vide",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Aucun minéral de référence disponible",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(top = 8.dp)
+                                    )
+
+                                    if (errorMessage != null) {
+                                        Text(
+                                            text = "Erreur: $errorMessage",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        )
+                                    }
+
+                                    Button(
+                                        onClick = {
+                                            scope.launch {
+                                                isLoading = true
+                                                errorMessage = null
+                                                try {
+                                                    android.util.Log.e("RefScreen", "🔘 BUTTON CLICKED - Starting manual load...")
+                                                    // Run heavy I/O work on background thread
+                                                    val count = withContext(Dispatchers.IO) {
+                                                        android.util.Log.e("RefScreen", "📞 Button: Calling populateInitialDataset...")
+                                                        application.referenceMineralRepository.populateInitialDataset(context)
+                                                    }
+                                                    android.util.Log.e("RefScreen", "✅ Button: Load returned count: $count")
+                                                    if (count > 0) {
+                                                        viewModel.refresh()
+                                                        mineralsPaged.refresh()
+                                                    } else {
+                                                        errorMessage = "Chargement retourné $count minéraux"
+                                                    }
+                                                } catch (e: Exception) {
+                                                    android.util.Log.e("RefScreen", "❌ Button EXCEPTION: ${e.message}", e)
+                                                    errorMessage = "ERREUR: ${e.javaClass.simpleName}: ${e.message}"
+                                                    e.printStackTrace()
+                                                } finally {
+                                                    isLoading = false
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier.padding(top = 16.dp),
+                                        enabled = !isLoading
+                                    ) {
+                                        Text("Charger la bibliothèque")
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -237,6 +373,7 @@ fun ReferenceMineralListScreen(
                     }
                 }
             }
+            }  // end of else block for paginated list
         }
     }
 }

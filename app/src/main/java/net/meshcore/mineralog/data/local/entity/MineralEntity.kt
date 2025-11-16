@@ -83,6 +83,14 @@ data class MineralEntity(
     val dimensionsMm: String? = null, // Format: "length x width x height" or free text
     val weightGr: Float? = null,
 
+    // Aggregate-specific fields (v3.1.0 - for type=AGGREGATE or ROCK)
+    // These fields are relevant for mineral aggregates, rocks, and assemblages
+    // where mineralogical properties (formula, hardness) don't make sense at the specimen level
+    val rockType: String? = null, // Type of rock/aggregate (e.g., "Granite", "Basalte", "Pegmatite", "Gneiss", "Schiste")
+    val texture: String? = null, // Texture description (e.g., "Grenu", "Porphyrique", "Microgrenu", "Aphanitique", "Folié")
+    val dominantMinerals: String? = null, // Comma-separated list of visually dominant minerals (e.g., "Quartz, Feldspath, Mica")
+    val interestingFeatures: String? = null, // Notable characteristics for collectors (e.g., "Cristaux de tourmaline visibles", "Poche de quartz améthyste")
+
     // User notes and categorization
     val notes: String? = null,
     val tags: String? = null, // Comma-separated tags

@@ -46,5 +46,13 @@ data class ProvenanceEntity(
     val source: String? = null, // purchase, exchange, collected, gift, inheritance
     val price: Float? = null, // In local currency
     val estimatedValue: Float? = null,
-    val currency: String? = "USD" // ISO 4217 currency code
+    val currency: String? = "USD", // ISO 4217 currency code
+
+    // Collector-focused fields (v3.1.0 - aggregate optimization)
+    // Particularly useful for aggregates where provenance is more important than chemical formula
+    val mineName: String? = null, // Specific mine or quarry name (e.g., "Mine de Chessy", "Carrière de Tressignaux")
+    val collectorName: String? = null, // Original collector's name if source="collected"
+    val dealer: String? = null, // Dealer or vendor name if source="purchase"
+    val catalogNumber: String? = null, // Museum catalog number, dealer reference, or collection ID
+    val acquisitionNotes: String? = null // Additional notes about acquisition, provenance chain, or authenticity
 )

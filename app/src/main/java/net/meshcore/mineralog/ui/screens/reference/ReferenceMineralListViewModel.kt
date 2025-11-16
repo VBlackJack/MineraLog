@@ -31,7 +31,15 @@ class ReferenceMineralListViewModel(
     private val _showOnlyUserDefined = MutableStateFlow(false)
     val showOnlyUserDefined: StateFlow<Boolean> = _showOnlyUserDefined.asStateFlow()
 
-    // Paginated minerals list with filter support
+    // Search results (non-paginated for better UX)
+    private val _searchResults = MutableStateFlow<List<net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity>>(emptyList())
+    val searchResults: StateFlow<List<net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity>> = _searchResults.asStateFlow()
+
+    // Flag to indicate if we're in search mode
+    val isSearching: Boolean
+        get() = _searchQuery.value.isNotEmpty()
+
+    // Paginated minerals list with filter support (used when not searching)
     val mineralsPaged = _showOnlyUserDefined.flatMapLatest { showUserDefinedOnly ->
         Pager(
             config = PagingConfig(
@@ -63,12 +71,11 @@ class ReferenceMineralListViewModel(
     }
 
     /**
-     * Update search query.
+     * Update search query and perform search.
      */
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
-        // Note: For now we're using simple pagination.
-        // Search functionality will be enhanced in a future iteration.
+        performSearch(query)
     }
 
     /**
@@ -76,6 +83,23 @@ class ReferenceMineralListViewModel(
      */
     fun clearSearch() {
         _searchQuery.value = ""
+        _searchResults.value = emptyList()
+    }
+
+    /**
+     * Perform search using repository.
+     */
+    private fun performSearch(query: String) {
+        if (query.isEmpty()) {
+            _searchResults.value = emptyList()
+            return
+        }
+
+        viewModelScope.launch {
+            referenceMineralRepository.searchByName(query).collect { results ->
+                _searchResults.value = results
+            }
+        }
     }
 
     /**

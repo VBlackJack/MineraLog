@@ -30,6 +30,11 @@ data class Mineral(
     val radioactive: Boolean = false,
     val dimensionsMm: String? = null,
     val weightGr: Float? = null,
+    // v3.1: Aggregate-specific fields (for type=AGGREGATE)
+    val rockType: String? = null,
+    val texture: String? = null,
+    val dominantMinerals: String? = null,
+    val interestingFeatures: String? = null,
     val notes: String? = null,
     val tags: List<String> = emptyList(),
     // v1.0 status (backward compatibility)
@@ -64,7 +69,13 @@ data class Provenance(
     val source: String? = null,
     val price: Float? = null,
     val estimatedValue: Float? = null,
-    val currency: String? = "USD"
+    val currency: String? = "USD",
+    // v3.1: Collector-focused fields
+    val mineName: String? = null,
+    val collectorName: String? = null,
+    val dealer: String? = null,
+    val catalogNumber: String? = null,
+    val acquisitionNotes: String? = null
 )
 
 @Serializable
@@ -89,3 +100,50 @@ data class Photo(
     val takenAt: Instant = Instant.now(),
     val fileName: String
 )
+
+/**
+ * Extension functions for synthesizing aggregate properties from components.
+ * v3.1: Aggregate optimization
+ */
+
+/**
+ * Calculate the overall hardness range from all components.
+ * Returns "min-max" format, e.g., "2-7" for an aggregate with components ranging from Mohs 2 to 7.
+ */
+fun Mineral.getSynthesizedHardnessRange(): String? {
+    if (components.isEmpty()) return null
+    
+    val allMohsMin = components.mapNotNull { it.mohsMin }
+    val allMohsMax = components.mapNotNull { it.mohsMax }
+    
+    if (allMohsMin.isEmpty() && allMohsMax.isEmpty()) return null
+    
+    val overallMin = allMohsMin.minOrNull() ?: allMohsMax.minOrNull() ?: return null
+    val overallMax = allMohsMax.maxOrNull() ?: allMohsMin.maxOrNull() ?: return null
+    
+    return if (overallMin == overallMax) {
+        String.format("%.1f", overallMin)
+    } else {
+        String.format("%.1f - %.1f", overallMin, overallMax)
+    }
+}
+
+/**
+ * Get all unique formulas from components.
+ */
+fun Mineral.getSynthesizedFormulas(): List<Pair<String, String?>> {
+    return components
+        .filter { !it.formula.isNullOrBlank() }
+        .map { it.mineralName to it.formula }
+        .distinctBy { it.first }
+}
+
+/**
+ * Get all unique crystal systems from components.
+ */
+fun Mineral.getSynthesizedCrystalSystems(): List<Pair<String, String?>> {
+    return components
+        .filter { !it.crystalSystem.isNullOrBlank() }
+        .map { it.mineralName to it.crystalSystem }
+        .distinctBy { it.first }
+}

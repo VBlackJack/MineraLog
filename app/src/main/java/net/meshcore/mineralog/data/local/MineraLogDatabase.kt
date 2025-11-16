@@ -31,6 +31,7 @@ import net.meshcore.mineralog.data.local.migration.MIGRATION_3_4
 import net.meshcore.mineralog.data.local.migration.MIGRATION_4_5
 import net.meshcore.mineralog.data.local.migration.MIGRATION_5_6
 import net.meshcore.mineralog.data.local.migration.MIGRATION_6_7
+import net.meshcore.mineralog.data.local.migration.MIGRATION_7_8
 import net.meshcore.mineralog.util.AppLogger
 
 /**
@@ -42,6 +43,8 @@ import net.meshcore.mineralog.util.AppLogger
  * Version 5: Added support for mineral aggregates with simple_properties and mineral_components tables (v2.0.0).
  * Version 6: Added reference_minerals table for mineral library and referenceMineralId links (v3.0.0).
  * Version 7: Extended reference_minerals with collector-focused fields (care, safety, identification, geology) (v3.0.0).
+ * Version 8: Added aggregate-focused fields to minerals (rockType, texture, dominantMinerals, interestingFeatures)
+ *            and collector fields to provenances (mineName, collectorName, dealer, catalogNumber, acquisitionNotes) (v3.1.0).
  */
 @Database(
     entities = [
@@ -54,7 +57,7 @@ import net.meshcore.mineralog.util.AppLogger
         PhotoEntity::class,
         FilterPresetEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -116,7 +119,8 @@ abstract class MineraLogDatabase : RoomDatabase() {
                         MIGRATION_3_4,
                         MIGRATION_4_5,
                         MIGRATION_5_6,
-                        MIGRATION_6_7
+                        MIGRATION_6_7,
+                        MIGRATION_7_8
                     ) // Proper migrations for schema evolution
                     // Note: fallbackToDestructiveMigration() has been removed to protect user data
                     // All migrations must be properly defined before releasing new schema versions

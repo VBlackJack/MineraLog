@@ -37,6 +37,9 @@ import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.domain.model.Mineral
 import net.meshcore.mineralog.domain.model.MineralType
 import net.meshcore.mineralog.ui.components.PhotoViewer
+import net.meshcore.mineralog.ui.components.ProvenanceSection
+import net.meshcore.mineralog.ui.components.AggregatePropertiesSection
+import net.meshcore.mineralog.ui.components.ComponentsSynthesisSection
 import net.meshcore.mineralog.ui.components.v2.ComponentCard
 import net.meshcore.mineralog.ui.screens.edit.PhotoItem
 import java.io.File
@@ -548,6 +551,25 @@ fun MineralDetailContent(
                 }
             }
         }
+
+        // v3.1: Provenance Section (prominently displayed)
+        ProvenanceSection(
+            provenance = mineral.provenance,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // v3.1: Aggregate Properties Section (only for aggregates)
+        AggregatePropertiesSection(
+            mineral = mineral,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // v3.1: Components Synthesis Section (only for aggregates with components)
+        ComponentsSynthesisSection(
+            mineral = mineral,
+            components = mineral.components,
+            modifier = Modifier.fillMaxWidth()
+        )
 
         // v2.0: Aggregate components section (only for aggregates)
         if (mineral.mineralType == MineralType.AGGREGATE && mineral.components.isNotEmpty()) {
