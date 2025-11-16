@@ -42,7 +42,8 @@ import java.util.UUID
         )
     ],
     indices = [
-        Index(value = ["mineralId"], unique = true)
+        Index(value = ["mineralId"], unique = true),
+        Index(value = ["referenceMineralId"])
     ]
 )
 data class SimplePropertiesEntity(
@@ -50,6 +51,10 @@ data class SimplePropertiesEntity(
     val id: String = UUID.randomUUID().toString(),
 
     val mineralId: String,
+
+    // Reference mineral link (v3.0.0+)
+    // When set, this specimen's properties inherit from a reference mineral template
+    val referenceMineralId: String? = null,
 
     // Mineralogical classification
     val group: String? = null,
@@ -72,5 +77,11 @@ data class SimplePropertiesEntity(
     val fracture: String? = null,
     val habit: String? = null,
     val streak: String? = null,
-    val fluorescence: String? = null
+    val fluorescence: String? = null,
+
+    // Specimen-specific properties (v3.0.0+)
+    // These fields store specimen-specific variations that override reference properties
+    val colorVariety: String? = null,       // e.g., "Rose quartz", "Smoky quartz" (color variation)
+    val actualDiaphaneity: String? = null,  // Actual transparency of this specific specimen
+    val qualityNotes: String? = null        // Quality assessment notes for this specimen
 )

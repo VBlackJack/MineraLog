@@ -14,6 +14,7 @@ import net.meshcore.mineralog.data.local.dao.MineralComponentDao
 import net.meshcore.mineralog.data.local.dao.MineralDao
 import net.meshcore.mineralog.data.local.dao.PhotoDao
 import net.meshcore.mineralog.data.local.dao.ProvenanceDao
+import net.meshcore.mineralog.data.local.dao.ReferenceMineralDao
 import net.meshcore.mineralog.data.local.dao.SimplePropertiesDao
 import net.meshcore.mineralog.data.local.dao.StorageDao
 import net.meshcore.mineralog.data.local.entity.FilterPresetEntity
@@ -21,12 +22,14 @@ import net.meshcore.mineralog.data.local.entity.MineralComponentEntity
 import net.meshcore.mineralog.data.local.entity.MineralEntity
 import net.meshcore.mineralog.data.local.entity.PhotoEntity
 import net.meshcore.mineralog.data.local.entity.ProvenanceEntity
+import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
 import net.meshcore.mineralog.data.local.entity.SimplePropertiesEntity
 import net.meshcore.mineralog.data.local.entity.StorageEntity
 import net.meshcore.mineralog.data.local.migration.MIGRATION_1_2
 import net.meshcore.mineralog.data.local.migration.MIGRATION_2_3
 import net.meshcore.mineralog.data.local.migration.MIGRATION_3_4
 import net.meshcore.mineralog.data.local.migration.MIGRATION_4_5
+import net.meshcore.mineralog.data.local.migration.MIGRATION_5_6
 
 /**
  * Main Room database for MineraLog application.
@@ -35,18 +38,20 @@ import net.meshcore.mineralog.data.local.migration.MIGRATION_4_5
  * Version 3: Added filter_presets table for saved filter combinations (v1.2.0).
  * Version 4: Added currency field to provenances table for multi-currency support (v1.4.1).
  * Version 5: Added support for mineral aggregates with simple_properties and mineral_components tables (v2.0.0).
+ * Version 6: Added reference_minerals table for mineral library and referenceMineralId links (v3.0.0).
  */
 @Database(
     entities = [
         MineralEntity::class,
         SimplePropertiesEntity::class,
         MineralComponentEntity::class,
+        ReferenceMineralEntity::class,
         ProvenanceEntity::class,
         StorageEntity::class,
         PhotoEntity::class,
         FilterPresetEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -55,6 +60,7 @@ abstract class MineraLogDatabase : RoomDatabase() {
     abstract fun mineralDao(): MineralDao
     abstract fun simplePropertiesDao(): SimplePropertiesDao
     abstract fun mineralComponentDao(): MineralComponentDao
+    abstract fun referenceMineralDao(): ReferenceMineralDao
     abstract fun provenanceDao(): ProvenanceDao
     abstract fun storageDao(): StorageDao
     abstract fun photoDao(): PhotoDao
@@ -101,7 +107,13 @@ abstract class MineraLogDatabase : RoomDatabase() {
                     "mineralog_database"
                 )
                     .openHelperFactory(factory) // Enable SQLCipher encryption
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5) // Proper migrations for schema evolution
+                    .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5,
+                        MIGRATION_5_6
+                    ) // Proper migrations for schema evolution
                     // Note: fallbackToDestructiveMigration() has been removed to protect user data
                     // All migrations must be properly defined before releasing new schema versions
                     .addCallback(object : RoomDatabase.Callback() {
@@ -109,6 +121,9 @@ abstract class MineraLogDatabase : RoomDatabase() {
                             super.onCreate(db)
                             // Database created with encryption enabled
                             android.util.Log.i("MineraLogDB", "Encrypted database created")
+                            // Note: Initial reference minerals dataset population happens
+                            // at application startup via a dedicated initializer or repository check.
+                            // See ReferenceMineralRepository.populateInitialDataset()
                         }
 
                         override fun onOpen(db: SupportSQLiteDatabase) {
