@@ -1,0 +1,1 @@
+Offline mineral collection manager with 300+ references, encrypted backups

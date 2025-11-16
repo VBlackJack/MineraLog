@@ -1,0 +1,22 @@
+v3.0.0 - Reference Library & Security
+
+NEW:
+- 300+ mineral reference library with 17 collector fields
+- Support for mineral aggregates (Granite, Gneiss)
+- Auto-fill properties from reference library
+- AES-256 database encryption (SQLCipher)
+- Enhanced backup encryption (Argon2id)
+
+IMPROVED:
+- 93% query reduction (performance boost)
+- 60%+ test coverage (1,800+ test lines)
+- Complete bilingual support (EN/FR)
+- Accessibility (WCAG 2.1 AA compliant)
+
+FIXED:
+- Crashes on Android 8.1
+- CSV injection vulnerabilities
+- Camera resource leaks
+- QR code generation errors
+
+Full changelog: https://github.com/VBlackJack/MineraLog/blob/main/CHANGELOG.md

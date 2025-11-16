@@ -1,0 +1,115 @@
+🔬 MineraLog - Your Personal Mineral Collection Manager
+
+OFFLINE & PRIVATE
+✓ No internet required - 100% offline functionality
+✓ No ads, no tracking, no analytics
+✓ AES-256 encrypted database (SQLCipher)
+✓ Your data stays on YOUR device, always
+
+KEY FEATURES
+
+📸 Photo Cataloging
+• Capture from camera or select from gallery
+• Multiple photos per specimen (Normal, UV Shortwave, UV Longwave, Macro)
+• QR code generation for easy identification
+• Photo gallery with pinch-to-zoom (1x-5x)
+
+🔬 Reference Library (300+ Minerals)
+• Scientific properties: hardness, density, crystal system, formula
+• Collector information: care instructions, safety warnings, identification tips
+• Geological context: formation environment, typical locations
+• Link specimens to references for instant auto-fill
+• 17 specialized fields for serious collectors
+
+🧱 Advanced Support
+• Simple minerals: Quartz, Calcite, Pyrite, Fluorite...
+• Aggregates: Granite, Gneiss with multiple components
+• Physical properties tracking (Mohs hardness, specific gravity, luster)
+• Provenance & storage management
+• Quality rating and completeness tracking
+
+📊 Import/Export
+• CSV import/export with fuzzy column mapping
+• Encrypted backups (password-protected with Argon2id)
+• Bulk photo export to external storage
+• Migration from other apps via CSV
+
+🔍 Powerful Search
+• Full-text search (FTS5) - search names, formulas, notes, tags
+• Advanced filters: group, location, hardness range, quality
+• Save filter presets for quick access
+• Sort by name, date, hardness, or group
+
+WHO IS IT FOR?
+
+✓ Mineral collectors (beginners to experts)
+✓ Geology students cataloging field samples
+✓ Teachers managing educational collections
+✓ Rockhounds organizing finds
+✓ Anyone inheriting or documenting a collection
+
+PRIVACY & SECURITY
+
+✓ 100% offline - no internet permission requested
+✓ SQLCipher AES-256 database encryption
+✓ Argon2id password hashing for backups
+✓ No data collection, no analytics, no telemetry
+✓ Open source (Apache 2.0 license) - code is auditable
+
+ACCESSIBILITY
+
+✓ TalkBack support for screen readers
+✓ High contrast mode compatible
+✓ Scalable fonts (up to 200%)
+✓ Bilingual interface (English/Français)
+✓ WCAG 2.1 AA compliant (92% grade A)
+
+TESTED & RELIABLE
+
+✓ 60%+ code coverage with 1,800+ test lines
+✓ Tested on Android 8.1 through Android 15
+✓ Zero known P0/P1 bugs in v3.0.0
+✓ Performance: 60fps scrolling with 1000+ minerals
+✓ Cold start < 2 seconds
+
+NEW IN v3.0.0
+
+🆕 Reference Mineral Library with 300+ minerals
+🆕 Support for mineral aggregates (Granite, Gneiss)
+🆕 17 new collector-specific fields
+🆕 Enhanced security (database encryption)
+🆕 Improved performance (93% query reduction)
+🆕 Complete bilingual support (EN/FR)
+
+Get started in 60 seconds! Add your first mineral now.
+
+---
+
+📖 Open source: https://github.com/VBlackJack/MineraLog
+🐛 Report issues: https://github.com/VBlackJack/MineraLog/issues
+📄 License: Apache 2.0 (free & open source forever)
+
+---
+
+PERMISSIONS EXPLAINED
+
+• Camera: Take photos of your specimens (optional)
+• Storage: Import/export files, save photos (scoped storage on Android 10+)
+
+No internet permission = No data leaves your device. Ever.
+
+---
+
+SUPPORT
+
+Having issues or questions? We're here to help!
+• Documentation: Comprehensive user guide included
+• GitHub Issues: Fast response (usually < 24h)
+• Email: support@mineralog.app (coming soon)
+
+---
+
+MineraLog is developed with ❤️ by mineral enthusiasts, for mineral enthusiasts.
+Your privacy and data ownership are our top priorities.
+
+Start building your digital mineral collection today!

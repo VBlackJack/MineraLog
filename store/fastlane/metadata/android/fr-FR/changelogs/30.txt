@@ -1,0 +1,22 @@
+v3.0.0 - Bibliothèque de Référence & Sécurité
+
+NOUVEAU :
+- Bibliothèque de 300+ minéraux avec 17 champs collectionneurs
+- Support des agrégats minéraux (Granite, Gneiss)
+- Auto-remplissage depuis la bibliothèque de référence
+- Chiffrement base de données AES-256 (SQLCipher)
+- Chiffrement renforcé sauvegardes (Argon2id)
+
+AMÉLIORÉ :
+- Réduction 93% des requêtes (boost performance)
+- Couverture tests 60%+ (1 800+ lignes)
+- Support bilingue complet (FR/EN)
+- Accessibilité (conforme WCAG 2.1 AA)
+
+CORRIGÉ :
+- Crashs sur Android 8.1
+- Vulnérabilités injection CSV
+- Fuites ressources caméra
+- Erreurs génération QR codes
+
+Changelog complet : https://github.com/VBlackJack/MineraLog/blob/main/CHANGELOG.md

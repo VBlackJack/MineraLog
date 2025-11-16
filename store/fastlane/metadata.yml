@@ -1,0 +1,95 @@
+# F-Droid Metadata for MineraLog
+# https://f-droid.org/docs/Build_Metadata_Reference/
+
+Categories:
+  - Science & Education
+
+License: Apache-2.0
+
+AuthorName: MineraLog Team
+AuthorEmail: contact@mineralog.app
+AuthorWebSite: https://mineralog.app
+
+SourceCode: https://github.com/VBlackJack/MineraLog
+IssueTracker: https://github.com/VBlackJack/MineraLog/issues
+Changelog: https://github.com/VBlackJack/MineraLog/blob/main/CHANGELOG.md
+Donate: https://github.com/sponsors/VBlackJack
+
+AutoName: MineraLog
+
+Summary: Offline mineral collection manager with encrypted database
+
+Description: |-
+    MineraLog is a privacy-focused, offline-first mineral collection manager
+    designed for collectors, students, and geology enthusiasts.
+
+    <b>Features:</b>
+
+    <b>Reference Library</b>
+    • 300+ minerals with scientific and collector information
+    • 17 specialized fields: care instructions, safety warnings, identification tips
+    • Geological context: formation environment, typical locations
+    • Auto-fill properties by linking specimens to references
+
+    <b>Cataloging & Organization</b>
+    • Photo management: Normal, UV Shortwave, UV Longwave, Macro
+    • QR code generation for specimen labeling
+    • Support for mineral aggregates (Granite, Gneiss, etc.)
+    • Physical properties: hardness, density, crystal system
+    • Provenance tracking: location, source, acquisition date
+    • Hierarchical storage: Place → Container → Box → Slot
+
+    <b>Search & Filtering</b>
+    • Full-text search (FTS5) - names, formulas, notes, tags
+    • Advanced filters: group, location, hardness range, quality
+    • Save filter presets
+    • Sort by name, date, hardness, or group
+
+    <b>Import/Export</b>
+    • CSV import with fuzzy column mapping
+    • CSV export with formula injection protection
+    • Encrypted ZIP backups (Argon2id + AES-256-GCM)
+    • Bulk photo export
+
+    <b>Privacy & Security</b>
+    • 100% offline - no internet permission
+    • AES-256 database encryption (SQLCipher)
+    • No data collection, tracking, or analytics
+    • Open source and auditable
+
+    <b>Accessibility</b>
+    • TalkBack support
+    • High contrast mode
+    • Scalable fonts
+    • Bilingual: English and French
+
+    <b>Requirements:</b>
+    • Android 8.1+ (API 27+)
+    • ~15 MB storage
+    • Camera (optional, for photos)
+
+RepoType: git
+Repo: https://github.com/VBlackJack/MineraLog.git
+
+Builds:
+  - versionName: '3.0.0'
+    versionCode: 30
+    commit: v3.0.0
+    subdir: app
+    gradle:
+      - release
+    prebuild: echo "MAPS_API_KEY=none" > ../local.properties
+    scandelete:
+      - tools/
+    build: ./gradlew assembleRelease
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: '3.0.0'
+CurrentVersionCode: 30
+
+MaintainerNotes: |-
+    • Requires local.properties with dummy MAPS_API_KEY for build
+    • Google Maps is optional and not used in F-Droid build
+    • All third-party dependencies are from Maven Central or F-Droid
+    • No proprietary dependencies (Firebase, Google Play Services, etc.)

@@ -1,0 +1,26 @@
+MineraLog is a privacy-focused, offline-first mineral collection manager for collectors, students, and geology enthusiasts.
+
+Features:
+* 300+ mineral reference library with 17 collector-specific fields
+* Photo cataloging with QR codes (Normal, UV Shortwave, UV Longwave, Macro)
+* Support for mineral aggregates (Granite, Gneiss, etc.)
+* AES-256 encrypted database (SQLCipher)
+* CSV import/export with smart column mapping
+* Encrypted backups (Argon2id + AES-256-GCM)
+* Advanced search and filtering
+* Bilingual (EN/FR) with 606 strings each
+* 100% offline (no internet required)
+* No ads, no tracking, no analytics
+* Open source (Apache 2.0 license)
+
+Privacy & Security:
+- 100% offline - no internet permission
+- AES-256 database encryption
+- Argon2id password hashing
+- No data collection or tracking
+- Your data stays on YOUR device
+
+Requirements:
+- Android 8.1+ (API 27+)
+- ~15 MB storage for app
+- Camera (optional, for photos)
