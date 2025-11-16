@@ -66,9 +66,11 @@ android {
                 this.keyAlias = keyAlias
                 this.keyPassword = keyPassword
 
-                // Enable v1 and v2 signing for compatibility
-                enableV1Signing = true
-                enableV2Signing = true
+                // Enable all signature schemes for maximum compatibility and security
+                enableV1Signing = true   // For compatibility < Android 7
+                enableV2Signing = true   // Android 7+
+                enableV3Signing = true   // Android 9+ (supports key rotation)
+                enableV4Signing = true   // Android 11+ (faster installation)
             } else {
                 // Fallback to debug signing for local development
                 // WARNING: This is NOT suitable for production releases!
@@ -145,8 +147,8 @@ android {
 
         // Disable specific checks that may be too strict for this project
         disable += setOf(
-            "ObsoleteLintCustomCheck",
-            "GradleDependency" // Allow older dependency versions
+            "ObsoleteLintCustomCheck"
+            // Removed GradleDependency to see warnings about outdated dependencies
         )
     }
 }
@@ -227,7 +229,7 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
 
     // Desugaring
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Testing
     testImplementation(libs.junit.jupiter.api)
@@ -262,7 +264,7 @@ detekt {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    ignoreFailures = true  // Allow coverage generation even with test failures
+    ignoreFailures = false  // Fail build on test failures to prevent regressions
 }
 
 // JaCoCo configuration for code coverage

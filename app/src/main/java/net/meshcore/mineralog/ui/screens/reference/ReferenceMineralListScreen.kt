@@ -25,6 +25,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.ui.components.SkeletonMineralCard
+import net.meshcore.mineralog.util.AppLogger
 
 /**
  * Reference Mineral Library screen - displays a paginated list of reference minerals.
@@ -242,23 +243,22 @@ fun ReferenceMineralListScreen(
                             if (!isLoading) {
                                 isLoading = true
                                 try {
-                                    android.util.Log.e("RefScreen", "🚀 STARTING LOAD...")
+                                    AppLogger.d("RefScreen", "Starting reference minerals load")
                                     // Run heavy I/O work on background thread
                                     val count = withContext(Dispatchers.IO) {
-                                        android.util.Log.e("RefScreen", "📞 Calling populateInitialDataset...")
+                                        AppLogger.d("RefScreen", "Populating initial dataset")
                                         application.referenceMineralRepository.populateInitialDataset(context)
                                     }
-                                    android.util.Log.e("RefScreen", "✅ Load returned count: $count")
+                                    AppLogger.i("RefScreen", "Loaded $count reference minerals")
                                     if (count > 0) {
                                         viewModel.refresh()
                                         mineralsPaged.refresh()
                                     } else {
-                                        errorMessage = "Chargement retourné 0 minéraux"
+                                        errorMessage = "Aucun minéral chargé"
                                     }
                                 } catch (e: Exception) {
-                                    android.util.Log.e("RefScreen", "❌ EXCEPTION: ${e.message}", e)
-                                    errorMessage = "ERREUR: ${e.javaClass.simpleName}: ${e.message}"
-                                    e.printStackTrace()
+                                    AppLogger.e("RefScreen", "Failed to load reference minerals", e)
+                                    errorMessage = "Erreur lors du chargement"
                                 } finally {
                                     isLoading = false
                                 }
@@ -307,23 +307,22 @@ fun ReferenceMineralListScreen(
                                                 isLoading = true
                                                 errorMessage = null
                                                 try {
-                                                    android.util.Log.e("RefScreen", "🔘 BUTTON CLICKED - Starting manual load...")
+                                                    AppLogger.d("RefScreen", "Manual load requested")
                                                     // Run heavy I/O work on background thread
                                                     val count = withContext(Dispatchers.IO) {
-                                                        android.util.Log.e("RefScreen", "📞 Button: Calling populateInitialDataset...")
+                                                        AppLogger.d("RefScreen", "Populating initial dataset (manual)")
                                                         application.referenceMineralRepository.populateInitialDataset(context)
                                                     }
-                                                    android.util.Log.e("RefScreen", "✅ Button: Load returned count: $count")
+                                                    AppLogger.i("RefScreen", "Loaded $count reference minerals (manual)")
                                                     if (count > 0) {
                                                         viewModel.refresh()
                                                         mineralsPaged.refresh()
                                                     } else {
-                                                        errorMessage = "Chargement retourné $count minéraux"
+                                                        errorMessage = "Aucun minéral chargé"
                                                     }
                                                 } catch (e: Exception) {
-                                                    android.util.Log.e("RefScreen", "❌ Button EXCEPTION: ${e.message}", e)
-                                                    errorMessage = "ERREUR: ${e.javaClass.simpleName}: ${e.message}"
-                                                    e.printStackTrace()
+                                                    AppLogger.e("RefScreen", "Manual load failed", e)
+                                                    errorMessage = "Erreur lors du chargement"
                                                 } finally {
                                                     isLoading = false
                                                 }
