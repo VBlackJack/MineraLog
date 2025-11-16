@@ -13,11 +13,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import net.meshcore.mineralog.data.migration.AutoReferenceCreator
+import net.meshcore.mineralog.ui.dialogs.MigrationReportDialog
 import net.meshcore.mineralog.ui.navigation.MineraLogNavHost
+import net.meshcore.mineralog.ui.screens.main.MigrationViewModel
 import net.meshcore.mineralog.ui.theme.MineraLogTheme
 import java.util.Locale
 import java.util.UUID
@@ -89,6 +97,28 @@ class MainActivity : ComponentActivity() {
 fun MineraLogApp(
     deepLinkMineralId: String? = null
 ) {
+    val context = LocalContext.current
+    val application = context.applicationContext as MineraLogApplication
+
+    // Create migration ViewModel
+    val migrationViewModel = remember {
+        MigrationViewModel(
+            autoReferenceCreator = AutoReferenceCreator(
+                context = context,
+                database = application.database
+            )
+        )
+    }
+
+    // Trigger migration check on first composition
+    LaunchedEffect(Unit) {
+        migrationViewModel.checkAndRunMigration()
+    }
+
+    // Observe migration state
+    val showMigrationDialog by migrationViewModel.showMigrationDialog.collectAsState()
+    val migrationReport = migrationViewModel.getMigrationReport()
+
     Scaffold(
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
@@ -98,5 +128,18 @@ fun MineraLogApp(
                 .padding(innerPadding),
             deepLinkMineralId = deepLinkMineralId
         )
+
+        // Show migration report dialog if needed
+        if (showMigrationDialog && migrationReport != null) {
+            MigrationReportDialog(
+                report = migrationReport,
+                onDismiss = { migrationViewModel.dismissMigrationDialog() },
+                onViewLibrary = {
+                    migrationViewModel.dismissMigrationDialog()
+                    // TODO: Navigate to reference library
+                    // This would require passing a navigation callback or using a shared navigation state
+                }
+            )
+        }
     }
 }

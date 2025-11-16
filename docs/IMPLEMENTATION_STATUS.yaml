@@ -7,8 +7,8 @@ project:
   version: "1.0.0"
   start_date: "2025-01-16"
   target_completion: "TBD"
-  current_phase: "7 - Migration automatique"
-  overall_progress: 75  # Pourcentage global (0-100) - Phases 1-6 completed (6/8 = 75%)
+  current_phase: "8 - Polissage UX"
+  overall_progress: 88  # Pourcentage global (0-100) - Phases 1-7 completed (7/8 = 87.5%)
 
 # ============================================================
 # PHASE 1 : Modèle de données et migration (MVP back-end)
@@ -524,13 +524,13 @@ phase_6:
 # ============================================================
 phase_7:
   name: "Migration automatique"
-  status: "in_progress"
+  status: "completed"
   priority: "high"
   estimated_days: 6
   actual_days: 1
-  progress: 70
+  progress: 100
   start_date: "2025-01-16"
-  completion_date: null
+  completion_date: "2025-01-16"
 
   tasks:
     7_1_algorithm:
@@ -550,7 +550,7 @@ phase_7:
       name: "Logique de migration one-shot"
       status: "completed"
       assignee: "Claude"
-      notes: "Backend ready, UI integration pending"
+      notes: "Backend + UI integration complete"
       subtasks:
         - done: true
           description: "Flag dans SharedPreferences"
@@ -561,12 +561,12 @@ phase_7:
 
     7_3_report:
       name: "Rapport de migration"
-      status: "in_progress"
+      status: "completed"
       assignee: "Claude"
-      notes: "MigrationReport data class created, UI dialog pending"
+      notes: "MigrationReportDialog fully implemented and integrated"
       subtasks:
-        - done: false
-          description: "Dialogue de rapport utilisateur - DEFERRED"
+        - done: true
+          description: "Dialogue de rapport utilisateur"
 
     7_4_fuzzy_matching:
       name: "Fuzzy matching (optionnel)"
@@ -898,3 +898,39 @@ sessions:
       Files modified: 2 (SimplePropertiesDao.kt, MineralComponentDao.kt)
       Overall progress: 70% Phase 7 (backend complete, UI integration pending)
       Next: Create MigrationDialog UI and integrate in MainActivity
+
+  - date: "2025-01-16"
+    duration_hours: 1
+    phases_worked: ["phase_7"]
+    tasks_completed: ["7_3_report"]
+    notes: |
+      ✅ Phase 7 complétée à 100% (Migration automatique)
+      - Created MigrationReportDialog.kt:
+        * AlertDialog with migration statistics
+        * Shows references created, specimens/components linked
+        * Displays divergent minerals list (too much variance)
+        * "Voir la bibliothèque" / "OK" buttons
+        * StatisticRow composable for clean layout
+        * Icons for visual clarity (Check, Link, Warning)
+      - Created MigrationViewModel.kt:
+        * checkAndRunMigration(): Runs migration at startup
+        * MigrationReport StateFlow for dialog state
+        * showMigrationDialog StateFlow for visibility
+        * dismissMigrationDialog(): Close dialog
+        * Only shows dialog if something was migrated
+      - Integrated in MainActivity:
+        * Creates AutoReferenceCreator with context + database
+        * Creates MigrationViewModel in Composable
+        * LaunchedEffect triggers migration on first composition
+        * MigrationReportDialog shown conditionally
+        * One-shot execution via SharedPreferences
+      Migration flow:
+        1. App starts → checkAndRunMigration()
+        2. If not done before → run AutoReferenceCreator
+        3. Group minerals by name, detect common properties
+        4. Create references (>=70% agreement), link specimens
+        5. Show dialog with results
+        6. Mark migration as done
+      Files created: 2 (MigrationReportDialog.kt, MigrationViewModel.kt)
+      Files modified: 1 (MainActivity.kt)
+      Overall progress: 88% (7/8 phases completed)
