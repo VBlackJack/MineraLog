@@ -6,7 +6,7 @@
 
 ---
 
-## 📊 Overall Progress: **75%** (Phases 1-5 Complete)
+## 📊 Overall Progress: **85%** (Phases 1-6 Complete)
 
 ### ✅ **Completed Phases**
 
@@ -169,31 +169,50 @@
   - Simple property fields for simple minerals
   - Seamless integration with existing features
 
-**Commit:** (pending) - Phase 5 UI implementation complete
+**Commit:** 1b609d0 - Phase 5 UI implementation complete
+
+---
+
+#### **Phase 6: UI - Edit & Detail Screens** ✅ (100%)
+
+**Completed:**
+- ✅ `ComponentCard.kt` - Read-only component display card
+  - Expandable/collapsible design
+  - Role-based color coding (PRINCIPAL/ACCESSORY/TRACE)
+  - Property rows for all component fields
+  - Clean Material 3 design
+
+- ✅ `EditMineralViewModel` v2.0 integration
+  - Added mineralType state (read-only from database)
+  - Added components state for editing
+  - Load type and components via getMineralType() and getAggregateComponents()
+  - Comprehensive validation for aggregates
+  - updateAggregateComponents() integration
+
+- ✅ `EditMineralScreen` v2.0 integration
+  - Mineral type indicator badge (read-only, non-modifiable)
+  - Conditional rendering based on type
+  - Component editor for aggregates
+  - Visual feedback that type cannot change
+
+- ✅ `MineralDetailViewModel` v2.0 integration
+  - Added mineralType state loaded on init
+  - Added components state as Flow
+
+- ✅ `MineralDetailScreen` v2.0 integration
+  - Aggregate composition section (conditional)
+  - Component count display
+  - List of ComponentCards for each component
+  - Prominent placement before basic info
+
+- ✅ `MineralRepositoryV2Extensions.kt` enhancement
+  - Added getMineralType() extension method
+
+**Commit:** c7f6aa1 - Phase 6 Edit and Detail screens complete
 
 ---
 
 ### 🔄 **In Progress / Pending Phases**
-
-#### **Phase 6: UI - Detail & Edit Screens** 📅 (0%)
-
-**Tasks:**
-- ⏳ Update `EditMineralScreen` to support aggregates
-  - Load mineral type from database
-  - Conditional rendering based on type
-  - Component editor integration
-  - Update existing aggregate components
-
-- ⏳ Create `ComponentCard` composable for detail view
-- ⏳ Update `MineralDetailScreen` for aggregates
-  - Display aggregate type badge
-  - Component list with percentages
-  - Component role indicators
-  - Calculated aggregate properties (if any)
-  - Optional: Composition chart (pie chart)
-
-**Estimated Effort:** 3-4 days
-**Dependencies:** Phase 5 (AddMineralScreen integration)
 
 ---
 
@@ -252,7 +271,7 @@
 
 ## 🗂️ Files Created/Modified
 
-### ✅ Created (17 files)
+### ✅ Created (18 files)
 
 **Entities:**
 - `app/src/main/java/net/meshcore/mineralog/data/local/entity/MineralType.kt`
@@ -277,31 +296,36 @@
 - `app/src/main/java/net/meshcore/mineralog/ui/components/v2/MineralTypeSelector.kt`
 - `app/src/main/java/net/meshcore/mineralog/ui/components/v2/ComponentEditorCard.kt`
 - `app/src/main/java/net/meshcore/mineralog/ui/components/v2/ComponentListEditor.kt`
+- `app/src/main/java/net/meshcore/mineralog/ui/components/v2/ComponentCard.kt`
 
 **Documentation:**
 - `DOCS/V2_IMPLEMENTATION_STATUS.md`
 - `DOCS/V2_USAGE_EXAMPLES.md`
 - `DOCS/V2_README.md`
 
-### ✅ Modified (7 files)
+### ✅ Modified (11 files)
 
 - `app/src/main/java/net/meshcore/mineralog/data/local/MineraLogDatabase.kt` (v4 → v5)
 - `app/src/main/java/net/meshcore/mineralog/data/local/entity/MineralEntity.kt` (added type field)
 - `app/src/main/java/net/meshcore/mineralog/data/local/dao/MineralDao.kt` (aggregate queries)
 - `app/src/main/java/net/meshcore/mineralog/data/local/migration/Migrations.kt` (MIGRATION_4_5)
 - `app/src/main/java/net/meshcore/mineralog/data/mapper/EntityMappers.kt` (v2.0 mappers)
+- `app/src/main/java/net/meshcore/mineralog/data/repository/MineralRepositoryV2Extensions.kt` (added getMineralType)
 - `app/src/main/java/net/meshcore/mineralog/ui/screens/add/AddMineralViewModel.kt` (v2.0 support)
 - `app/src/main/java/net/meshcore/mineralog/ui/screens/add/AddMineralScreen.kt` (v2.0 UI integration)
+- `app/src/main/java/net/meshcore/mineralog/ui/screens/edit/EditMineralViewModel.kt` (v2.0 support)
+- `app/src/main/java/net/meshcore/mineralog/ui/screens/edit/EditMineralScreen.kt` (v2.0 UI integration)
+- `app/src/main/java/net/meshcore/mineralog/ui/screens/detail/MineralDetailViewModel.kt` (v2.0 support)
+- `app/src/main/java/net/meshcore/mineralog/ui/screens/detail/MineralDetailScreen.kt` (v2.0 UI integration)
 - `app/build.gradle.kts` (version bump to 2.0.0-alpha)
 
 ---
 
 ## 🎯 Next Steps (Priority Order)
 
-1. **Phase 6** - Update EditMineralScreen and MineralDetailScreen for aggregates
-2. **Phase 7** - Implement search and filtering for aggregates
-3. **Phase 8** - Statistics and CSV export/import
-4. **Phase 9** - Testing and beta release
+1. **Phase 7** - Implement search and filtering for aggregates
+2. **Phase 8** - Statistics and CSV export/import
+3. **Phase 9** - Testing and beta release
 
 ---
 
@@ -346,5 +370,5 @@
 
 ---
 
-**Last Updated:** 2025-11-15
-**Status:** Alpha - Core infrastructure and Add UI complete, Edit/Detail UI pending
+**Last Updated:** 2025-11-16
+**Status:** Alpha - Full CRUD UI complete (Add/Edit/Detail), Search/Export/Testing pending

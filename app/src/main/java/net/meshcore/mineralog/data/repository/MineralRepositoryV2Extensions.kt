@@ -187,6 +187,25 @@ suspend fun MineralRepositoryImpl.getSimpleProperties(mineralId: String): Simple
 }
 
 /**
+ * Get the mineral type (SIMPLE or AGGREGATE) for a mineral (v2.0).
+ *
+ * @param mineralId The ID of the mineral.
+ * @return The mineral type, or SIMPLE if not found.
+ */
+suspend fun MineralRepositoryImpl.getMineralType(mineralId: String): MineralType {
+    val db = this.javaClass.getDeclaredField("database").let { field ->
+        field.isAccessible = true
+        field.get(this) as MineraLogDatabase
+    }
+
+    val mineral = db.mineralDao().getById(mineralId)
+    return when (mineral?.type) {
+        "AGGREGATE" -> MineralType.AGGREGATE
+        else -> MineralType.SIMPLE
+    }
+}
+
+/**
  * Get components for an aggregate mineral (v2.0).
  *
  * @param aggregateId The ID of the aggregate.

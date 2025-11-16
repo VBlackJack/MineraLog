@@ -12,8 +12,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.repository.MineralRepository
+import net.meshcore.mineralog.data.repository.MineralRepositoryImpl
+import net.meshcore.mineralog.data.repository.getMineralType
+import net.meshcore.mineralog.data.repository.getAggregateComponentsFlow
 import net.meshcore.mineralog.data.util.QrLabelPdfGenerator
 import net.meshcore.mineralog.domain.model.Mineral
+import net.meshcore.mineralog.domain.model.MineralComponent
+import net.meshcore.mineralog.domain.model.MineralType
 
 sealed class DeleteState {
     data object Idle : DeleteState()
@@ -42,11 +47,31 @@ class MineralDetailViewModel(
             initialValue = null
         )
 
+    // v2.0: Mineral type (SIMPLE or AGGREGATE)
+    private val _mineralType = MutableStateFlow(MineralType.SIMPLE)
+    val mineralType: StateFlow<MineralType> = _mineralType.asStateFlow()
+
+    // v2.0: Components for aggregate minerals (as Flow)
+    val components: StateFlow<List<MineralComponent>> =
+        (mineralRepository as MineralRepositoryImpl).getAggregateComponentsFlow(mineralId)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
+
     private val _deleteState = MutableStateFlow<DeleteState>(DeleteState.Idle)
     val deleteState: StateFlow<DeleteState> = _deleteState.asStateFlow()
 
     private val _qrGenerationState = MutableStateFlow<QrGenerationState>(QrGenerationState.Idle)
     val qrGenerationState: StateFlow<QrGenerationState> = _qrGenerationState.asStateFlow()
+
+    init {
+        // v2.0: Load mineral type
+        viewModelScope.launch {
+            _mineralType.value = (mineralRepository as MineralRepositoryImpl).getMineralType(mineralId)
+        }
+    }
 
     /**
      * Delete this mineral and all associated data (photos, provenance, storage).
