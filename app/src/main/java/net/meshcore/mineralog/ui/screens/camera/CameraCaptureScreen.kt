@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -46,9 +47,21 @@ import java.util.*
 import java.util.concurrent.Executors
 
 /**
+ * Sealed class representing camera capture states (P1-4: Enhanced error handling).
+ */
+sealed class CameraState {
+    data object Idle : CameraState()
+    data object Loading : CameraState()
+    data class Success(val photoUri: Uri) : CameraState()
+    data class Error(val message: String, val retry: Boolean = true) : CameraState()
+}
+
+/**
  * Camera capture screen using CameraX.
  * Allows capturing photos with type selection (Normal, UV SW, UV LW, Macro).
  * Performance target: capture < 2s (Rule R3).
+ * P1-4: Enhanced error handling with sealed state classes.
+ * P1-5: Lifecycle cleanup with DisposableEffect.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,10 +85,14 @@ fun CameraCaptureScreen(
 
     var selectedPhotoType by remember { mutableStateOf(PhotoType.NORMAL) }
     var torchEnabled by remember { mutableStateOf(false) }
-    var isCapturing by remember { mutableStateOf(false) }
     var showPhotoTypeMenu by remember { mutableStateOf(false) }
     var captureStatusMessage by remember { mutableStateOf("") }
     var photoTypeChangeMessage by remember { mutableStateOf("") }
+
+    // P1-4: Enhanced state management
+    var cameraState by remember { mutableStateOf<CameraState>(CameraState.Idle) }
+    var cameraInitError by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -94,13 +111,39 @@ fun CameraCaptureScreen(
     val outputDirectory = remember { getOutputDirectory(context, mineralId) }
     var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
 
+    // P1-4: Handle camera state changes and show errors
+    LaunchedEffect(cameraState) {
+        when (val state = cameraState) {
+            is CameraState.Success -> {
+                onPhotoCaptured(state.photoUri, selectedPhotoType)
+                cameraState = CameraState.Idle
+            }
+            is CameraState.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = state.message,
+                    actionLabel = if (state.retry) context.getString(R.string.retry) else null
+                )
+            }
+            else -> {}
+        }
+    }
+
+    // P1-4: Show camera initialization errors
+    LaunchedEffect(cameraInitError) {
+        cameraInitError?.let { error ->
+            snackbarHostState.showSnackbar(error)
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.camera_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cd_back))
+                        // P1-6: Migrated to AutoMirrored icon
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                     }
                 },
                 actions = {
@@ -211,6 +254,10 @@ fun CameraCaptureScreen(
                         onImageCaptureReady = { capture ->
                             imageCapture = capture
                         },
+                        onError = { errorMessage ->
+                            // P1-4: Enhanced error handling for camera init failures
+                            cameraInitError = errorMessage
+                        },
                         modifier = Modifier
                             .fillMaxSize()
                             .semantics {
@@ -273,11 +320,15 @@ fun CameraCaptureScreen(
                                 .semantics {
                                     role = Role.Button
                                     contentDescription = context.getString(
-                                        if (isCapturing) R.string.camera_capturing else R.string.camera_capture_photo
+                                        when (cameraState) {
+                                            is CameraState.Loading -> R.string.camera_capturing
+                                            else -> R.string.camera_capture_photo
+                                        }
                                     )
                                 }
-                                .clickable(enabled = !isCapturing) {
-                                    isCapturing = true
+                                .clickable(enabled = cameraState !is CameraState.Loading) {
+                                    // P1-4: Use sealed state class
+                                    cameraState = CameraState.Loading
                                     captureStatusMessage = context.getString(R.string.camera_capturing_status)
                                     capturePhoto(
                                         context = context,
@@ -286,17 +337,19 @@ fun CameraCaptureScreen(
                                         photoType = selectedPhotoType,
                                         onSuccess = { uri ->
                                             captureStatusMessage = context.getString(R.string.camera_capture_success)
-                                            onPhotoCaptured(uri, selectedPhotoType)
+                                            cameraState = CameraState.Success(uri)
                                         },
-                                        onError = {
+                                        onError = { errorMsg ->
+                                            // P1-4: Enhanced error messages with retry option
                                             captureStatusMessage = context.getString(R.string.camera_capture_failed)
-                                            isCapturing = false
+                                            cameraState = CameraState.Error(errorMsg, retry = true)
                                         }
                                     )
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            if (isCapturing) {
+                            // P1-4: Use sealed state for UI
+                            if (cameraState is CameraState.Loading) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(40.dp),
                                     color = MaterialTheme.colorScheme.primary
@@ -321,11 +374,13 @@ fun CameraCaptureScreen(
 fun CameraPreviewWithCapture(
     torchEnabled: Boolean,
     onImageCaptureReady: (ImageCapture) -> Unit,
+    onError: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    var cameraProvider: ProcessCameraProvider? by remember { mutableStateOf(null) }
 
     AndroidView(
         factory = { ctx ->
@@ -338,7 +393,15 @@ fun CameraPreviewWithCapture(
             }
         },
         update = { previewView ->
-            val cameraProvider = cameraProviderFuture.get()
+            // P1-4: Enhanced error handling for camera provider
+            val provider = try {
+                cameraProviderFuture.get()
+            } catch (e: Exception) {
+                AppLogger.e("CameraCapture", "Failed to get camera provider", e)
+                onError(context.getString(R.string.camera_init_failed))
+                return@AndroidView
+            }
+            cameraProvider = provider
 
             // Preview use case
             val preview = Preview.Builder()
@@ -362,10 +425,10 @@ fun CameraPreviewWithCapture(
 
             try {
                 // Unbind all use cases before rebinding
-                cameraProvider.unbindAll()
+                provider.unbindAll()
 
                 // Bind use cases to camera
-                val camera = cameraProvider.bindToLifecycle(
+                val camera = provider.bindToLifecycle(
                     lifecycleOwner,
                     cameraSelector,
                     preview,
@@ -378,16 +441,39 @@ fun CameraPreviewWithCapture(
                 }
 
             } catch (e: Exception) {
+                // P1-4: Enhanced error reporting
                 AppLogger.e("CameraCapture", "Camera binding failed", e)
+                val errorMessage = when {
+                    e.message?.contains("camera", ignoreCase = true) == true ->
+                        context.getString(R.string.camera_binding_failed)
+                    e is IllegalArgumentException ->
+                        context.getString(R.string.camera_invalid_config)
+                    else ->
+                        context.getString(R.string.camera_unknown_error, e.message ?: "Unknown")
+                }
+                onError(errorMessage)
             }
         },
         modifier = modifier
     )
+
+    // P1-5: Lifecycle cleanup with DisposableEffect
+    DisposableEffect(lifecycleOwner) {
+        onDispose {
+            try {
+                cameraProvider?.unbindAll()
+                AppLogger.d("CameraCapture", "Camera resources released")
+            } catch (e: Exception) {
+                AppLogger.e("CameraCapture", "Error releasing camera", e)
+            }
+        }
+    }
 }
 
 /**
  * Capture photo to file.
  * Performance: Target < 2s (Rule R3).
+ * P1-4: Enhanced error handling with specific error messages.
  */
 private fun capturePhoto(
     context: Context,
@@ -395,36 +481,64 @@ private fun capturePhoto(
     outputDirectory: File,
     photoType: PhotoType,
     onSuccess: (Uri) -> Unit,
-    onError: () -> Unit
+    onError: (String) -> Unit
 ) {
     val executor = Executors.newSingleThreadExecutor()
 
-    imageCapture?.let { capture ->
-        val photoFile = File(
+    if (imageCapture == null) {
+        onError(context.getString(R.string.camera_not_initialized))
+        return
+    }
+
+    // P1-4: Check output directory exists
+    if (!outputDirectory.exists() && !outputDirectory.mkdirs()) {
+        onError(context.getString(R.string.camera_storage_error))
+        return
+    }
+
+    val photoFile = try {
+        File(
             outputDirectory,
             SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
                 .format(System.currentTimeMillis()) + ".jpg"
         )
-
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-        capture.takePicture(
-            outputOptions,
-            executor,
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val savedUri = Uri.fromFile(photoFile)
-                    AppLogger.d("CameraCapture", "Photo saved: $savedUri")
-                    onSuccess(savedUri)
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    AppLogger.e("CameraCapture", "Photo capture failed", exception)
-                    onError()
-                }
-            }
-        )
+    } catch (e: Exception) {
+        AppLogger.e("CameraCapture", "Failed to create photo file", e)
+        onError(context.getString(R.string.camera_file_creation_error))
+        return
     }
+
+    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+    imageCapture.takePicture(
+        outputOptions,
+        executor,
+        object : ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                val savedUri = Uri.fromFile(photoFile)
+                AppLogger.d("CameraCapture", "Photo saved: $savedUri")
+                onSuccess(savedUri)
+            }
+
+            override fun onError(exception: ImageCaptureException) {
+                // P1-4: Provide specific error messages based on error code
+                AppLogger.e("CameraCapture", "Photo capture failed", exception)
+                val errorMessage = when (exception.imageCaptureError) {
+                    ImageCapture.ERROR_CAMERA_CLOSED ->
+                        context.getString(R.string.camera_closed_error)
+                    ImageCapture.ERROR_CAPTURE_FAILED ->
+                        context.getString(R.string.camera_capture_failed_error)
+                    ImageCapture.ERROR_FILE_IO ->
+                        context.getString(R.string.camera_file_io_error)
+                    ImageCapture.ERROR_INVALID_CAMERA ->
+                        context.getString(R.string.camera_invalid_camera_error)
+                    else ->
+                        context.getString(R.string.camera_capture_failed)
+                }
+                onError(errorMessage)
+            }
+        }
+    )
 }
 
 /**
