@@ -1,6 +1,14 @@
 package net.meshcore.mineralog.ui.screens.add
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -33,6 +41,7 @@ import net.meshcore.mineralog.ui.components.TooltipDropdownField
 import net.meshcore.mineralog.ui.components.MineralFieldTooltips
 import net.meshcore.mineralog.ui.components.MineralFieldValues
 import net.meshcore.mineralog.ui.components.PhotoManager
+import net.meshcore.mineralog.ui.components.InfoIconButton
 import net.meshcore.mineralog.ui.components.v2.MineralTypeSelector
 import net.meshcore.mineralog.ui.components.v2.ComponentListEditor
 import net.meshcore.mineralog.ui.components.reference.ReferenceMineralAutocomplete
@@ -116,6 +125,16 @@ fun AddMineralScreen(
                 duration = SnackbarDuration.Long
             )
             viewModel.resetSaveState()
+        }
+    }
+
+    // Show toast when reference mineral is selected
+    LaunchedEffect(selectedReferenceMineral) {
+        selectedReferenceMineral?.let { mineral ->
+            snackbarHostState.showSnackbar(
+                message = "✓ Propriétés de ${mineral.nameFr} chargées depuis la bibliothèque",
+                duration = SnackbarDuration.Short
+            )
         }
     }
 
@@ -246,11 +265,19 @@ fun AddMineralScreen(
 
             // v3.0: Reference mineral autocomplete (only for SIMPLE minerals)
             if (mineralType == MineralType.SIMPLE) {
-                Text(
-                    text = "Bibliothèque de référence (optionnel)",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Bibliothèque de référence (optionnel)",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    InfoIconButton(
+                        tooltipText = "La bibliothèque de référence contient les propriétés techniques standard de chaque minéral. Sélectionnez un minéral pour auto-remplir automatiquement ces propriétés."
+                    )
+                }
 
                 Text(
                     text = "Sélectionnez un minéral de référence pour auto-remplir les propriétés techniques",
@@ -345,8 +372,14 @@ fun AddMineralScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // v3.0: Card with grey background when properties are locked
-            if (selectedReferenceMineral != null) {
+            // v3.0: Card with grey background when properties are locked (with fade-in animation)
+            AnimatedVisibility(
+                visible = selectedReferenceMineral != null,
+                enter = fadeIn(animationSpec = tween(durationMillis = 500)) +
+                        expandVertically(animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)),
+                exit = fadeOut(animationSpec = tween(durationMillis = 300)) +
+                       shrinkVertically()
+            ) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -404,51 +437,69 @@ fun AddMineralScreen(
                         }
                     }
                 }
+            }
 
-                // v3.0: Specimen-specific properties section
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            // v3.0: Specimen-specific properties section (with fade-in animation)
+            AnimatedVisibility(
+                visible = selectedReferenceMineral != null,
+                enter = fadeIn(animationSpec = tween(durationMillis = 500, delayMillis = 200)) +
+                        expandVertically(animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)),
+                exit = fadeOut(animationSpec = tween(durationMillis = 300)) +
+                       shrinkVertically()
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-                Text(
-                    text = "Propriétés de ce spécimen",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Propriétés de ce spécimen",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        InfoIconButton(
+                            tooltipText = "Ces propriétés décrivent votre spécimen spécifique. Par exemple, le quartz de référence est incolore, mais votre améthyste (variété de quartz) est violette."
+                        )
+                    }
 
-                Text(
-                    text = "Ces propriétés sont spécifiques à votre spécimen et peuvent différer de la référence",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                    Text(
+                        text = "Ces propriétés sont spécifiques à votre spécimen et peuvent différer de la référence",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
-                OutlinedTextField(
-                    value = colorVariety,
-                    onValueChange = { viewModel.onColorVarietyChange(it) },
-                    label = { Text("Variété de couleur") },
-                    placeholder = { Text("Ex: Améthyste, Citrine, Fumé...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-                )
+                    OutlinedTextField(
+                        value = colorVariety,
+                        onValueChange = { viewModel.onColorVarietyChange(it) },
+                        label = { Text("Variété de couleur") },
+                        placeholder = { Text("Ex: Améthyste, Citrine, Fumé...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
 
-                TooltipDropdownField(
-                    value = actualDiaphaneity,
-                    onValueChange = { viewModel.onActualDiaphaneityChange(it) },
-                    label = "Diaphanéité réelle",
-                    tooltipText = "La diaphanéité de ce spécimen peut différer de la référence",
-                    options = diaphaneityTypes,
-                    placeholder = "Ex: Transparent, Translucide...",
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-                )
+                    TooltipDropdownField(
+                        value = actualDiaphaneity,
+                        onValueChange = { viewModel.onActualDiaphaneityChange(it) },
+                        label = "Diaphanéité réelle",
+                        tooltipText = "La diaphanéité de ce spécimen peut différer de la référence",
+                        options = diaphaneityTypes,
+                        placeholder = "Ex: Transparent, Translucide...",
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
 
-                OutlinedTextField(
-                    value = qualityNotes,
-                    onValueChange = { viewModel.onQualityNotesChange(it) },
-                    label = { Text("Notes de qualité") },
-                    placeholder = { Text("Ex: Cristaux bien formés, inclusions...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 2,
-                    maxLines = 4
-                )
+                    OutlinedTextField(
+                        value = qualityNotes,
+                        onValueChange = { viewModel.onQualityNotesChange(it) },
+                        label = { Text("Notes de qualité") },
+                        placeholder = { Text("Ex: Cristaux bien formés, inclusions...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 2,
+                        maxLines = 4
+                    )
+                }
             } else {
                 // No reference mineral selected - show editable fields
                 TooltipDropdownField(

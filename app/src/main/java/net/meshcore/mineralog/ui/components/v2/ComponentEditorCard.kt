@@ -1,6 +1,13 @@
 package net.meshcore.mineralog.ui.components.v2
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -278,8 +285,14 @@ fun ComponentEditorCard(
                 } else null
             )
 
-            // Expanded fields
-            AnimatedVisibility(visible = isExpanded) {
+            // Expanded fields (with smooth expand/collapse animation)
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn(animationSpec = tween(durationMillis = 300)) +
+                        expandVertically(animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)),
+                exit = fadeOut(animationSpec = tween(durationMillis = 200)) +
+                       shrinkVertically(animationSpec = tween(durationMillis = 200))
+            ) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
