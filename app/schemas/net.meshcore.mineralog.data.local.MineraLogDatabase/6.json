@@ -1,0 +1,1310 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 6,
+    "identityHash": "9ac3d21f7424c65dcf6531df6c5d2f4c",
+    "entities": [
+      {
+        "tableName": "minerals",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `group` TEXT, `formula` TEXT, `crystalSystem` TEXT, `mohsMin` REAL, `mohsMax` REAL, `cleavage` TEXT, `fracture` TEXT, `luster` TEXT, `streak` TEXT, `diaphaneity` TEXT, `habit` TEXT, `specificGravity` REAL, `fluorescence` TEXT, `magnetic` INTEGER NOT NULL, `radioactive` INTEGER NOT NULL, `dimensionsMm` TEXT, `weightGr` REAL, `notes` TEXT, `tags` TEXT, `status` TEXT NOT NULL, `statusType` TEXT NOT NULL, `statusDetails` TEXT, `qualityRating` INTEGER, `completeness` INTEGER NOT NULL, `provenanceId` TEXT, `storageId` TEXT, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "group",
+            "columnName": "group",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "formula",
+            "columnName": "formula",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "crystalSystem",
+            "columnName": "crystalSystem",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "mohsMin",
+            "columnName": "mohsMin",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "mohsMax",
+            "columnName": "mohsMax",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "cleavage",
+            "columnName": "cleavage",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fracture",
+            "columnName": "fracture",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "luster",
+            "columnName": "luster",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "streak",
+            "columnName": "streak",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "diaphaneity",
+            "columnName": "diaphaneity",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "habit",
+            "columnName": "habit",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "specificGravity",
+            "columnName": "specificGravity",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fluorescence",
+            "columnName": "fluorescence",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "magnetic",
+            "columnName": "magnetic",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "radioactive",
+            "columnName": "radioactive",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dimensionsMm",
+            "columnName": "dimensionsMm",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "weightGr",
+            "columnName": "weightGr",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "tags",
+            "columnName": "tags",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "statusType",
+            "columnName": "statusType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "statusDetails",
+            "columnName": "statusDetails",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "qualityRating",
+            "columnName": "qualityRating",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "completeness",
+            "columnName": "completeness",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "provenanceId",
+            "columnName": "provenanceId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "storageId",
+            "columnName": "storageId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_minerals_name",
+            "unique": false,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_name` ON `${TABLE_NAME}` (`name`)"
+          },
+          {
+            "name": "index_minerals_type",
+            "unique": false,
+            "columnNames": [
+              "type"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_type` ON `${TABLE_NAME}` (`type`)"
+          },
+          {
+            "name": "index_minerals_group",
+            "unique": false,
+            "columnNames": [
+              "group"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_group` ON `${TABLE_NAME}` (`group`)"
+          },
+          {
+            "name": "index_minerals_crystalSystem",
+            "unique": false,
+            "columnNames": [
+              "crystalSystem"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_crystalSystem` ON `${TABLE_NAME}` (`crystalSystem`)"
+          },
+          {
+            "name": "index_minerals_status",
+            "unique": false,
+            "columnNames": [
+              "status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_status` ON `${TABLE_NAME}` (`status`)"
+          },
+          {
+            "name": "index_minerals_statusType",
+            "unique": false,
+            "columnNames": [
+              "statusType"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_statusType` ON `${TABLE_NAME}` (`statusType`)"
+          },
+          {
+            "name": "index_minerals_completeness",
+            "unique": false,
+            "columnNames": [
+              "completeness"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_completeness` ON `${TABLE_NAME}` (`completeness`)"
+          },
+          {
+            "name": "index_minerals_qualityRating",
+            "unique": false,
+            "columnNames": [
+              "qualityRating"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_qualityRating` ON `${TABLE_NAME}` (`qualityRating`)"
+          },
+          {
+            "name": "index_minerals_provenanceId",
+            "unique": false,
+            "columnNames": [
+              "provenanceId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_provenanceId` ON `${TABLE_NAME}` (`provenanceId`)"
+          },
+          {
+            "name": "index_minerals_storageId",
+            "unique": false,
+            "columnNames": [
+              "storageId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_storageId` ON `${TABLE_NAME}` (`storageId`)"
+          },
+          {
+            "name": "index_minerals_createdAt",
+            "unique": false,
+            "columnNames": [
+              "createdAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_createdAt` ON `${TABLE_NAME}` (`createdAt`)"
+          },
+          {
+            "name": "index_minerals_updatedAt",
+            "unique": false,
+            "columnNames": [
+              "updatedAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_minerals_updatedAt` ON `${TABLE_NAME}` (`updatedAt`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "simple_properties",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `mineralId` TEXT NOT NULL, `referenceMineralId` TEXT, `group` TEXT, `mohsMin` REAL, `mohsMax` REAL, `density` REAL, `formula` TEXT, `crystalSystem` TEXT, `luster` TEXT, `diaphaneity` TEXT, `cleavage` TEXT, `fracture` TEXT, `habit` TEXT, `streak` TEXT, `fluorescence` TEXT, `colorVariety` TEXT, `actualDiaphaneity` TEXT, `qualityNotes` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`mineralId`) REFERENCES `minerals`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mineralId",
+            "columnName": "mineralId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "referenceMineralId",
+            "columnName": "referenceMineralId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "group",
+            "columnName": "group",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "mohsMin",
+            "columnName": "mohsMin",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "mohsMax",
+            "columnName": "mohsMax",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "density",
+            "columnName": "density",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "formula",
+            "columnName": "formula",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "crystalSystem",
+            "columnName": "crystalSystem",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "luster",
+            "columnName": "luster",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "diaphaneity",
+            "columnName": "diaphaneity",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "cleavage",
+            "columnName": "cleavage",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fracture",
+            "columnName": "fracture",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "habit",
+            "columnName": "habit",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "streak",
+            "columnName": "streak",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fluorescence",
+            "columnName": "fluorescence",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "colorVariety",
+            "columnName": "colorVariety",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "actualDiaphaneity",
+            "columnName": "actualDiaphaneity",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "qualityNotes",
+            "columnName": "qualityNotes",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_simple_properties_mineralId",
+            "unique": true,
+            "columnNames": [
+              "mineralId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_simple_properties_mineralId` ON `${TABLE_NAME}` (`mineralId`)"
+          },
+          {
+            "name": "index_simple_properties_referenceMineralId",
+            "unique": false,
+            "columnNames": [
+              "referenceMineralId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_simple_properties_referenceMineralId` ON `${TABLE_NAME}` (`referenceMineralId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "minerals",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "mineralId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "mineral_components",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `aggregateId` TEXT NOT NULL, `displayOrder` INTEGER NOT NULL, `referenceMineralId` TEXT, `mineralName` TEXT NOT NULL, `mineralGroup` TEXT, `percentage` REAL, `role` TEXT NOT NULL, `mohsMin` REAL, `mohsMax` REAL, `density` REAL, `formula` TEXT, `crystalSystem` TEXT, `luster` TEXT, `diaphaneity` TEXT, `cleavage` TEXT, `fracture` TEXT, `habit` TEXT, `streak` TEXT, `fluorescence` TEXT, `notes` TEXT, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`aggregateId`) REFERENCES `minerals`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "aggregateId",
+            "columnName": "aggregateId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayOrder",
+            "columnName": "displayOrder",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "referenceMineralId",
+            "columnName": "referenceMineralId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "mineralName",
+            "columnName": "mineralName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mineralGroup",
+            "columnName": "mineralGroup",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "percentage",
+            "columnName": "percentage",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mohsMin",
+            "columnName": "mohsMin",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "mohsMax",
+            "columnName": "mohsMax",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "density",
+            "columnName": "density",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "formula",
+            "columnName": "formula",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "crystalSystem",
+            "columnName": "crystalSystem",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "luster",
+            "columnName": "luster",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "diaphaneity",
+            "columnName": "diaphaneity",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "cleavage",
+            "columnName": "cleavage",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fracture",
+            "columnName": "fracture",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "habit",
+            "columnName": "habit",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "streak",
+            "columnName": "streak",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fluorescence",
+            "columnName": "fluorescence",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_mineral_components_aggregateId",
+            "unique": false,
+            "columnNames": [
+              "aggregateId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mineral_components_aggregateId` ON `${TABLE_NAME}` (`aggregateId`)"
+          },
+          {
+            "name": "index_mineral_components_role",
+            "unique": false,
+            "columnNames": [
+              "role"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mineral_components_role` ON `${TABLE_NAME}` (`role`)"
+          },
+          {
+            "name": "index_mineral_components_mineralName",
+            "unique": false,
+            "columnNames": [
+              "mineralName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mineral_components_mineralName` ON `${TABLE_NAME}` (`mineralName`)"
+          },
+          {
+            "name": "index_mineral_components_displayOrder",
+            "unique": false,
+            "columnNames": [
+              "displayOrder"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mineral_components_displayOrder` ON `${TABLE_NAME}` (`displayOrder`)"
+          },
+          {
+            "name": "index_mineral_components_referenceMineralId",
+            "unique": false,
+            "columnNames": [
+              "referenceMineralId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mineral_components_referenceMineralId` ON `${TABLE_NAME}` (`referenceMineralId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "minerals",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "aggregateId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "reference_minerals",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `nameFr` TEXT NOT NULL, `nameEn` TEXT NOT NULL, `synonyms` TEXT, `mineralGroup` TEXT, `formula` TEXT, `mohsMin` REAL, `mohsMax` REAL, `density` REAL, `crystalSystem` TEXT, `cleavage` TEXT, `fracture` TEXT, `habit` TEXT, `luster` TEXT, `streak` TEXT, `diaphaneity` TEXT, `fluorescence` TEXT, `magnetism` TEXT, `radioactivity` TEXT, `notes` TEXT, `isUserDefined` INTEGER NOT NULL, `source` TEXT, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nameFr",
+            "columnName": "nameFr",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nameEn",
+            "columnName": "nameEn",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "synonyms",
+            "columnName": "synonyms",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "mineralGroup",
+            "columnName": "mineralGroup",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "formula",
+            "columnName": "formula",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "mohsMin",
+            "columnName": "mohsMin",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "mohsMax",
+            "columnName": "mohsMax",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "density",
+            "columnName": "density",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "crystalSystem",
+            "columnName": "crystalSystem",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "cleavage",
+            "columnName": "cleavage",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fracture",
+            "columnName": "fracture",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "habit",
+            "columnName": "habit",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "luster",
+            "columnName": "luster",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "streak",
+            "columnName": "streak",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "diaphaneity",
+            "columnName": "diaphaneity",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fluorescence",
+            "columnName": "fluorescence",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "magnetism",
+            "columnName": "magnetism",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "radioactivity",
+            "columnName": "radioactivity",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isUserDefined",
+            "columnName": "isUserDefined",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_reference_minerals_nameFr",
+            "unique": false,
+            "columnNames": [
+              "nameFr"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_reference_minerals_nameFr` ON `${TABLE_NAME}` (`nameFr`)"
+          },
+          {
+            "name": "index_reference_minerals_nameEn",
+            "unique": false,
+            "columnNames": [
+              "nameEn"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_reference_minerals_nameEn` ON `${TABLE_NAME}` (`nameEn`)"
+          },
+          {
+            "name": "index_reference_minerals_mineralGroup",
+            "unique": false,
+            "columnNames": [
+              "mineralGroup"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_reference_minerals_mineralGroup` ON `${TABLE_NAME}` (`mineralGroup`)"
+          },
+          {
+            "name": "index_reference_minerals_crystalSystem",
+            "unique": false,
+            "columnNames": [
+              "crystalSystem"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_reference_minerals_crystalSystem` ON `${TABLE_NAME}` (`crystalSystem`)"
+          },
+          {
+            "name": "index_reference_minerals_isUserDefined",
+            "unique": false,
+            "columnNames": [
+              "isUserDefined"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_reference_minerals_isUserDefined` ON `${TABLE_NAME}` (`isUserDefined`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "provenances",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `mineralId` TEXT NOT NULL, `site` TEXT, `locality` TEXT, `country` TEXT, `latitude` REAL, `longitude` REAL, `acquiredAt` INTEGER, `source` TEXT, `price` REAL, `estimatedValue` REAL, `currency` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`mineralId`) REFERENCES `minerals`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mineralId",
+            "columnName": "mineralId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "site",
+            "columnName": "site",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "locality",
+            "columnName": "locality",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "country",
+            "columnName": "country",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "acquiredAt",
+            "columnName": "acquiredAt",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "price",
+            "columnName": "price",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estimatedValue",
+            "columnName": "estimatedValue",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "currency",
+            "columnName": "currency",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_provenances_mineralId",
+            "unique": true,
+            "columnNames": [
+              "mineralId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_provenances_mineralId` ON `${TABLE_NAME}` (`mineralId`)"
+          },
+          {
+            "name": "index_provenances_country",
+            "unique": false,
+            "columnNames": [
+              "country"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_provenances_country` ON `${TABLE_NAME}` (`country`)"
+          },
+          {
+            "name": "index_provenances_acquiredAt",
+            "unique": false,
+            "columnNames": [
+              "acquiredAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_provenances_acquiredAt` ON `${TABLE_NAME}` (`acquiredAt`)"
+          },
+          {
+            "name": "index_provenances_source",
+            "unique": false,
+            "columnNames": [
+              "source"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_provenances_source` ON `${TABLE_NAME}` (`source`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "minerals",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "mineralId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "storage",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `mineralId` TEXT NOT NULL, `place` TEXT, `container` TEXT, `box` TEXT, `slot` TEXT, `nfcTagId` TEXT, `qrContent` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`mineralId`) REFERENCES `minerals`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mineralId",
+            "columnName": "mineralId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "place",
+            "columnName": "place",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "container",
+            "columnName": "container",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "box",
+            "columnName": "box",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "slot",
+            "columnName": "slot",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "nfcTagId",
+            "columnName": "nfcTagId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "qrContent",
+            "columnName": "qrContent",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_storage_mineralId",
+            "unique": true,
+            "columnNames": [
+              "mineralId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_storage_mineralId` ON `${TABLE_NAME}` (`mineralId`)"
+          },
+          {
+            "name": "index_storage_place",
+            "unique": false,
+            "columnNames": [
+              "place"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_storage_place` ON `${TABLE_NAME}` (`place`)"
+          },
+          {
+            "name": "index_storage_container",
+            "unique": false,
+            "columnNames": [
+              "container"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_storage_container` ON `${TABLE_NAME}` (`container`)"
+          },
+          {
+            "name": "index_storage_box",
+            "unique": false,
+            "columnNames": [
+              "box"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_storage_box` ON `${TABLE_NAME}` (`box`)"
+          },
+          {
+            "name": "index_storage_nfcTagId",
+            "unique": false,
+            "columnNames": [
+              "nfcTagId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_storage_nfcTagId` ON `${TABLE_NAME}` (`nfcTagId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "minerals",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "mineralId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "photos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `mineralId` TEXT NOT NULL, `type` TEXT NOT NULL, `caption` TEXT, `takenAt` INTEGER NOT NULL, `fileName` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`mineralId`) REFERENCES `minerals`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mineralId",
+            "columnName": "mineralId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "caption",
+            "columnName": "caption",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "takenAt",
+            "columnName": "takenAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fileName",
+            "columnName": "fileName",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_photos_mineralId",
+            "unique": false,
+            "columnNames": [
+              "mineralId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_photos_mineralId` ON `${TABLE_NAME}` (`mineralId`)"
+          },
+          {
+            "name": "index_photos_type",
+            "unique": false,
+            "columnNames": [
+              "type"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_photos_type` ON `${TABLE_NAME}` (`type`)"
+          },
+          {
+            "name": "index_photos_takenAt",
+            "unique": false,
+            "columnNames": [
+              "takenAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_photos_takenAt` ON `${TABLE_NAME}` (`takenAt`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "minerals",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "mineralId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "filter_presets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `icon` TEXT NOT NULL, `criteriaJson` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "icon",
+            "columnName": "icon",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "criteriaJson",
+            "columnName": "criteriaJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_filter_presets_name",
+            "unique": false,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_filter_presets_name` ON `${TABLE_NAME}` (`name`)"
+          },
+          {
+            "name": "index_filter_presets_createdAt",
+            "unique": false,
+            "columnNames": [
+              "createdAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_filter_presets_createdAt` ON `${TABLE_NAME}` (`createdAt`)"
+          }
+        ],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9ac3d21f7424c65dcf6531df6c5d2f4c')"
+    ]
+  }
+}

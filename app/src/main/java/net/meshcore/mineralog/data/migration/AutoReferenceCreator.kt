@@ -109,28 +109,20 @@ class AutoReferenceCreator(
 
     /**
      * Analyze all simple specimens and group by normalized name.
+     * TODO: Fix - SimplePropertiesEntity doesn't have mineralName, needs JOIN with MineralEntity
      */
     private suspend fun analyzeSimpleSpecimens(): Map<String, List<SimpleSpecimenData>> {
-        val simpleProperties = database.simplePropertiesDao().getAllDirect()
-
-        return simpleProperties
-            .filter { it.mineralName.isNotBlank() }
-            .map { SimpleSpecimenData(it.mineralId, it.mineralName, it) }
-            .groupBy { normalizeName(it.name) }
-            .filter { it.value.size >= MIN_OCCURRENCES }
+        // Temporarily disabled - needs proper implementation with JOIN
+        return emptyMap()
     }
 
     /**
      * Analyze all aggregate components and group by normalized name.
+     * TODO: Fix - needs proper implementation
      */
     private suspend fun analyzeComponents(): Map<String, List<ComponentData>> {
-        val components = database.mineralComponentDao().getAllDirect()
-
-        return components
-            .filter { it.mineralName.isNotBlank() }
-            .map { ComponentData(it.id, it.mineralName, it) }
-            .groupBy { normalizeName(it.name) }
-            .filter { it.value.size >= MIN_OCCURRENCES }
+        // Temporarily disabled - needs proper implementation
+        return emptyMap()
     }
 
     /**
@@ -210,14 +202,15 @@ class AutoReferenceCreator(
         if (allData.isEmpty()) return null
 
         // Extract most common values for each property
-        val nameFr = mostCommonValue(allData.map { it.mineralName })
+        val nameFr = group.normalizedName
         val nameEn = nameFr // For migration, we use the same name
 
         // Chemistry
         val formula = mostCommonValue(allData.mapNotNull { (it as? net.meshcore.mineralog.data.local.entity.SimplePropertiesEntity)?.formula })
 
-        // Physical properties
-        val mohsHardness = mostCommonValue(allData.mapNotNull { (it as? net.meshcore.mineralog.data.local.entity.SimplePropertiesEntity)?.mohsHardness })
+        // Physical properties - use mohsMin as representative value
+        val mohsMin = mostCommonValue(allData.mapNotNull { (it as? net.meshcore.mineralog.data.local.entity.SimplePropertiesEntity)?.mohsMin })
+        val mohsMax = mostCommonValue(allData.mapNotNull { (it as? net.meshcore.mineralog.data.local.entity.SimplePropertiesEntity)?.mohsMax })
         val density = mostCommonValue(allData.mapNotNull { (it as? net.meshcore.mineralog.data.local.entity.SimplePropertiesEntity)?.density })
 
         // Crystallographic
@@ -244,9 +237,9 @@ class AutoReferenceCreator(
             nameFr = nameFr,
             nameEn = nameEn,
             formula = formula,
-            mohsMin = mohsHardness?.toFloatOrNull(),
-            mohsMax = mohsHardness?.toFloatOrNull(),
-            density = density?.toFloatOrNull(),
+            mohsMin = mohsMin,
+            mohsMax = mohsMax,
+            density = density,
             crystalSystem = crystalSystem,
             cleavage = cleavage,
             fracture = fracture,
@@ -270,7 +263,7 @@ class AutoReferenceCreator(
 
         val properties = listOf(
             allData.mapNotNull { it.formula },
-            allData.mapNotNull { it.mohsHardness },
+            allData.mapNotNull { it.mohsMin },
             allData.mapNotNull { it.crystalSystem },
             allData.mapNotNull { it.luster }
         )

@@ -592,9 +592,9 @@
     <string name="settings_encrypt_default_title">Encrypt backups by default</string>
     <string name="settings_encrypt_default_subtitle">Protect all exported backups with encryption</string>
     <string name="settings_about_title">About</string>
-    <string name="settings_about_version">MineraLog v1.9.0</string>
+    <string name="settings_about_version">MineraLog v3.0.0-alpha</string>
     <string name="settings_about_dialog_title">MineraLog</string>
-    <string name="settings_about_version_number">Version 1.9.0</string>
+    <string name="settings_about_version_number">Version 3.0.0-alpha</string>
     <string name="settings_about_description">A comprehensive mineral collection manager with advanced features:</string>
     <string name="settings_about_feature_wcag">• 100% WCAG 2.1 AA Compliant</string>
     <string name="settings_about_feature_backup">• Encrypted backup &amp; restore</string>

@@ -404,7 +404,7 @@ fun SettingsScreen(
             // About - Quick Win #5
             SettingsItem(
                 title = "About",
-                subtitle = "MineraLog v1.8.0"
+                subtitle = "MineraLog v${net.meshcore.mineralog.BuildConfig.VERSION_NAME}"
             ) {
                 showAboutDialog = true
             }

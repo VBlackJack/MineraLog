@@ -353,11 +353,9 @@ fun AddMineralScreen(
 
             // v3.0: Show different title based on whether reference is selected
             Text(
-                text = if (selectedReferenceMineral != null) {
-                    "Propriétés de référence (depuis ${selectedReferenceMineral.nameFr})"
-                } else {
-                    stringResource(R.string.section_technical_properties)
-                },
+                text = selectedReferenceMineral?.let { mineral ->
+                    "Propriétés de référence (depuis ${mineral.nameFr})"
+                } ?: stringResource(R.string.section_technical_properties),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -500,9 +498,19 @@ fun AddMineralScreen(
                         maxLines = 4
                     )
                 }
-            } else {
-                // No reference mineral selected - show editable fields
-                TooltipDropdownField(
+            }
+
+            // v3.0: Editable fields when no reference mineral selected (with fade-in animation)
+            AnimatedVisibility(
+                visible = selectedReferenceMineral == null,
+                enter = fadeIn(animationSpec = tween(durationMillis = 300)) +
+                        expandVertically(animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)),
+                exit = fadeOut(animationSpec = tween(durationMillis = 200)) +
+                       shrinkVertically()
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // No reference mineral selected - show editable fields
+                    TooltipDropdownField(
                     value = diaphaneity,
                     onValueChange = { viewModel.onDiaphaneityChange(it) },
                     label = stringResource(R.string.field_diaphaneity_label),
@@ -571,6 +579,7 @@ fun AddMineralScreen(
                     placeholder = stringResource(R.string.field_crystal_system_placeholder),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                 )
+                }
             }
             } else {
                 // v2.0: Component editor for aggregates

@@ -11,6 +11,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -322,8 +323,8 @@ fun ComponentEditorCard(
                                 if (component.formula != null) {
                                     ComponentPropertyDisplay("Formule", component.formula)
                                 }
-                                if (component.hardnessRange != null) {
-                                    ComponentPropertyDisplay("Dureté", component.hardnessRange)
+                                component.hardnessRange?.let { hardness ->
+                                    ComponentPropertyDisplay("Dureté", hardness)
                                 }
                                 if (component.density != null) {
                                     ComponentPropertyDisplay("Densité", "${component.density} g/cm³")
