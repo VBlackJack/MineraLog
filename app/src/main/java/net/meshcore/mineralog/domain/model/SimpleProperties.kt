@@ -11,6 +11,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class SimpleProperties(
+    // v3.0: Reference mineral link
+    // When set, this specimen's properties inherit from a reference mineral template
+    val referenceMineralId: String? = null,
+
     // Mineralogical classification
     val group: String? = null,
 
@@ -32,7 +36,12 @@ data class SimpleProperties(
     val fracture: String? = null,
     val habit: String? = null,
     val streak: String? = null,
-    val fluorescence: String? = null
+    val fluorescence: String? = null,
+
+    // v3.0: Specimen-specific fields (override reference properties)
+    val colorVariety: String? = null,        // Variété de couleur du spécimen
+    val actualDiaphaneity: String? = null,  // Diaphanéité réelle du spécimen (peut différer de la référence)
+    val qualityNotes: String? = null         // Notes de qualité du spécimen
 ) {
     /**
      * Get hardness range as a string.
@@ -55,13 +64,15 @@ data class SimpleProperties(
 
     /**
      * Calculate completeness percentage (0-100).
+     * v3.0: Updated to include new specimen-specific fields
      */
     val completenessPercentage: Int
         get() {
-            val totalFields = 13
+            val totalFields = 16 // 13 original + 3 specimen-specific
             val filledFields = listOfNotNull(
                 group, mohsMin, mohsMax, density, formula, crystalSystem,
-                luster, diaphaneity, cleavage, fracture, habit, streak, fluorescence
+                luster, diaphaneity, cleavage, fracture, habit, streak, fluorescence,
+                colorVariety, actualDiaphaneity, qualityNotes
             ).size
             return (filledFields * 100) / totalFields
         }

@@ -27,6 +27,8 @@ import net.meshcore.mineralog.ui.screens.qr.QrScannerScreen
 import net.meshcore.mineralog.ui.screens.camera.CameraCaptureScreen
 import net.meshcore.mineralog.ui.screens.gallery.PhotoGalleryScreen
 import net.meshcore.mineralog.ui.screens.gallery.FullscreenPhotoViewerScreen
+import net.meshcore.mineralog.ui.screens.reference.ReferenceMineralListScreen
+import net.meshcore.mineralog.ui.screens.reference.ReferenceMineralDetailScreen
 import java.util.UUID
 
 sealed class Screen(val route: String) {
@@ -53,6 +55,10 @@ sealed class Screen(val route: String) {
         fun createRoute(mineralIds: List<String>) = "compare/${mineralIds.joinToString(",")}"
     }
     data object QrScanner : Screen("qr_scanner")
+    data object ReferenceLibrary : Screen("reference_library")
+    data object ReferenceDetail : Screen("reference_detail/{referenceMineralId}") {
+        fun createRoute(referenceMineralId: String) = "reference_detail/$referenceMineralId"
+    }
 }
 
 @Composable
@@ -100,6 +106,9 @@ fun MineraLogNavHost(
                 },
                 onQrScanClick = {
                     navController.navigate(Screen.QrScanner.route)
+                },
+                onLibraryClick = {
+                    navController.navigate(Screen.ReferenceLibrary.route)
                 }
             )
         }
@@ -289,6 +298,28 @@ fun MineraLogNavHost(
             FullscreenPhotoViewerScreen(
                 mineralId = mineralId,
                 initialPhotoId = photoId,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.ReferenceLibrary.route) {
+            ReferenceMineralListScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onMineralClick = { referenceMineralId ->
+                    navController.navigate(Screen.ReferenceDetail.createRoute(referenceMineralId))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.ReferenceDetail.route,
+            arguments = listOf(
+                navArgument("referenceMineralId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val referenceMineralId = backStackEntry.arguments?.getString("referenceMineralId") ?: return@composable
+            ReferenceMineralDetailScreen(
+                referenceMineralId = referenceMineralId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

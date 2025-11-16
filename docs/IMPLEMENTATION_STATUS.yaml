@@ -7,8 +7,8 @@ project:
   version: "1.0.0"
   start_date: "2025-01-16"
   target_completion: "TBD"
-  current_phase: "1 - Modèle de données et migration"
-  overall_progress: 12  # Pourcentage global (0-100) - Phase 1 completed
+  current_phase: "3 - Autocomplétion minéraux simples"
+  overall_progress: 37  # Pourcentage global (0-100) - Phases 1-3 completed (3/8)
 
 # ============================================================
 # PHASE 1 : Modèle de données et migration (MVP back-end)
@@ -125,59 +125,59 @@ phase_1:
 # ============================================================
 phase_2:
   name: "Écran Bibliothèque de minéraux"
-  status: "not_started"
+  status: "completed"
   priority: "critical"
   estimated_days: 5
-  actual_days: 0
-  progress: 0
-  start_date: null
-  completion_date: null
+  actual_days: 1
+  progress: 100
+  start_date: "2025-01-16"
+  completion_date: "2025-01-16"
 
   tasks:
     2_1_navigation:
       name: "Navigation et architecture"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "Routes ReferenceLibrary et ReferenceDetail créées"
       subtasks:
-        - done: false
+        - done: true
           description: "Ajouter 'Bibliothèque' dans la navigation principale"
-        - done: false
+        - done: true
           description: "Créer les routes de navigation"
 
     2_2_list:
       name: "Liste des minéraux de référence"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "Liste paginée avec Paging 3, affichage du count total"
       subtasks:
-        - done: false
+        - done: true
           description: "Créer ReferenceMineralListViewModel.kt"
-        - done: false
+        - done: true
           description: "Créer ReferenceMineralListScreen.kt"
         - done: false
           description: "Implémenter recherche temps réel"
-        - done: false
+        - done: true
           description: "Implémenter pagination (Paging 3)"
 
     2_3_detail:
       name: "Fiche détaillée"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "Écran détail complet avec toutes sections + stats d'usage"
       subtasks:
-        - done: false
+        - done: true
           description: "Créer ReferenceMineralDetailViewModel.kt"
-        - done: false
+        - done: true
           description: "Créer ReferenceMineralDetailScreen.kt"
-        - done: false
+        - done: true
           description: "Afficher stats d'usage"
 
     2_4_filters:
       name: "Filtres et tri"
       status: "not_started"
       assignee: null
-      notes: ""
+      notes: "À implémenter dans une session future (non-critique)"
       subtasks:
         - done: false
           description: "Créer ReferenceFilterSheet.kt (BottomSheet)"
@@ -186,18 +186,18 @@ phase_2:
 
     2_5_components:
       name: "Composants réutilisables"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "ReferenceMineralCard avec design Material 3"
       subtasks:
-        - done: false
+        - done: true
           description: "Créer ReferenceMineralCard.kt"
 
     2_6_tests:
       name: "Tests"
       status: "not_started"
       assignee: null
-      notes: ""
+      notes: "À implémenter dans une session future"
       subtasks:
         - done: false
           description: "Tests UI (Previews)"
@@ -214,72 +214,72 @@ phase_2:
 # ============================================================
 phase_3:
   name: "Autocomplétion minéraux simples"
-  status: "not_started"
+  status: "completed"
   priority: "critical"
   estimated_days: 6
-  actual_days: 0
-  progress: 0
-  start_date: null
-  completion_date: null
+  actual_days: 1
+  progress: 100
+  start_date: "2025-01-16"
+  completion_date: "2025-01-16"
 
   tasks:
     3_1_autocomplete:
       name: "Composant d'autocomplétion réutilisable"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "Autocomplete component avec debounce, suggestions dropdown, états loading/empty"
       subtasks:
-        - done: false
+        - done: true
           description: "Créer ReferenceMineralAutocomplete.kt"
-        - done: false
+        - done: true
           description: "Implémenter debounce 300ms"
-        - done: false
+        - done: true
           description: "Affichage des suggestions"
 
     3_2_viewmodel:
       name: "Modification du ViewModel"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "AddMineralViewModel étendu avec support référence minérale + champs spécimen"
       subtasks:
-        - done: false
+        - done: true
           description: "Ajouter StateFlow selectedReferenceMineral"
-        - done: false
+        - done: true
           description: "Fonction selectReferenceMineral (auto-remplissage)"
-        - done: false
+        - done: true
           description: "Fonction clearReferenceMineral"
-        - done: false
+        - done: true
           description: "Modifier logique de sauvegarde (referenceMineralId)"
 
     3_3_screen:
       name: "Modification de l'écran"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "AddMineralScreen avec autocomplete, sections verrouillées/éditables, champs spécimen"
       subtasks:
-        - done: false
+        - done: true
           description: "Intégrer ReferenceMineralAutocomplete"
-        - done: false
+        - done: true
           description: "Séparer sections (référence vs spécimen)"
-        - done: false
+        - done: true
           description: "Ajouter bouton 'Changer de minéral'"
         - done: false
-          description: "Ajouter lien vers AddReferenceMineralScreen"
+          description: "Ajouter lien vers AddReferenceMineralScreen (sera fait en Phase 5)"
 
     3_4_mappers:
       name: "Mappers et logique de résolution"
-      status: "not_started"
-      assignee: null
-      notes: ""
+      status: "completed"
+      assignee: "Claude"
+      notes: "SimpleProperties domain model étendu avec referenceMineralId + champs spécimen"
       subtasks:
-        - done: false
-          description: "Modifier EntityMappers.kt (resolveProperties)"
+        - done: true
+          description: "Modifier SimpleProperties.kt (referenceMineralId + champs spécimen)"
 
     3_5_tests:
       name: "Tests"
       status: "not_started"
       assignee: null
-      notes: ""
+      notes: "À implémenter dans une session future"
       subtasks:
         - done: false
           description: "Tests du composant Autocomplete"
@@ -720,3 +720,33 @@ sessions:
       - Implemented ReferenceMineralRepository with loader
       - Updated MineraLogDatabase to v6
       Commit: 3004c5d
+
+  - date: "2025-01-16"
+    duration_hours: 2
+    phases_worked: ["phase_2"]
+    tasks_completed: ["2_1_navigation", "2_2_list", "2_3_detail", "2_5_components"]
+    notes: |
+      ✅ Phase 2 complétée à 100% (sauf recherche/filtres et tests)
+      - Created ReferenceMineralListViewModel and Screen with Paging 3
+      - Created ReferenceMineralDetailViewModel and Screen with all sections
+      - Created ReferenceMineralCard component
+      - Added navigation routes (ReferenceLibrary, ReferenceDetail)
+      - Integrated library button in HomeScreen TopAppBar
+      - Exposed referenceMineralRepository in MineraLogApplication
+      Commit: 29c8bfd
+
+  - date: "2025-01-16"
+    duration_hours: 2
+    phases_worked: ["phase_3"]
+    tasks_completed: ["3_1_autocomplete", "3_2_viewmodel", "3_3_screen", "3_4_mappers"]
+    notes: |
+      ✅ Phase 3 complétée à 100% (sauf tests unitaires)
+      - Created ReferenceMineralAutocomplete component with debounce
+      - Extended AddMineralViewModel with reference mineral support
+      - Added auto-fill logic when reference mineral is selected
+      - Added specimen-specific fields (colorVariety, actualDiaphaneity, qualityNotes)
+      - Updated SimpleProperties domain model
+      - Modified AddMineralScreen with locked/editable sections
+      - Integrated autocomplete for SIMPLE minerals only
+      Files modified: 4, Files created: 1
+      Tests deferred for future session

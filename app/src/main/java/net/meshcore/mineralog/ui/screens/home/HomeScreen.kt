@@ -43,6 +43,7 @@ fun HomeScreen(
     onStatisticsClick: () -> Unit = {},
     onCompareClick: (List<String>) -> Unit = {},
     onQrScanClick: () -> Unit = {},
+    onLibraryClick: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             context = LocalContext.current.applicationContext,
@@ -236,6 +237,10 @@ fun HomeScreen(
                 TopAppBar(
                     title = { Text(stringResource(R.string.home_title)) },
                     actions = {
+                        // Library button
+                        IconButton(onClick = onLibraryClick) {
+                            Icon(Icons.Default.MenuBook, contentDescription = "Bibliothèque")
+                        }
                         // QR Scanner button
                         IconButton(onClick = onQrScanClick) {
                             Icon(Icons.Default.QrCodeScanner, contentDescription = "Scan QR code")
