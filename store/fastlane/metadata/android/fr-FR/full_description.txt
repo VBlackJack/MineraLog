@@ -1,0 +1,26 @@
+MineraLog est un gestionnaire de collection minéralogique hors ligne et respectueux de la vie privée pour collectionneurs, étudiants et passionnés de géologie.
+
+Fonctionnalités :
+* Bibliothèque de 300+ minéraux avec 17 champs spécialisés
+* Catalogage photo avec codes QR (Normal, UV Courte, UV Longue, Macro)
+* Support des agrégats minéraux (Granite, Gneiss, etc.)
+* Base de données chiffrée AES-256 (SQLCipher)
+* Import/export CSV avec mappage intelligent de colonnes
+* Sauvegardes chiffrées (Argon2id + AES-256-GCM)
+* Recherche et filtrage avancés
+* Bilingue (FR/EN) avec 606 chaînes chacun
+* 100% hors ligne (aucune connexion Internet requise)
+* Sans publicité, sans tracking, sans analytics
+* Open source (licence Apache 2.0)
+
+Vie Privée & Sécurité :
+- 100% hors ligne - aucune permission Internet
+- Chiffrement base de données AES-256
+- Hachage de mots de passe Argon2id
+- Aucune collecte de données
+- Vos données restent sur VOTRE appareil
+
+Configuration requise :
+- Android 8.1+ (API 27+)
+- ~15 Mo de stockage pour l'app
+- Caméra (optionnel, pour les photos)

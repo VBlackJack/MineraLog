@@ -1,0 +1,115 @@
+🔬 MineraLog - Votre Gestionnaire de Collection Minéralogique
+
+HORS LIGNE & PRIVÉ
+✓ Aucune connexion Internet requise - 100% hors ligne
+✓ Sans publicité, sans tracking, sans analytics
+✓ Base de données chiffrée AES-256 (SQLCipher)
+✓ Vos données restent sur VOTRE appareil, toujours
+
+FONCTIONNALITÉS PRINCIPALES
+
+📸 Catalogage Photo
+• Capture depuis l'appareil photo ou galerie
+• Photos multiples par spécimen (Normal, UV Courte, UV Longue, Macro)
+• Génération de codes QR pour identification facile
+• Galerie photo avec zoom par pincement (1x-5x)
+
+🔬 Bibliothèque de Référence (300+ Minéraux)
+• Propriétés scientifiques : dureté, densité, système cristallin, formule
+• Informations pour collectionneurs : entretien, sécurité, astuces d'identification
+• Contexte géologique : environnement de formation, localisations typiques
+• Liez vos spécimens aux références pour auto-remplissage instantané
+• 17 champs spécialisés pour collectionneurs sérieux
+
+🧱 Support Avancé
+• Minéraux simples : Quartz, Calcite, Pyrite, Fluorite...
+• Agrégats : Granite, Gneiss avec composants multiples
+• Suivi des propriétés physiques (dureté Mohs, gravité spécifique, éclat)
+• Gestion de provenance et stockage
+• Notation de qualité et suivi de complétude
+
+📊 Import/Export
+• Import/export CSV avec mappage de colonnes intelligent
+• Sauvegardes chiffrées (protégées par mot de passe avec Argon2id)
+• Export en masse des photos vers stockage externe
+• Migration depuis autres apps via CSV
+
+🔍 Recherche Puissante
+• Recherche plein texte (FTS5) - noms, formules, notes, tags
+• Filtres avancés : groupe, localisation, plage de dureté, qualité
+• Sauvegardez des préréglages de filtres
+• Tri par nom, date, dureté ou groupe
+
+POUR QUI ?
+
+✓ Collectionneurs de minéraux (débutants à experts)
+✓ Étudiants en géologie cataloguant échantillons de terrain
+✓ Enseignants gérant collections éducatives
+✓ Amateurs de minéraux organisant trouvailles
+✓ Toute personne héritant ou documentant une collection
+
+VIE PRIVÉE & SÉCURITÉ
+
+✓ 100% hors ligne - aucune permission Internet demandée
+✓ Chiffrement base de données SQLCipher AES-256
+✓ Hachage de mots de passe Argon2id pour sauvegardes
+✓ Aucune collecte de données, analytics ou télémétrie
+✓ Open source (licence Apache 2.0) - code auditable
+
+ACCESSIBILITÉ
+
+✓ Support TalkBack pour lecteurs d'écran
+✓ Compatible mode haut contraste
+✓ Polices évolutives (jusqu'à 200%)
+✓ Interface bilingue (Français/English)
+✓ Conforme WCAG 2.1 AA (note A 92%)
+
+TESTÉ & FIABLE
+
+✓ Couverture de code 60%+ avec 1 800+ lignes de tests
+✓ Testé sur Android 8.1 jusqu'à Android 15
+✓ Zéro bug P0/P1 connu en v3.0.0
+✓ Performance : défilement 60fps avec 1000+ minéraux
+✓ Démarrage à froid < 2 secondes
+
+NOUVEAU DANS v3.0.0
+
+🆕 Bibliothèque de Référence avec 300+ minéraux
+🆕 Support des agrégats minéraux (Granite, Gneiss)
+🆕 17 nouveaux champs spécifiques aux collectionneurs
+🆕 Sécurité renforcée (chiffrement base de données)
+🆕 Performance améliorée (réduction 93% des requêtes)
+🆕 Support bilingue complet (FR/EN)
+
+Démarrez en 60 secondes ! Ajoutez votre premier minéral maintenant.
+
+---
+
+📖 Open source : https://github.com/VBlackJack/MineraLog
+🐛 Signaler problèmes : https://github.com/VBlackJack/MineraLog/issues
+📄 Licence : Apache 2.0 (gratuit & open source pour toujours)
+
+---
+
+EXPLICATIONS DES PERMISSIONS
+
+• Caméra : Prendre photos de vos spécimens (optionnel)
+• Stockage : Importer/exporter fichiers, sauvegarder photos (stockage limité sur Android 10+)
+
+Aucune permission Internet = Aucune donnée ne quitte votre appareil. Jamais.
+
+---
+
+SUPPORT
+
+Problèmes ou questions ? Nous sommes là pour vous aider !
+• Documentation : Guide utilisateur complet inclus
+• GitHub Issues : Réponse rapide (généralement < 24h)
+• Email : support@mineralog.app (bientôt disponible)
+
+---
+
+MineraLog est développé avec ❤️ par des passionnés de minéraux, pour des passionnés.
+Votre vie privée et la propriété de vos données sont nos priorités absolues.
+
+Commencez à construire votre collection minéralogique numérique aujourd'hui !
