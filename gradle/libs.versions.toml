@@ -1,53 +1,32 @@
 [versions]
-# Build tools - Updated to latest stable versions
-agp = "8.13.0"  # Was: 8.7.3 - Latest stable with Android 15 support
-kotlin = "2.2.21"  # Was: 2.0.21 - Latest stable with K2 compiler improvements
-ksp = "2.2.21-1.0.29"  # Was: 2.0.21-1.0.28 - Updated to match Kotlin 2.2.21
-
-# Compose - Already up to date
+agp = "8.7.3"
+kotlin = "2.0.21"
+ksp = "2.0.21-1.0.28"
 compose-bom = "2024.12.01"
-# compose-compiler = "1.5.15"  # REMOVED - Integrated into Kotlin plugin since 2.0
-
-# AndroidX Core
+compose-compiler = "1.5.15"
 core-ktx = "1.15.0"
 lifecycle = "2.8.7"
 activity-compose = "1.9.3"
 navigation = "2.8.5"
-
-# Database & Storage - Updated
-room = "2.8.1"  # Was: 2.6.1 - Important bug fixes and performance improvements
+room = "2.6.1"
 paging = "3.3.5"
 paging-compose = "3.3.5"
 datastore = "1.1.1"
 work = "2.10.0"
-
-# Camera & Media - Updated
-camerax = "1.5.1"  # Was: 1.4.1 - Bug fixes and stability improvements
-coil = "2.7.0"  # 3.3.0 available but has breaking changes - keep current for now
+camerax = "1.4.1"
+coil = "2.7.0"
 mlkit-barcode = "17.3.0"
-
-# Maps
 play-services-maps = "19.0.0"
 maps-compose = "6.2.1"
-
-# Crypto - Updated
-tink = "1.19.0"  # Was: 1.16.0 - Security updates and bug fixes
+tink = "1.16.0"
 argon2kt = "1.3.0"
 sqlcipher = "4.5.4"
-
-# Other
 zxing = "3.5.3"
 okio = "3.9.1"
 kotlinx-serialization = "1.7.3"
-
-# Coroutines - Updated
-kotlinx-coroutines = "1.10.2"  # Was: 1.9.0 - Performance improvements and bug fixes
-
-# Dependency Injection - Updated
-hilt = "2.57.1"  # Was: 2.52 - Kotlin 2.2 support and bug fixes
+kotlinx-coroutines = "1.9.0"
+hilt = "2.52"
 hilt-navigation-compose = "1.2.0"
-
-# Testing
 junit5 = "5.11.4"
 junit5-plugin = "1.11.4.0"
 mockk = "1.13.14"
@@ -56,15 +35,8 @@ robolectric = "4.14.1"
 espresso = "3.6.1"
 test-runner = "1.6.2"
 test-rules = "1.6.1"
-
-# Code Quality - Updated
-detekt = "1.23.8"  # Was: 1.23.7 - Minor bug fixes
-
-# Material Design
+detekt = "1.23.7"
 material3 = "1.3.1"
-
-# Desugaring - Added to version catalog (was hardcoded in build.gradle.kts)
-desugar-jdk-libs = "2.1.4"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
@@ -155,9 +127,6 @@ androidx-test-rules = { module = "androidx.test:rules", version.ref = "test-rule
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
-
-# Desugaring
-desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar-jdk-libs" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
