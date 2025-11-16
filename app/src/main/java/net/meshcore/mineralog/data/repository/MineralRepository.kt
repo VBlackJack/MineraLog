@@ -247,7 +247,8 @@ class MineralRepositoryImpl(
             qualityMin = criteria.qualityMin,
             qualityMax = criteria.qualityMax,
             hasPhotos = criteria.hasPhotos,
-            fluorescent = criteria.fluorescent
+            fluorescent = criteria.fluorescent,
+            mineralTypes = criteria.mineralTypes.takeIf { it.isNotEmpty() }
         ).map { entities ->
             if (entities.isEmpty()) return@map emptyList()
 
@@ -381,6 +382,7 @@ class MineralRepositoryImpl(
         val countries = criteria.countries.takeIf { it.isNotEmpty() }
         val crystalSystems = criteria.crystalSystems.takeIf { it.isNotEmpty() }
         val statusTypes = criteria.statusTypes.takeIf { it.isNotEmpty() }
+        val mineralTypes = criteria.mineralTypes.takeIf { it.isNotEmpty() }
 
         return Pager(
             config = PagingConfig(
@@ -397,31 +399,31 @@ class MineralRepositoryImpl(
                     basePagingSource = when (sortOption) {
                         SortOption.NAME_ASC -> mineralDao.filterAdvancedPagedSortedByNameAsc(
                             groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
-                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent, mineralTypes
                         )
                         SortOption.NAME_DESC -> mineralDao.filterAdvancedPagedSortedByNameDesc(
                             groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
-                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent, mineralTypes
                         )
                         SortOption.DATE_NEWEST -> mineralDao.filterAdvancedPagedSortedByDateDesc(
                             groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
-                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent, mineralTypes
                         )
                         SortOption.DATE_OLDEST -> mineralDao.filterAdvancedPagedSortedByDateAsc(
                             groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
-                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent, mineralTypes
                         )
                         SortOption.GROUP -> mineralDao.filterAdvancedPagedSortedByGroup(
                             groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
-                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent, mineralTypes
                         )
                         SortOption.HARDNESS_LOW -> mineralDao.filterAdvancedPagedSortedByHardnessAsc(
                             groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
-                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent, mineralTypes
                         )
                         SortOption.HARDNESS_HIGH -> mineralDao.filterAdvancedPagedSortedByHardnessDesc(
                             groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
-                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent
+                            statusTypes, criteria.qualityMin, criteria.qualityMax, criteria.hasPhotos, criteria.fluorescent, mineralTypes
                         )
                     }
                 )

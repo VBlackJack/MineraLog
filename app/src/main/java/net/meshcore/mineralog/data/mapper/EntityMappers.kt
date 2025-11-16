@@ -9,6 +9,7 @@ import net.meshcore.mineralog.data.local.entity.StorageEntity
 import net.meshcore.mineralog.domain.model.ComponentRole
 import net.meshcore.mineralog.domain.model.Mineral
 import net.meshcore.mineralog.domain.model.MineralComponent
+import net.meshcore.mineralog.domain.model.MineralType
 import net.meshcore.mineralog.domain.model.Photo
 import net.meshcore.mineralog.domain.model.Provenance
 import net.meshcore.mineralog.domain.model.SimpleProperties
@@ -27,6 +28,11 @@ fun MineralEntity.toDomain(
     return Mineral(
         id = id,
         name = name,
+        // v2.0: Map type from entity
+        mineralType = when (type) {
+            "AGGREGATE" -> MineralType.AGGREGATE
+            else -> MineralType.SIMPLE
+        },
         group = group,
         formula = formula,
         crystalSystem = crystalSystem,
@@ -63,6 +69,11 @@ fun Mineral.toEntity(): MineralEntity {
     return MineralEntity(
         id = id,
         name = name,
+        // v2.0: Map type to entity
+        type = when (mineralType) {
+            MineralType.AGGREGATE -> "AGGREGATE"
+            MineralType.SIMPLE -> "SIMPLE"
+        },
         group = group,
         formula = formula,
         crystalSystem = crystalSystem,

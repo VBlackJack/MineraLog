@@ -51,6 +51,11 @@ class StatisticsRepositoryImpl(
             val addedThisMonthDeferred = async { mineralDao.getAddedThisMonth() }
             val addedThisYearDeferred = async { mineralDao.getAddedThisYear() }
 
+            // v2.0: Aggregate statistics queries
+            val byTypeDeferred = async { mineralDao.getTypeDistribution() }
+            val mostFrequentComponentsDeferred = async { mineralDao.getMostFrequentComponents() }
+            val averageComponentCountDeferred = async { mineralDao.getAverageComponentCount() }
+
             // Await all results
             val totalValue = totalValueDeferred.await()
             val averageValue = averageValueDeferred.await()
@@ -75,6 +80,20 @@ class StatisticsRepositoryImpl(
             val addedThisMonth = addedThisMonthDeferred.await()
             val addedThisYear = addedThisYearDeferred.await()
 
+            // v2.0: Await aggregate statistics
+            val byType = byTypeDeferred.await()
+            val mostFrequentComponents = mostFrequentComponentsDeferred.await().map { (name, count) ->
+                net.meshcore.mineralog.data.model.ComponentFrequency(
+                    componentName = name,
+                    count = count
+                )
+            }
+            val averageComponentCount = averageComponentCountDeferred.await() ?: 0.0
+
+            // Calculate derived stats
+            val totalAggregates = byType["AGGREGATE"] ?: 0
+            val totalSimple = byType["SIMPLE"] ?: 0
+
             CollectionStatistics(
                 totalMinerals = totalMinerals,
                 totalValue = totalValue,
@@ -91,7 +110,13 @@ class StatisticsRepositoryImpl(
                 fullyDocumentedCount = fullyDocumentedCount,
                 addedThisMonth = addedThisMonth,
                 addedThisYear = addedThisYear,
-                addedByMonth = addedByMonth
+                addedByMonth = addedByMonth,
+                // v2.0: Aggregate statistics
+                byType = byType,
+                totalAggregates = totalAggregates,
+                totalSimple = totalSimple,
+                mostFrequentComponents = mostFrequentComponents,
+                averageComponentCount = averageComponentCount
             )
         }
 

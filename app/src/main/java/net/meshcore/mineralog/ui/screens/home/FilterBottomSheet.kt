@@ -391,6 +391,27 @@ fun FilterBottomSheet(
                 }
             }
 
+            // Mineral type filter (v2.0)
+            FilterSection(
+                title = "Type de minéral",
+                expanded = "mineralType" in expandedSections,
+                onExpandChange = { expanded ->
+                    expandedSections = if (expanded) {
+                        expandedSections + "mineralType"
+                    } else {
+                        expandedSections - "mineralType"
+                    }
+                }
+            ) {
+                MultiSelectChips(
+                    selected = currentCriteria.mineralTypes,
+                    options = listOf("SIMPLE", "AGGREGATE"),
+                    onSelectionChange = { selected ->
+                        currentCriteria = currentCriteria.copy(mineralTypes = selected)
+                    }
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Action buttons

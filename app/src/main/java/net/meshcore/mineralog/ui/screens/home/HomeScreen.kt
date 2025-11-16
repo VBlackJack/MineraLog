@@ -858,10 +858,31 @@ fun MineralListItem(
             }
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = mineral.name,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = mineral.name,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    // v2.0: Aggregate badge
+                    if (mineral.mineralType == net.meshcore.mineralog.domain.model.MineralType.AGGREGATE) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = "Agrégat",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            modifier = Modifier.height(24.dp),
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                            )
+                        )
+                    }
+                }
                 mineral.group?.let {
                     Text(
                         text = it,
