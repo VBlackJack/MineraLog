@@ -81,4 +81,23 @@ interface SimplePropertiesDao {
      */
     @Query("SELECT COUNT(*) FROM simple_properties")
     suspend fun count(): Int
+
+    /**
+     * Get all simple properties entries (one-shot, for migration).
+     * Use this for batch operations where Flow is not needed.
+     *
+     * @return A list of all SimplePropertiesEntity entries.
+     */
+    @Query("SELECT * FROM simple_properties ORDER BY mineralId ASC")
+    suspend fun getAllDirect(): List<SimplePropertiesEntity>
+
+    /**
+     * Update the reference mineral ID for a simple specimen.
+     * Used during automatic migration to link specimens to references.
+     *
+     * @param mineralId The ID of the simple mineral specimen
+     * @param referenceMineralId The ID of the reference mineral to link to
+     */
+    @Query("UPDATE simple_properties SET referenceMineralId = :referenceMineralId WHERE mineralId = :mineralId")
+    suspend fun updateReferenceMineralId(mineralId: String, referenceMineralId: String?)
 }

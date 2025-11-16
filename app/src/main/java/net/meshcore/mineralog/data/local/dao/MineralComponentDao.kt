@@ -160,6 +160,25 @@ interface MineralComponentDao {
     suspend fun deleteAll()
 
     /**
+     * Get all components (one-shot, for migration).
+     * Use this for batch operations where Flow is not needed.
+     *
+     * @return A list of all MineralComponentEntity entries.
+     */
+    @Query("SELECT * FROM mineral_components ORDER BY mineralName ASC")
+    suspend fun getAllDirect(): List<MineralComponentEntity>
+
+    /**
+     * Update the reference mineral ID for a component.
+     * Used during automatic migration to link components to references.
+     *
+     * @param componentId The ID of the component
+     * @param referenceMineralId The ID of the reference mineral to link to
+     */
+    @Query("UPDATE mineral_components SET referenceMineralId = :referenceMineralId WHERE id = :componentId")
+    suspend fun updateReferenceMineralId(componentId: String, referenceMineralId: String?)
+
+    /**
      * Data class for component frequency results.
      */
     data class ComponentFrequency(
