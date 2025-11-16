@@ -11,6 +11,8 @@ import java.time.Instant
 data class Mineral(
     val id: String,
     val name: String,
+    // v2.0: Mineral type (SIMPLE or AGGREGATE)
+    val mineralType: MineralType = MineralType.SIMPLE,
     val group: String? = null,
     val formula: String? = null,
     val crystalSystem: String? = null,

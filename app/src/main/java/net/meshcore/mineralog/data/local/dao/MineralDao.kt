@@ -118,63 +118,72 @@ interface MineralDao {
      * to prevent SQL injection via LIKE operator concatenation.
      */
     @Query("""
-        SELECT * FROM minerals
-        WHERE name LIKE :query
-           OR `group` LIKE :query
-           OR formula LIKE :query
-           OR notes LIKE :query
-           OR tags LIKE :query
-        ORDER BY updatedAt DESC
+        SELECT DISTINCT m.* FROM minerals m
+        LEFT JOIN mineral_components c ON m.id = c.aggregateId
+        WHERE m.name LIKE :query
+           OR m.`group` LIKE :query
+           OR m.formula LIKE :query
+           OR m.notes LIKE :query
+           OR m.tags LIKE :query
+           OR c.mineralName LIKE :query
+        ORDER BY m.updatedAt DESC
     """)
     fun searchPaged(query: String): PagingSource<Int, MineralEntity>
 
     // Sorted variants for searchPaged
     @Query("""
-        SELECT * FROM minerals
-        WHERE name LIKE :query OR `group` LIKE :query OR formula LIKE :query OR notes LIKE :query OR tags LIKE :query
-        ORDER BY name ASC
+        SELECT DISTINCT m.* FROM minerals m
+        LEFT JOIN mineral_components c ON m.id = c.aggregateId
+        WHERE m.name LIKE :query OR m.`group` LIKE :query OR m.formula LIKE :query OR m.notes LIKE :query OR m.tags LIKE :query OR c.mineralName LIKE :query
+        ORDER BY m.name ASC
     """)
     fun searchPagedSortedByNameAsc(query: String): PagingSource<Int, MineralEntity>
 
     @Query("""
-        SELECT * FROM minerals
-        WHERE name LIKE :query OR `group` LIKE :query OR formula LIKE :query OR notes LIKE :query OR tags LIKE :query
-        ORDER BY name DESC
+        SELECT DISTINCT m.* FROM minerals m
+        LEFT JOIN mineral_components c ON m.id = c.aggregateId
+        WHERE m.name LIKE :query OR m.`group` LIKE :query OR m.formula LIKE :query OR m.notes LIKE :query OR m.tags LIKE :query OR c.mineralName LIKE :query
+        ORDER BY m.name DESC
     """)
     fun searchPagedSortedByNameDesc(query: String): PagingSource<Int, MineralEntity>
 
     @Query("""
-        SELECT * FROM minerals
-        WHERE name LIKE :query OR `group` LIKE :query OR formula LIKE :query OR notes LIKE :query OR tags LIKE :query
-        ORDER BY updatedAt DESC
+        SELECT DISTINCT m.* FROM minerals m
+        LEFT JOIN mineral_components c ON m.id = c.aggregateId
+        WHERE m.name LIKE :query OR m.`group` LIKE :query OR m.formula LIKE :query OR m.notes LIKE :query OR m.tags LIKE :query OR c.mineralName LIKE :query
+        ORDER BY m.updatedAt DESC
     """)
     fun searchPagedSortedByDateDesc(query: String): PagingSource<Int, MineralEntity>
 
     @Query("""
-        SELECT * FROM minerals
-        WHERE name LIKE :query OR `group` LIKE :query OR formula LIKE :query OR notes LIKE :query OR tags LIKE :query
-        ORDER BY updatedAt ASC
+        SELECT DISTINCT m.* FROM minerals m
+        LEFT JOIN mineral_components c ON m.id = c.aggregateId
+        WHERE m.name LIKE :query OR m.`group` LIKE :query OR m.formula LIKE :query OR m.notes LIKE :query OR m.tags LIKE :query OR c.mineralName LIKE :query
+        ORDER BY m.updatedAt ASC
     """)
     fun searchPagedSortedByDateAsc(query: String): PagingSource<Int, MineralEntity>
 
     @Query("""
-        SELECT * FROM minerals
-        WHERE name LIKE :query OR `group` LIKE :query OR formula LIKE :query OR notes LIKE :query OR tags LIKE :query
-        ORDER BY `group` ASC, name ASC
+        SELECT DISTINCT m.* FROM minerals m
+        LEFT JOIN mineral_components c ON m.id = c.aggregateId
+        WHERE m.name LIKE :query OR m.`group` LIKE :query OR m.formula LIKE :query OR m.notes LIKE :query OR m.tags LIKE :query OR c.mineralName LIKE :query
+        ORDER BY m.`group` ASC, m.name ASC
     """)
     fun searchPagedSortedByGroup(query: String): PagingSource<Int, MineralEntity>
 
     @Query("""
-        SELECT * FROM minerals
-        WHERE name LIKE :query OR `group` LIKE :query OR formula LIKE :query OR notes LIKE :query OR tags LIKE :query
-        ORDER BY mohsMin ASC, name ASC
+        SELECT DISTINCT m.* FROM minerals m
+        LEFT JOIN mineral_components c ON m.id = c.aggregateId
+        WHERE m.name LIKE :query OR m.`group` LIKE :query OR m.formula LIKE :query OR m.notes LIKE :query OR m.tags LIKE :query OR c.mineralName LIKE :query
+        ORDER BY m.mohsMin ASC, m.name ASC
     """)
     fun searchPagedSortedByHardnessAsc(query: String): PagingSource<Int, MineralEntity>
 
     @Query("""
-        SELECT * FROM minerals
-        WHERE name LIKE :query OR `group` LIKE :query OR formula LIKE :query OR notes LIKE :query OR tags LIKE :query
-        ORDER BY mohsMax DESC, name ASC
+        SELECT DISTINCT m.* FROM minerals m
+        LEFT JOIN mineral_components c ON m.id = c.aggregateId
+        WHERE m.name LIKE :query OR m.`group` LIKE :query OR m.formula LIKE :query OR m.notes LIKE :query OR m.tags LIKE :query OR c.mineralName LIKE :query
+        ORDER BY m.mohsMax DESC, m.name ASC
     """)
     fun searchPagedSortedByHardnessDesc(query: String): PagingSource<Int, MineralEntity>
 
@@ -198,6 +207,7 @@ interface MineralDao {
           AND (:fluorescent IS NULL OR
                (:fluorescent = 1 AND m.fluorescence IS NOT NULL AND m.fluorescence != 'none') OR
                (:fluorescent = 0 AND (m.fluorescence IS NULL OR m.fluorescence = 'none')))
+          AND (:mineralTypes IS NULL OR m.type IN (:mineralTypes))
         ORDER BY m.updatedAt DESC
     """)
     fun filterAdvancedPaged(
@@ -210,7 +220,8 @@ interface MineralDao {
         qualityMin: Int? = null,
         qualityMax: Int? = null,
         hasPhotos: Boolean? = null,
-        fluorescent: Boolean? = null
+        fluorescent: Boolean? = null,
+        mineralTypes: List<String>? = null
     ): PagingSource<Int, MineralEntity>
 
     // Sorted variants for filterAdvancedPaged
@@ -231,12 +242,14 @@ interface MineralDao {
           AND (:fluorescent IS NULL OR
                (:fluorescent = 1 AND m.fluorescence IS NOT NULL AND m.fluorescence != 'none') OR
                (:fluorescent = 0 AND (m.fluorescence IS NULL OR m.fluorescence = 'none')))
+          AND (:mineralTypes IS NULL OR m.type IN (:mineralTypes))
         ORDER BY m.name ASC
     """)
     fun filterAdvancedPagedSortedByNameAsc(
         groups: List<String>? = null, countries: List<String>? = null, crystalSystems: List<String>? = null,
         mohsMin: Float? = null, mohsMax: Float? = null, statusTypes: List<String>? = null,
-        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null
+        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null,
+        mineralTypes: List<String>? = null
     ): PagingSource<Int, MineralEntity>
 
     @Query("""
@@ -256,12 +269,14 @@ interface MineralDao {
           AND (:fluorescent IS NULL OR
                (:fluorescent = 1 AND m.fluorescence IS NOT NULL AND m.fluorescence != 'none') OR
                (:fluorescent = 0 AND (m.fluorescence IS NULL OR m.fluorescence = 'none')))
+          AND (:mineralTypes IS NULL OR m.type IN (:mineralTypes))
         ORDER BY m.name DESC
     """)
     fun filterAdvancedPagedSortedByNameDesc(
         groups: List<String>? = null, countries: List<String>? = null, crystalSystems: List<String>? = null,
         mohsMin: Float? = null, mohsMax: Float? = null, statusTypes: List<String>? = null,
-        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null
+        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null,
+        mineralTypes: List<String>? = null
     ): PagingSource<Int, MineralEntity>
 
     @Query("""
@@ -281,12 +296,14 @@ interface MineralDao {
           AND (:fluorescent IS NULL OR
                (:fluorescent = 1 AND m.fluorescence IS NOT NULL AND m.fluorescence != 'none') OR
                (:fluorescent = 0 AND (m.fluorescence IS NULL OR m.fluorescence = 'none')))
+          AND (:mineralTypes IS NULL OR m.type IN (:mineralTypes))
         ORDER BY m.updatedAt DESC
     """)
     fun filterAdvancedPagedSortedByDateDesc(
         groups: List<String>? = null, countries: List<String>? = null, crystalSystems: List<String>? = null,
         mohsMin: Float? = null, mohsMax: Float? = null, statusTypes: List<String>? = null,
-        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null
+        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null,
+        mineralTypes: List<String>? = null
     ): PagingSource<Int, MineralEntity>
 
     @Query("""
@@ -306,12 +323,14 @@ interface MineralDao {
           AND (:fluorescent IS NULL OR
                (:fluorescent = 1 AND m.fluorescence IS NOT NULL AND m.fluorescence != 'none') OR
                (:fluorescent = 0 AND (m.fluorescence IS NULL OR m.fluorescence = 'none')))
+          AND (:mineralTypes IS NULL OR m.type IN (:mineralTypes))
         ORDER BY m.updatedAt ASC
     """)
     fun filterAdvancedPagedSortedByDateAsc(
         groups: List<String>? = null, countries: List<String>? = null, crystalSystems: List<String>? = null,
         mohsMin: Float? = null, mohsMax: Float? = null, statusTypes: List<String>? = null,
-        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null
+        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null,
+        mineralTypes: List<String>? = null
     ): PagingSource<Int, MineralEntity>
 
     @Query("""
@@ -331,12 +350,14 @@ interface MineralDao {
           AND (:fluorescent IS NULL OR
                (:fluorescent = 1 AND m.fluorescence IS NOT NULL AND m.fluorescence != 'none') OR
                (:fluorescent = 0 AND (m.fluorescence IS NULL OR m.fluorescence = 'none')))
+          AND (:mineralTypes IS NULL OR m.type IN (:mineralTypes))
         ORDER BY m.`group` ASC, m.name ASC
     """)
     fun filterAdvancedPagedSortedByGroup(
         groups: List<String>? = null, countries: List<String>? = null, crystalSystems: List<String>? = null,
         mohsMin: Float? = null, mohsMax: Float? = null, statusTypes: List<String>? = null,
-        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null
+        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null,
+        mineralTypes: List<String>? = null
     ): PagingSource<Int, MineralEntity>
 
     @Query("""
@@ -356,12 +377,14 @@ interface MineralDao {
           AND (:fluorescent IS NULL OR
                (:fluorescent = 1 AND m.fluorescence IS NOT NULL AND m.fluorescence != 'none') OR
                (:fluorescent = 0 AND (m.fluorescence IS NULL OR m.fluorescence = 'none')))
+          AND (:mineralTypes IS NULL OR m.type IN (:mineralTypes))
         ORDER BY m.mohsMin ASC, m.name ASC
     """)
     fun filterAdvancedPagedSortedByHardnessAsc(
         groups: List<String>? = null, countries: List<String>? = null, crystalSystems: List<String>? = null,
         mohsMin: Float? = null, mohsMax: Float? = null, statusTypes: List<String>? = null,
-        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null
+        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null,
+        mineralTypes: List<String>? = null
     ): PagingSource<Int, MineralEntity>
 
     @Query("""
@@ -381,12 +404,14 @@ interface MineralDao {
           AND (:fluorescent IS NULL OR
                (:fluorescent = 1 AND m.fluorescence IS NOT NULL AND m.fluorescence != 'none') OR
                (:fluorescent = 0 AND (m.fluorescence IS NULL OR m.fluorescence = 'none')))
+          AND (:mineralTypes IS NULL OR m.type IN (:mineralTypes))
         ORDER BY m.mohsMax DESC, m.name ASC
     """)
     fun filterAdvancedPagedSortedByHardnessDesc(
         groups: List<String>? = null, countries: List<String>? = null, crystalSystems: List<String>? = null,
         mohsMin: Float? = null, mohsMax: Float? = null, statusTypes: List<String>? = null,
-        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null
+        qualityMin: Int? = null, qualityMax: Int? = null, hasPhotos: Boolean? = null, fluorescent: Boolean? = null,
+        mineralTypes: List<String>? = null
     ): PagingSource<Int, MineralEntity>
 
     /**
@@ -394,13 +419,15 @@ interface MineralDao {
      * Note: Query parameter should be pre-formatted with wildcards (e.g., "%search%")
      */
     @Query("""
-        SELECT * FROM minerals
-        WHERE name LIKE :query
-           OR `group` LIKE :query
-           OR formula LIKE :query
-           OR notes LIKE :query
-           OR tags LIKE :query
-        ORDER BY updatedAt DESC
+        SELECT DISTINCT m.* FROM minerals m
+        LEFT JOIN mineral_components c ON m.id = c.aggregateId
+        WHERE m.name LIKE :query
+           OR m.`group` LIKE :query
+           OR m.formula LIKE :query
+           OR m.notes LIKE :query
+           OR m.tags LIKE :query
+           OR c.mineralName LIKE :query
+        ORDER BY m.updatedAt DESC
     """)
     fun searchFlow(query: String): Flow<List<MineralEntity>>
 
@@ -664,6 +691,7 @@ interface MineralDao {
           AND (:fluorescent IS NULL OR
                (:fluorescent = 1 AND m.fluorescence IS NOT NULL AND m.fluorescence != 'none') OR
                (:fluorescent = 0 AND (m.fluorescence IS NULL OR m.fluorescence = 'none')))
+          AND (:mineralTypes IS NULL OR m.type IN (:mineralTypes))
         ORDER BY m.updatedAt DESC
     """)
     fun filterAdvanced(
@@ -675,7 +703,8 @@ interface MineralDao {
         qualityMin: Int? = null,
         qualityMax: Int? = null,
         hasPhotos: Boolean? = null,
-        fluorescent: Boolean? = null
+        fluorescent: Boolean? = null,
+        mineralTypes: List<String>? = null
     ): Flow<List<MineralEntity>>
 }
 

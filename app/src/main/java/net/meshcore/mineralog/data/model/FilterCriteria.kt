@@ -36,7 +36,10 @@ data class FilterCriteria(
     val hasPhotos: Boolean? = null,
 
     /** Filter by fluorescence: true = fluorescent, false = not fluorescent, null = don't filter */
-    val fluorescent: Boolean? = null
+    val fluorescent: Boolean? = null,
+
+    /** Filter by mineral types (v2.0) - OR logic: any match (SIMPLE, AGGREGATE) */
+    val mineralTypes: List<String> = emptyList()
 ) {
     /**
      * Returns true if all criteria are empty/null (no filtering).
@@ -51,7 +54,8 @@ data class FilterCriteria(
         qualityMin == null &&
         qualityMax == null &&
         hasPhotos == null &&
-        fluorescent == null
+        fluorescent == null &&
+        mineralTypes.isEmpty()
 
     /**
      * Returns count of active filter criteria.
@@ -66,6 +70,7 @@ data class FilterCriteria(
         if (qualityMin != null || qualityMax != null) count++
         if (hasPhotos != null) count++
         if (fluorescent != null) count++
+        if (mineralTypes.isNotEmpty()) count++
         return count
     }
 
@@ -92,6 +97,7 @@ data class FilterCriteria(
         if (hasPhotos == false) parts.add("No Photos")
         if (fluorescent == true) parts.add("Fluorescent")
         if (fluorescent == false) parts.add("Non-Fluorescent")
+        if (mineralTypes.isNotEmpty()) parts.add("Types: ${mineralTypes.size}")
         return parts.joinToString(", ")
     }
 
