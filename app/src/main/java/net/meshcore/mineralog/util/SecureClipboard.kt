@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import net.meshcore.mineralog.util.logging.AppLogger
+import net.meshcore.mineralog.util.AppLogger
 
 /**
  * Secure clipboard manager that automatically clears clipboard content after a specified delay.

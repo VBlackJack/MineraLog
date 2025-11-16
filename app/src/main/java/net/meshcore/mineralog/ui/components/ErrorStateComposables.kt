@@ -2,6 +2,7 @@ package net.meshcore.mineralog.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.*
@@ -149,8 +150,8 @@ fun ErrorCard(
                 if (onDismiss != null) {
                     IconButton(onClick = onDismiss) {
                         Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(R.string.close),
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Dismiss",
                             modifier = Modifier.size(20.dp)
                         )
                     }
