@@ -1,0 +1,102 @@
+package net.meshcore.mineralog.ui.screens.reference
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
+import net.meshcore.mineralog.data.repository.ReferenceMineralRepository
+
+/**
+ * ViewModel for the Reference Mineral detail screen.
+ *
+ * Manages the display of a single reference mineral's complete information
+ * and usage statistics.
+ */
+class ReferenceMineralDetailViewModel(
+    private val referenceMineralId: String,
+    private val referenceMineralRepository: ReferenceMineralRepository
+) : ViewModel() {
+
+    private val _mineral = MutableStateFlow<ReferenceMineralEntity?>(null)
+    val mineral: StateFlow<ReferenceMineralEntity?> = _mineral.asStateFlow()
+
+    private val _simpleSpecimensCount = MutableStateFlow(0)
+    val simpleSpecimensCount: StateFlow<Int> = _simpleSpecimensCount.asStateFlow()
+
+    private val _componentsCount = MutableStateFlow(0)
+    val componentsCount: StateFlow<Int> = _componentsCount.asStateFlow()
+
+    private val _totalUsageCount = MutableStateFlow(0)
+    val totalUsageCount: StateFlow<Int> = _totalUsageCount.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
+    init {
+        loadMineral()
+        loadUsageStatistics()
+    }
+
+    private fun loadMineral() {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _error.value = null
+                val loadedMineral = referenceMineralRepository.getById(referenceMineralId)
+                if (loadedMineral != null) {
+                    _mineral.value = loadedMineral
+                } else {
+                    _error.value = "Minéral de référence introuvable"
+                }
+            } catch (e: Exception) {
+                _error.value = "Erreur de chargement: ${e.localizedMessage}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private fun loadUsageStatistics() {
+        viewModelScope.launch {
+            try {
+                _simpleSpecimensCount.value = referenceMineralRepository.countSimpleSpecimensUsingReference(referenceMineralId)
+                _componentsCount.value = referenceMineralRepository.countComponentsUsingReference(referenceMineralId)
+                _totalUsageCount.value = referenceMineralRepository.getTotalUsageCount(referenceMineralId)
+            } catch (e: Exception) {
+                // Silently fail for statistics - not critical
+                android.util.Log.e("RefMineralDetailVM", "Failed to load usage stats", e)
+            }
+        }
+    }
+
+    /**
+     * Refresh the mineral data and statistics.
+     */
+    fun refresh() {
+        loadMineral()
+        loadUsageStatistics()
+    }
+}
+
+/**
+ * Factory for creating ReferenceMineralDetailViewModel instances.
+ */
+class ReferenceMineralDetailViewModelFactory(
+    private val referenceMineralId: String,
+    private val referenceMineralRepository: ReferenceMineralRepository
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ReferenceMineralDetailViewModel::class.java)) {
+            return ReferenceMineralDetailViewModel(referenceMineralId, referenceMineralRepository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}

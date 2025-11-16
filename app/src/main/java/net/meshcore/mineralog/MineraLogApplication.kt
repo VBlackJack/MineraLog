@@ -57,6 +57,14 @@ class MineraLogApplication : Application(), Configuration.Provider {
         )
     }
 
+    // v3.0.0 Reference Mineral Repository
+    val referenceMineralRepository: ReferenceMineralRepository by lazy {
+        ReferenceMineralRepositoryImpl(
+            referenceMineralDao = database.referenceMineralDao(),
+            context = this
+        )
+    }
+
     // Tink AEAD for local encryption (app-level key)
     val aead: Aead by lazy {
         AeadConfig.register()
