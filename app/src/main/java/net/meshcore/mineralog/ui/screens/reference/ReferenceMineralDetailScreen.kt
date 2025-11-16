@@ -5,6 +5,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +26,7 @@ import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
 fun ReferenceMineralDetailScreen(
     referenceMineralId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToEdit: (String) -> Unit = {},
     viewModel: ReferenceMineralDetailViewModel = viewModel(
         factory = ReferenceMineralDetailViewModelFactory(
             referenceMineralId = referenceMineralId,
@@ -37,8 +40,78 @@ fun ReferenceMineralDetailScreen(
     val totalUsageCount by viewModel.totalUsageCount.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val deleteState by viewModel.deleteState.collectAsState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+
+    // Handle delete state changes
+    LaunchedEffect(deleteState) {
+        when (deleteState) {
+            is ReferenceMineralDetailViewModel.DeleteState.ConfirmRequired -> {
+                showDeleteConfirmDialog = true
+            }
+            is ReferenceMineralDetailViewModel.DeleteState.Success -> {
+                onNavigateBack()
+            }
+            is ReferenceMineralDetailViewModel.DeleteState.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = (deleteState as ReferenceMineralDetailViewModel.DeleteState.Error).message,
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetDeleteState()
+            }
+            else -> {}
+        }
+    }
+
+    // Delete confirmation dialog
+    if (showDeleteConfirmDialog && deleteState is ReferenceMineralDetailViewModel.DeleteState.ConfirmRequired) {
+        val usageCount = (deleteState as ReferenceMineralDetailViewModel.DeleteState.ConfirmRequired).usageCount
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteConfirmDialog = false
+                viewModel.cancelDelete()
+            },
+            title = { Text("Confirmer la suppression") },
+            text = {
+                Column {
+                    Text("Ce minéral est utilisé par $usageCount spécimen(s).")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "La suppression de ce minéral de référence supprimera également le lien de tous les spécimens qui l'utilisent.",
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Êtes-vous sûr de vouloir continuer ?")
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteConfirmDialog = false
+                        viewModel.confirmDelete()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Supprimer")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDeleteConfirmDialog = false
+                    viewModel.cancelDelete()
+                }) {
+                    Text("Annuler")
+                }
+            }
+        )
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -53,6 +126,39 @@ fun ReferenceMineralDetailScreen(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Retour"
                         )
+                    }
+                },
+                actions = {
+                    // Edit button - only for user-defined minerals
+                    if (mineral?.isUserDefined == true) {
+                        IconButton(onClick = { onNavigateToEdit(referenceMineralId) }) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Modifier",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                    // Delete button - only for user-defined minerals
+                    if (mineral?.isUserDefined == true) {
+                        IconButton(
+                            onClick = { viewModel.initiateDelete() },
+                            enabled = deleteState !is ReferenceMineralDetailViewModel.DeleteState.Deleting
+                        ) {
+                            if (deleteState is ReferenceMineralDetailViewModel.DeleteState.Deleting) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Supprimer",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

@@ -39,6 +39,18 @@ class ReferenceMineralDetailViewModel(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    // v3.0: Delete state
+    sealed class DeleteState {
+        data object Idle : DeleteState()
+        data class ConfirmRequired(val usageCount: Int) : DeleteState()
+        data object Deleting : DeleteState()
+        data object Success : DeleteState()
+        data class Error(val message: String) : DeleteState()
+    }
+
+    private val _deleteState = MutableStateFlow<DeleteState>(DeleteState.Idle)
+    val deleteState: StateFlow<DeleteState> = _deleteState.asStateFlow()
+
     init {
         loadMineral()
         loadUsageStatistics()
@@ -82,6 +94,66 @@ class ReferenceMineralDetailViewModel(
     fun refresh() {
         loadMineral()
         loadUsageStatistics()
+    }
+
+    /**
+     * Initiate deletion of the reference mineral.
+     * Checks for dependencies and requests confirmation if needed.
+     */
+    fun initiateDelete() {
+        viewModelScope.launch {
+            try {
+                val usageCount = _totalUsageCount.value
+                if (usageCount > 0) {
+                    _deleteState.value = DeleteState.ConfirmRequired(usageCount)
+                } else {
+                    // No dependencies, can delete directly
+                    confirmDelete()
+                }
+            } catch (e: Exception) {
+                _deleteState.value = DeleteState.Error("Erreur lors de la vérification: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Confirm and execute the deletion.
+     * Sets referenceMineralId to NULL for all linked entities, then deletes the mineral.
+     */
+    fun confirmDelete() {
+        viewModelScope.launch {
+            try {
+                _deleteState.value = DeleteState.Deleting
+
+                // The repository should handle setting referenceMineralId to NULL
+                // via canDelete() check and proper deletion logic
+                val canDelete = referenceMineralRepository.canDelete(referenceMineralId)
+
+                if (canDelete) {
+                    referenceMineralRepository.deleteById(referenceMineralId)
+                    _deleteState.value = DeleteState.Success
+                } else {
+                    // This shouldn't happen if we checked properly, but handle it
+                    _deleteState.value = DeleteState.Error("Impossible de supprimer ce minéral")
+                }
+            } catch (e: Exception) {
+                _deleteState.value = DeleteState.Error("Erreur lors de la suppression: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Cancel the deletion.
+     */
+    fun cancelDelete() {
+        _deleteState.value = DeleteState.Idle
+    }
+
+    /**
+     * Reset delete state after handling.
+     */
+    fun resetDeleteState() {
+        _deleteState.value = DeleteState.Idle
     }
 }
 
