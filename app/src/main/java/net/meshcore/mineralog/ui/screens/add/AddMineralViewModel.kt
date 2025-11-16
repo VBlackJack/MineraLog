@@ -20,6 +20,8 @@ import net.meshcore.mineralog.data.repository.SimpleMineralData
 import net.meshcore.mineralog.data.repository.AggregateMineralData
 import net.meshcore.mineralog.data.repository.insertSimpleMineral
 import net.meshcore.mineralog.data.repository.insertAggregate
+import net.meshcore.mineralog.data.repository.ReferenceMineralRepository
+import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
 import net.meshcore.mineralog.domain.model.Mineral
 import net.meshcore.mineralog.domain.model.MineralComponent
 import net.meshcore.mineralog.domain.model.MineralType
@@ -41,7 +43,8 @@ sealed class SaveMineralState {
 class AddMineralViewModel(
     private val context: Context,
     private val mineralRepository: MineralRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val referenceMineralRepository: ReferenceMineralRepository
 ) : ViewModel() {
 
     private val _name = MutableStateFlow("")
@@ -105,6 +108,29 @@ class AddMineralViewModel(
     private val _components = MutableStateFlow<List<MineralComponent>>(emptyList())
     val components: StateFlow<List<MineralComponent>> = _components.asStateFlow()
 
+    // v3.0: Reference mineral autocomplete
+    private val _selectedReferenceMineral = MutableStateFlow<ReferenceMineralEntity?>(null)
+    val selectedReferenceMineral: StateFlow<ReferenceMineralEntity?> = _selectedReferenceMineral.asStateFlow()
+
+    private val _referenceMineralSearchQuery = MutableStateFlow("")
+    val referenceMineralSearchQuery: StateFlow<String> = _referenceMineralSearchQuery.asStateFlow()
+
+    private val _referenceMineralSuggestions = MutableStateFlow<List<ReferenceMineralEntity>>(emptyList())
+    val referenceMineralSuggestions: StateFlow<List<ReferenceMineralEntity>> = _referenceMineralSuggestions.asStateFlow()
+
+    private val _isLoadingReferenceMinerals = MutableStateFlow(false)
+    val isLoadingReferenceMinerals: StateFlow<Boolean> = _isLoadingReferenceMinerals.asStateFlow()
+
+    // v3.0: Specimen-specific fields (override reference properties)
+    private val _colorVariety = MutableStateFlow("")
+    val colorVariety: StateFlow<String> = _colorVariety.asStateFlow()
+
+    private val _actualDiaphaneity = MutableStateFlow("")
+    val actualDiaphaneity: StateFlow<String> = _actualDiaphaneity.asStateFlow()
+
+    private val _qualityNotes = MutableStateFlow("")
+    val qualityNotes: StateFlow<String> = _qualityNotes.asStateFlow()
+
     init {
         // Load draft on initialization
         loadDraft()
@@ -118,6 +144,22 @@ class AddMineralViewModel(
         viewModelScope.launch {
             _tags.debounce(300).collect { input ->
                 updateTagSuggestions(input)
+            }
+        }
+
+        // v3.0: Reference mineral autocomplete search with debounce
+        viewModelScope.launch {
+            _referenceMineralSearchQuery.debounce(300).collect { query ->
+                if (query.length >= 2) {
+                    _isLoadingReferenceMinerals.value = true
+                    referenceMineralRepository.searchByNameLimit(query, 10).collect { results ->
+                        _referenceMineralSuggestions.value = results
+                        _isLoadingReferenceMinerals.value = false
+                    }
+                } else {
+                    _referenceMineralSuggestions.value = emptyList()
+                    _isLoadingReferenceMinerals.value = false
+                }
             }
         }
 
@@ -266,6 +308,59 @@ class AddMineralViewModel(
         _components.value = components
     }
 
+    // v3.0: Reference mineral selection
+    fun onReferenceMineralSearchQueryChange(query: String) {
+        _referenceMineralSearchQuery.value = query
+    }
+
+    fun selectReferenceMineral(mineral: ReferenceMineralEntity) {
+        _selectedReferenceMineral.value = mineral
+
+        // Auto-fill technical properties from reference
+        mineral.mineralGroup?.let { _group.value = it }
+        mineral.formula?.let { _formula.value = it }
+        mineral.crystalSystem?.let { _crystalSystem.value = it }
+        mineral.cleavage?.let { _cleavage.value = it }
+        mineral.fracture?.let { _fracture.value = it }
+        mineral.luster?.let { _luster.value = it }
+        mineral.streak?.let { _streak.value = it }
+        mineral.diaphaneity?.let { _diaphaneity.value = it }
+        mineral.habit?.let { _habit.value = it }
+
+        // Clear suggestions
+        _referenceMineralSuggestions.value = emptyList()
+    }
+
+    fun clearReferenceMineral() {
+        _selectedReferenceMineral.value = null
+        _referenceMineralSearchQuery.value = ""
+        _referenceMineralSuggestions.value = emptyList()
+
+        // Clear auto-filled properties
+        _group.value = ""
+        _formula.value = ""
+        _crystalSystem.value = ""
+        _cleavage.value = ""
+        _fracture.value = ""
+        _luster.value = ""
+        _streak.value = ""
+        _diaphaneity.value = ""
+        _habit.value = ""
+    }
+
+    // v3.0: Specimen-specific fields
+    fun onColorVarietyChange(value: String) {
+        _colorVariety.value = value
+    }
+
+    fun onActualDiaphaneityChange(value: String) {
+        _actualDiaphaneity.value = value
+    }
+
+    fun onQualityNotesChange(value: String) {
+        _qualityNotes.value = value
+    }
+
     private fun updateTagSuggestions(input: String) {
         if (input.isBlank()) {
             _tagSuggestions.value = emptyList()
@@ -370,8 +465,9 @@ class AddMineralViewModel(
 
                 // v2.0: Save based on mineral type
                 if (_mineralType.value == MineralType.SIMPLE) {
-                    // Save as simple mineral using v2.0 API
+                    // Save as simple mineral using v2.0+ API
                     val properties = SimpleProperties(
+                        referenceMineralId = _selectedReferenceMineral.value?.id,
                         group = _group.value.trim().takeIf { it.isNotBlank() },
                         formula = _formula.value.trim().takeIf { it.isNotBlank() },
                         crystalSystem = _crystalSystem.value.trim().takeIf { it.isNotBlank() },
@@ -380,7 +476,10 @@ class AddMineralViewModel(
                         luster = _luster.value.trim().takeIf { it.isNotBlank() },
                         streak = _streak.value.trim().takeIf { it.isNotBlank() },
                         diaphaneity = _diaphaneity.value.trim().takeIf { it.isNotBlank() },
-                        habit = _habit.value.trim().takeIf { it.isNotBlank() }
+                        habit = _habit.value.trim().takeIf { it.isNotBlank() },
+                        colorVariety = _colorVariety.value.trim().takeIf { it.isNotBlank() },
+                        actualDiaphaneity = _actualDiaphaneity.value.trim().takeIf { it.isNotBlank() },
+                        qualityNotes = _qualityNotes.value.trim().takeIf { it.isNotBlank() }
                     )
 
                     val simpleMineralData = SimpleMineralData(
@@ -460,12 +559,13 @@ class AddMineralViewModel(
 class AddMineralViewModelFactory(
     private val context: Context,
     private val mineralRepository: MineralRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val referenceMineralRepository: ReferenceMineralRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AddMineralViewModel::class.java)) {
-            return AddMineralViewModel(context, mineralRepository, settingsRepository) as T
+            return AddMineralViewModel(context, mineralRepository, settingsRepository, referenceMineralRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

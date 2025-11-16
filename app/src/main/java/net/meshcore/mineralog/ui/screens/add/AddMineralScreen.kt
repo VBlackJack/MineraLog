@@ -35,6 +35,7 @@ import net.meshcore.mineralog.ui.components.MineralFieldValues
 import net.meshcore.mineralog.ui.components.PhotoManager
 import net.meshcore.mineralog.ui.components.v2.MineralTypeSelector
 import net.meshcore.mineralog.ui.components.v2.ComponentListEditor
+import net.meshcore.mineralog.ui.components.reference.ReferenceMineralAutocomplete
 import net.meshcore.mineralog.domain.model.MineralType
 import java.io.File
 
@@ -47,7 +48,8 @@ fun AddMineralScreen(
         factory = AddMineralViewModelFactory(
             LocalContext.current,
             (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
-            (LocalContext.current.applicationContext as MineraLogApplication).settingsRepository
+            (LocalContext.current.applicationContext as MineraLogApplication).settingsRepository,
+            (LocalContext.current.applicationContext as MineraLogApplication).referenceMineralRepository
         )
     )
 ) {
@@ -71,6 +73,15 @@ fun AddMineralScreen(
     // v2.0: Mineral type and components
     val mineralType by viewModel.mineralType.collectAsState()
     val components by viewModel.components.collectAsState()
+
+    // v3.0: Reference mineral autocomplete
+    val selectedReferenceMineral by viewModel.selectedReferenceMineral.collectAsState()
+    val referenceMineralSearchQuery by viewModel.referenceMineralSearchQuery.collectAsState()
+    val referenceMineralSuggestions by viewModel.referenceMineralSuggestions.collectAsState()
+    val isLoadingReferenceMinerals by viewModel.isLoadingReferenceMinerals.collectAsState()
+    val colorVariety by viewModel.colorVariety.collectAsState()
+    val actualDiaphaneity by viewModel.actualDiaphaneity.collectAsState()
+    val qualityNotes by viewModel.qualityNotes.collectAsState()
 
     val context = LocalContext.current
     val photosDir = remember {
@@ -233,6 +244,34 @@ fun AddMineralScreen(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
+            // v3.0: Reference mineral autocomplete (only for SIMPLE minerals)
+            if (mineralType == MineralType.SIMPLE) {
+                Text(
+                    text = "Bibliothèque de référence (optionnel)",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Text(
+                    text = "Sélectionnez un minéral de référence pour auto-remplir les propriétés techniques",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                ReferenceMineralAutocomplete(
+                    searchQuery = referenceMineralSearchQuery,
+                    onSearchQueryChange = { viewModel.onReferenceMineralSearchQueryChange(it) },
+                    suggestions = referenceMineralSuggestions,
+                    onMineralSelected = { viewModel.selectReferenceMineral(it) },
+                    selectedMineral = selectedReferenceMineral,
+                    onClearSelection = { viewModel.clearReferenceMineral() },
+                    isLoading = isLoadingReferenceMinerals,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            }
+
             OutlinedTextField(
                 value = name,
                 onValueChange = { viewModel.onNameChange(it) },
@@ -285,87 +324,203 @@ fun AddMineralScreen(
                 // Technical Properties Section (Simple minerals only)
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
+            // v3.0: Show different title based on whether reference is selected
             Text(
-                text = stringResource(R.string.section_technical_properties),
+                text = if (selectedReferenceMineral != null) {
+                    "Propriétés de référence (depuis ${selectedReferenceMineral.nameFr})"
+                } else {
+                    stringResource(R.string.section_technical_properties)
+                },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
 
             Text(
-                text = stringResource(R.string.section_technical_properties_hint),
+                text = if (selectedReferenceMineral != null) {
+                    "Ces propriétés sont héritées de la bibliothèque de référence"
+                } else {
+                    stringResource(R.string.section_technical_properties_hint)
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            TooltipDropdownField(
-                value = diaphaneity,
-                onValueChange = { viewModel.onDiaphaneityChange(it) },
-                label = stringResource(R.string.field_diaphaneity_label),
-                tooltipText = MineralFieldTooltips.DIAPHANEITY,
-                options = diaphaneityTypes,
-                placeholder = stringResource(R.string.field_diaphaneity_placeholder),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-            )
+            // v3.0: Card with grey background when properties are locked
+            if (selectedReferenceMineral != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = "Propriétés verrouillées depuis la référence",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
 
-            TooltipDropdownField(
-                value = cleavage,
-                onValueChange = { viewModel.onCleavageChange(it) },
-                label = stringResource(R.string.field_cleavage_label),
-                tooltipText = MineralFieldTooltips.CLEAVAGE,
-                options = cleavageTypes,
-                placeholder = stringResource(R.string.field_cleavage_placeholder),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-            )
+                        // Technical properties - read-only display
+                        if (group.isNotBlank()) {
+                            PropertyDisplay(label = stringResource(R.string.field_group), value = group)
+                        }
+                        if (formula.isNotBlank()) {
+                            PropertyDisplay(label = stringResource(R.string.field_formula), value = formula)
+                        }
+                        if (crystalSystem.isNotBlank()) {
+                            PropertyDisplay(label = stringResource(R.string.field_crystal_system_label), value = crystalSystem)
+                        }
+                        if (diaphaneity.isNotBlank()) {
+                            PropertyDisplay(label = stringResource(R.string.field_diaphaneity_label), value = diaphaneity)
+                        }
+                        if (cleavage.isNotBlank()) {
+                            PropertyDisplay(label = stringResource(R.string.field_cleavage_label), value = cleavage)
+                        }
+                        if (fracture.isNotBlank()) {
+                            PropertyDisplay(label = stringResource(R.string.field_fracture_label), value = fracture)
+                        }
+                        if (luster.isNotBlank()) {
+                            PropertyDisplay(label = stringResource(R.string.field_luster_label), value = luster)
+                        }
+                        if (streak.isNotBlank()) {
+                            PropertyDisplay(label = stringResource(R.string.field_streak_label), value = streak)
+                        }
+                        if (habit.isNotBlank()) {
+                            PropertyDisplay(label = stringResource(R.string.field_habit_label), value = habit)
+                        }
+                    }
+                }
 
-            TooltipDropdownField(
-                value = fracture,
-                onValueChange = { viewModel.onFractureChange(it) },
-                label = stringResource(R.string.field_fracture_label),
-                tooltipText = MineralFieldTooltips.FRACTURE,
-                options = fractureTypes,
-                placeholder = stringResource(R.string.field_fracture_placeholder),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-            )
+                // v3.0: Specimen-specific properties section
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-            TooltipDropdownField(
-                value = luster,
-                onValueChange = { viewModel.onLusterChange(it) },
-                label = stringResource(R.string.field_luster_label),
-                tooltipText = MineralFieldTooltips.LUSTER,
-                options = lusterTypes,
-                placeholder = stringResource(R.string.field_luster_placeholder),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-            )
+                Text(
+                    text = "Propriétés de ce spécimen",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
 
-            TooltipDropdownField(
-                value = streak,
-                onValueChange = { viewModel.onStreakChange(it) },
-                label = stringResource(R.string.field_streak_label),
-                tooltipText = MineralFieldTooltips.STREAK,
-                options = streakColors,
-                placeholder = stringResource(R.string.field_streak_placeholder),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-            )
+                Text(
+                    text = "Ces propriétés sont spécifiques à votre spécimen et peuvent différer de la référence",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
-            TooltipDropdownField(
-                value = habit,
-                onValueChange = { viewModel.onHabitChange(it) },
-                label = stringResource(R.string.field_habit_label),
-                tooltipText = MineralFieldTooltips.HABIT,
-                options = habitTypes,
-                placeholder = stringResource(R.string.field_habit_placeholder),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-            )
+                OutlinedTextField(
+                    value = colorVariety,
+                    onValueChange = { viewModel.onColorVarietyChange(it) },
+                    label = { Text("Variété de couleur") },
+                    placeholder = { Text("Ex: Améthyste, Citrine, Fumé...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
 
-            TooltipDropdownField(
-                value = crystalSystem,
-                onValueChange = { viewModel.onCrystalSystemChange(it) },
-                label = stringResource(R.string.field_crystal_system_label),
-                tooltipText = MineralFieldTooltips.CRYSTAL_SYSTEM,
-                options = crystalSystems,
-                placeholder = stringResource(R.string.field_crystal_system_placeholder),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-            )
+                TooltipDropdownField(
+                    value = actualDiaphaneity,
+                    onValueChange = { viewModel.onActualDiaphaneityChange(it) },
+                    label = "Diaphanéité réelle",
+                    tooltipText = "La diaphanéité de ce spécimen peut différer de la référence",
+                    options = diaphaneityTypes,
+                    placeholder = "Ex: Transparent, Translucide...",
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                OutlinedTextField(
+                    value = qualityNotes,
+                    onValueChange = { viewModel.onQualityNotesChange(it) },
+                    label = { Text("Notes de qualité") },
+                    placeholder = { Text("Ex: Cristaux bien formés, inclusions...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    maxLines = 4
+                )
+            } else {
+                // No reference mineral selected - show editable fields
+                TooltipDropdownField(
+                    value = diaphaneity,
+                    onValueChange = { viewModel.onDiaphaneityChange(it) },
+                    label = stringResource(R.string.field_diaphaneity_label),
+                    tooltipText = MineralFieldTooltips.DIAPHANEITY,
+                    options = diaphaneityTypes,
+                    placeholder = stringResource(R.string.field_diaphaneity_placeholder),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                TooltipDropdownField(
+                    value = cleavage,
+                    onValueChange = { viewModel.onCleavageChange(it) },
+                    label = stringResource(R.string.field_cleavage_label),
+                    tooltipText = MineralFieldTooltips.CLEAVAGE,
+                    options = cleavageTypes,
+                    placeholder = stringResource(R.string.field_cleavage_placeholder),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                TooltipDropdownField(
+                    value = fracture,
+                    onValueChange = { viewModel.onFractureChange(it) },
+                    label = stringResource(R.string.field_fracture_label),
+                    tooltipText = MineralFieldTooltips.FRACTURE,
+                    options = fractureTypes,
+                    placeholder = stringResource(R.string.field_fracture_placeholder),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                TooltipDropdownField(
+                    value = luster,
+                    onValueChange = { viewModel.onLusterChange(it) },
+                    label = stringResource(R.string.field_luster_label),
+                    tooltipText = MineralFieldTooltips.LUSTER,
+                    options = lusterTypes,
+                    placeholder = stringResource(R.string.field_luster_placeholder),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                TooltipDropdownField(
+                    value = streak,
+                    onValueChange = { viewModel.onStreakChange(it) },
+                    label = stringResource(R.string.field_streak_label),
+                    tooltipText = MineralFieldTooltips.STREAK,
+                    options = streakColors,
+                    placeholder = stringResource(R.string.field_streak_placeholder),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                TooltipDropdownField(
+                    value = habit,
+                    onValueChange = { viewModel.onHabitChange(it) },
+                    label = stringResource(R.string.field_habit_label),
+                    tooltipText = MineralFieldTooltips.HABIT,
+                    options = habitTypes,
+                    placeholder = stringResource(R.string.field_habit_placeholder),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                TooltipDropdownField(
+                    value = crystalSystem,
+                    onValueChange = { viewModel.onCrystalSystemChange(it) },
+                    label = stringResource(R.string.field_crystal_system_label),
+                    tooltipText = MineralFieldTooltips.CRYSTAL_SYSTEM,
+                    options = crystalSystems,
+                    placeholder = stringResource(R.string.field_crystal_system_placeholder),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+            }
             } else {
                 // v2.0: Component editor for aggregates
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -502,5 +657,33 @@ fun AddMineralScreen(
             // BUGFIX: Dynamic spacing that only appears when keyboard is shown
             Spacer(modifier = Modifier.imePadding())
         }
+    }
+}
+
+/**
+ * v3.0: Displays a read-only property from reference mineral.
+ */
+@Composable
+private fun PropertyDisplay(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
