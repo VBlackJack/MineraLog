@@ -9,6 +9,9 @@ import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.local.migration.MIGRATION_1_2
 import net.meshcore.mineralog.data.local.migration.MIGRATION_2_3
 import net.meshcore.mineralog.data.local.migration.MIGRATION_3_4
+import net.meshcore.mineralog.data.local.migration.MIGRATION_4_5
+import net.meshcore.mineralog.data.local.migration.MIGRATION_5_6
+import net.meshcore.mineralog.data.local.migration.MIGRATION_6_7
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -24,7 +27,10 @@ import java.io.IOException
  * - Migration 1→2: Data preservation and default values
  * - Migration 2→3: Filter presets table creation
  * - Migration 3→4: Currency column addition
- * - Multi-step migration 1→4
+ * - Migration 4→5: Mineral types and properties tables
+ * - Migration 5→6: Reference minerals library
+ * - Migration 6→7: Collector-focused fields
+ * - Multi-step migrations: 1→4, 1→7
  * - Indices and constraints verification
  */
 @RunWith(AndroidJUnit4::class)
@@ -268,5 +274,193 @@ class MigrationsTest {
         assertEquals("SiO₂", cursor.getString(cursor.getColumnIndex("formula")))
 
         cursor.close()
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migration_5_to_6_addsReferenceMinerals() {
+        // Given - Create v1, migrate through v2→v3→v4→v5
+        helper.createDatabase(TEST_DB, 1).apply {
+            close()
+        }
+        helper.runMigrationsAndValidate(TEST_DB, 2, true, MIGRATION_1_2)
+        helper.runMigrationsAndValidate(TEST_DB, 3, true, MIGRATION_2_3)
+        helper.runMigrationsAndValidate(TEST_DB, 4, true, MIGRATION_3_4)
+        helper.runMigrationsAndValidate(TEST_DB, 5, true, MIGRATION_4_5)
+
+        // When - Migrate to v6
+        val db = helper.runMigrationsAndValidate(TEST_DB, 6, true, MIGRATION_5_6)
+
+        // Then - Verify reference_minerals table exists
+        val cursor = db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='reference_minerals'")
+        assertTrue("reference_minerals table should exist", cursor.moveToFirst())
+        cursor.close()
+
+        // Verify we can insert a reference mineral
+        db.execSQL("""
+            INSERT INTO reference_minerals (
+                id, nameFr, nameEn, formula, mohsMin, mohsMax,
+                isUserDefined, source, createdAt, updatedAt
+            )
+            VALUES (
+                'ref-001', 'Quartz', 'Quartz', 'SiO₂', 7.0, 7.0,
+                0, 'Test', 1000000, 1000000
+            )
+        """.trimIndent())
+
+        val refCursor = db.query("SELECT * FROM reference_minerals WHERE id = 'ref-001'")
+        assertTrue("Should be able to insert reference mineral", refCursor.moveToFirst())
+        assertEquals("Quartz", refCursor.getString(refCursor.getColumnIndex("nameFr")))
+        assertEquals("SiO₂", refCursor.getString(refCursor.getColumnIndex("formula")))
+        refCursor.close()
+
+        // Verify simple_properties has referenceMineralId column
+        val spCursor = db.query("PRAGMA table_info(simple_properties)")
+        val columnNames = mutableListOf<String>()
+        while (spCursor.moveToNext()) {
+            columnNames.add(spCursor.getString(spCursor.getColumnIndex("name")))
+        }
+        spCursor.close()
+        assertTrue("simple_properties should have referenceMineralId",
+            columnNames.contains("referenceMineralId"))
+
+        // Verify mineral_components has referenceMineralId column
+        val mcCursor = db.query("PRAGMA table_info(mineral_components)")
+        val mcColumnNames = mutableListOf<String>()
+        while (mcCursor.moveToNext()) {
+            mcColumnNames.add(mcCursor.getString(mcCursor.getColumnIndex("name")))
+        }
+        mcCursor.close()
+        assertTrue("mineral_components should have referenceMineralId",
+            mcColumnNames.contains("referenceMineralId"))
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migration_6_to_7_addsCollectorFields() {
+        // Given - Create v1, migrate through v2→v3→v4→v5→v6
+        helper.createDatabase(TEST_DB, 1).apply {
+            close()
+        }
+        helper.runMigrationsAndValidate(TEST_DB, 2, true, MIGRATION_1_2)
+        helper.runMigrationsAndValidate(TEST_DB, 3, true, MIGRATION_2_3)
+        helper.runMigrationsAndValidate(TEST_DB, 4, true, MIGRATION_3_4)
+        helper.runMigrationsAndValidate(TEST_DB, 5, true, MIGRATION_4_5)
+        helper.runMigrationsAndValidate(TEST_DB, 6, true, MIGRATION_5_6)
+
+        // Insert a reference mineral in v6 to verify data preservation
+        val db6 = helper.runMigrationsAndValidate(TEST_DB, 6, false)
+        db6.execSQL("""
+            INSERT INTO reference_minerals (
+                id, nameFr, nameEn, formula, isUserDefined, source, createdAt, updatedAt
+            )
+            VALUES (
+                'ref-001', 'Quartz', 'Quartz', 'SiO₂', 0, 'Test', 1000000, 1000000
+            )
+        """.trimIndent())
+        db6.close()
+
+        // When - Migrate to v7
+        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, MIGRATION_6_7)
+
+        // Then - Verify new collector-focused columns exist
+        val cursor = db.query("PRAGMA table_info(reference_minerals)")
+        val columnNames = mutableListOf<String>()
+        while (cursor.moveToNext()) {
+            columnNames.add(cursor.getString(cursor.getColumnIndex("name")))
+        }
+        cursor.close()
+
+        // Verify care & safety fields
+        assertTrue("Should have careInstructions column", columnNames.contains("careInstructions"))
+        assertTrue("Should have sensitivity column", columnNames.contains("sensitivity"))
+        assertTrue("Should have hazards column", columnNames.contains("hazards"))
+        assertTrue("Should have storageRecommendations column", columnNames.contains("storageRecommendations"))
+
+        // Verify identification fields
+        assertTrue("Should have identificationTips column", columnNames.contains("identificationTips"))
+        assertTrue("Should have diagnosticProperties column", columnNames.contains("diagnosticProperties"))
+        assertTrue("Should have colors column", columnNames.contains("colors"))
+        assertTrue("Should have varieties column", columnNames.contains("varieties"))
+        assertTrue("Should have confusionWith column", columnNames.contains("confusionWith"))
+
+        // Verify geological fields
+        assertTrue("Should have geologicalEnvironment column", columnNames.contains("geologicalEnvironment"))
+        assertTrue("Should have typicalLocations column", columnNames.contains("typicalLocations"))
+        assertTrue("Should have associatedMinerals column", columnNames.contains("associatedMinerals"))
+
+        // Verify additional fields
+        assertTrue("Should have uses column", columnNames.contains("uses"))
+        assertTrue("Should have rarity column", columnNames.contains("rarity"))
+        assertTrue("Should have collectingDifficulty column", columnNames.contains("collectingDifficulty"))
+        assertTrue("Should have historicalInfo column", columnNames.contains("historicalInfo"))
+        assertTrue("Should have etymology column", columnNames.contains("etymology"))
+
+        // Verify existing data preserved
+        val dataCursor = db.query("SELECT * FROM reference_minerals WHERE id = 'ref-001'")
+        assertTrue("Data should be preserved after migration", dataCursor.moveToFirst())
+        assertEquals("Quartz", dataCursor.getString(dataCursor.getColumnIndex("nameFr")))
+        assertEquals("SiO₂", dataCursor.getString(dataCursor.getColumnIndex("formula")))
+        dataCursor.close()
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migration_1_to_7_multiStep_succeeds() {
+        // Given - Create v1 database with test data
+        helper.createDatabase(TEST_DB, 1).apply {
+            execSQL("""
+                INSERT INTO minerals (id, name, formula, createdAt, updatedAt, status)
+                VALUES ('test-001', 'Quartz', 'SiO₂', 1000000, 1000000, 'complete')
+            """.trimIndent())
+            close()
+        }
+
+        // When - Run all migrations 1→2→3→4→5→6→7
+        val db = helper.runMigrationsAndValidate(
+            TEST_DB, 7, true,
+            MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4,
+            MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7
+        )
+
+        // Then - Verify data survived all migrations
+        val cursor = db.query("SELECT * FROM minerals WHERE id = 'test-001'")
+        assertTrue("Data should survive multi-step migration to v7", cursor.moveToFirst())
+        assertEquals("Quartz", cursor.getString(cursor.getColumnIndex("name")))
+        assertEquals("SiO₂", cursor.getString(cursor.getColumnIndex("formula")))
+
+        // Verify v2 columns exist
+        val statusTypeIndex = cursor.getColumnIndex("statusType")
+        assertTrue("statusType column should exist", statusTypeIndex >= 0)
+        assertEquals("in_collection", cursor.getString(statusTypeIndex))
+
+        // Verify v5 columns exist
+        val typeIndex = cursor.getColumnIndex("type")
+        assertTrue("type column should exist", typeIndex >= 0)
+        assertEquals("SIMPLE", cursor.getString(typeIndex))
+
+        cursor.close()
+
+        // Verify all tables exist
+        val tablesCursor = db.query("""
+            SELECT name FROM sqlite_master
+            WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'android_%'
+            ORDER BY name
+        """.trimIndent())
+
+        val tables = mutableListOf<String>()
+        while (tablesCursor.moveToNext()) {
+            tables.add(tablesCursor.getString(0))
+        }
+        tablesCursor.close()
+
+        assertTrue("Should have minerals table", tables.contains("minerals"))
+        assertTrue("Should have provenances table", tables.contains("provenances"))
+        assertTrue("Should have storage table", tables.contains("storage"))
+        assertTrue("Should have photos table", tables.contains("photos"))
+        assertTrue("Should have filter_presets table", tables.contains("filter_presets"))
+        assertTrue("Should have simple_properties table", tables.contains("simple_properties"))
+        assertTrue("Should have mineral_components table", tables.contains("mineral_components"))
+        assertTrue("Should have reference_minerals table", tables.contains("reference_minerals"))
     }
 }

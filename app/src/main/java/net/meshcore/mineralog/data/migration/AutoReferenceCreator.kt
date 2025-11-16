@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
+import net.meshcore.mineralog.util.AppLogger
 import java.time.Instant
 import java.util.UUID
 
@@ -102,27 +103,69 @@ class AutoReferenceCreator(
             markMigrationDone()
             report
         } catch (e: Exception) {
-            android.util.Log.e("AutoReferenceCreator", "Migration failed", e)
+            AppLogger.e("AutoReferenceCreator", "Migration failed", e)
             MigrationReport(0, 0, 0, emptyList(), System.currentTimeMillis() - startTime)
         }
     }
 
     /**
      * Analyze all simple specimens and group by normalized name.
-     * TODO: Fix - SimplePropertiesEntity doesn't have mineralName, needs JOIN with MineralEntity
+     * Uses @Transaction query to JOIN simple_properties with minerals table.
      */
     private suspend fun analyzeSimpleSpecimens(): Map<String, List<SimpleSpecimenData>> {
-        // Temporarily disabled - needs proper implementation with JOIN
-        return emptyMap()
+        val specimens = database.simplePropertiesDao().getAllWithMineralName()
+
+        // Group specimens by normalized mineral name
+        return specimens.groupBy { normalizeName(it.mineralName) }
+            .mapValues { (_, specimensGroup) ->
+                specimensGroup.map { specimen ->
+                    SimpleSpecimenData(
+                        id = specimen.mineralId,
+                        name = specimen.mineralName,
+                        entity = SimplePropertiesEntity(
+                            id = specimen.id,
+                            mineralId = specimen.mineralId,
+                            referenceMineralId = specimen.referenceMineralId,
+                            group = specimen.group,
+                            mohsMin = specimen.mohsMin,
+                            mohsMax = specimen.mohsMax,
+                            density = specimen.density,
+                            formula = specimen.formula,
+                            crystalSystem = specimen.crystalSystem,
+                            luster = specimen.luster,
+                            diaphaneity = specimen.diaphaneity,
+                            cleavage = specimen.cleavage,
+                            fracture = specimen.fracture,
+                            habit = specimen.habit,
+                            streak = specimen.streak,
+                            fluorescence = specimen.fluorescence,
+                            colorVariety = specimen.colorVariety,
+                            actualDiaphaneity = specimen.actualDiaphaneity,
+                            qualityNotes = specimen.qualityNotes
+                        )
+                    )
+                }
+            }
     }
 
     /**
      * Analyze all aggregate components and group by normalized name.
-     * TODO: Fix - needs proper implementation
+     * MineralComponentEntity already contains mineralName, so no JOIN needed.
      */
     private suspend fun analyzeComponents(): Map<String, List<ComponentData>> {
-        // Temporarily disabled - needs proper implementation
-        return emptyMap()
+        val components = database.mineralComponentDao().getAllDirect()
+
+        // Group components by normalized mineral name
+        return components.groupBy { normalizeName(it.mineralName) }
+            .mapValues { (_, componentsGroup) ->
+                componentsGroup.map { component ->
+                    ComponentData(
+                        id = component.id,
+                        name = component.mineralName,
+                        entity = component
+                    )
+                }
+            }
     }
 
     /**

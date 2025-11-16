@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import net.meshcore.mineralog.util.AppLogger
 import net.sqlcipher.database.SupportFactory
 import java.io.File
 import java.io.IOException
@@ -80,14 +81,14 @@ object DatabaseMigrationHelper {
 
         // Check if database file exists
         if (!dbFile.exists()) {
-            android.util.Log.i(TAG, "No existing database found, will create encrypted database")
+            AppLogger.i(TAG, "No existing database found, will create encrypted database")
             return MigrationResult.NoDatabase
         }
 
         // Check if database file is empty (corrupt or incomplete creation)
         // An empty file should be treated as "no database"
         if (dbFile.length() == 0L) {
-            android.util.Log.w(TAG, "Database file exists but is empty (likely incomplete creation), deleting and creating new encrypted database")
+            AppLogger.w(TAG, "Database file exists but is empty (likely incomplete creation), deleting and creating new encrypted database")
             // Delete the empty file and any associated files
             dbFile.delete()
             File(dbFile.parent, "$DATABASE_NAME-wal").delete()
@@ -98,20 +99,20 @@ object DatabaseMigrationHelper {
         // Check if database is already encrypted
         when (val encryptionCheck = isDatabaseEncrypted(dbFile)) {
             is DatabaseEncryptionStatus.Encrypted -> {
-                android.util.Log.i(TAG, "Database is already encrypted, no migration needed")
+                AppLogger.i(TAG, "Database is already encrypted, no migration needed")
                 return MigrationResult.AlreadyEncrypted
             }
             is DatabaseEncryptionStatus.Plaintext -> {
-                android.util.Log.i(TAG, "Plaintext database detected, starting migration to encrypted format")
+                AppLogger.i(TAG, "Plaintext database detected, starting migration to encrypted format")
                 return try {
                     migratePlaintextToEncrypted(context, dbFile)
                 } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Migration failed", e)
+                    AppLogger.e(TAG, "Migration failed", e)
                     MigrationResult.Error("Failed to migrate database: ${e.message}", e)
                 }
             }
             is DatabaseEncryptionStatus.Corrupted -> {
-                android.util.Log.e(TAG, "Database file is corrupted: ${encryptionCheck.reason}, deleting and creating new encrypted database")
+                AppLogger.e(TAG, "Database file is corrupted: ${encryptionCheck.reason}, deleting and creating new encrypted database")
                 // Delete corrupted database and create fresh one
                 dbFile.delete()
                 File(dbFile.parent, "$DATABASE_NAME-wal").delete()
@@ -153,7 +154,7 @@ object DatabaseMigrationHelper {
 
         // Minimum size check: SQLite header is 100 bytes, but we only check first 16
         if (dbFile.length() < 16) {
-            android.util.Log.w(TAG, "Database file too small (${dbFile.length()} bytes)")
+            AppLogger.w(TAG, "Database file too small (${dbFile.length()} bytes)")
             return DatabaseEncryptionStatus.Corrupted("File too small: ${dbFile.length()} bytes")
         }
 
@@ -164,7 +165,7 @@ object DatabaseMigrationHelper {
                 val bytes = ByteArray(16)
                 val bytesRead = input.read(bytes)
                 if (bytesRead < 16) {
-                    android.util.Log.w(TAG, "Could not read full header (only $bytesRead bytes)")
+                    AppLogger.w(TAG, "Could not read full header (only $bytesRead bytes)")
                     return DatabaseEncryptionStatus.Corrupted("Incomplete header: $bytesRead bytes")
                 }
                 bytes
@@ -179,21 +180,21 @@ object DatabaseMigrationHelper {
             val isPlaintext = header.contentEquals(sqliteMagic)
 
             if (isPlaintext) {
-                android.util.Log.d(TAG, "Database header matches SQLite magic - plaintext database")
+                AppLogger.d(TAG, "Database header matches SQLite magic - plaintext database")
                 DatabaseEncryptionStatus.Plaintext
             } else {
-                android.util.Log.d(TAG, "Database header does NOT match SQLite magic - encrypted database")
+                AppLogger.d(TAG, "Database header does NOT match SQLite magic - encrypted database")
                 DatabaseEncryptionStatus.Encrypted
             }
 
         } catch (e: IOException) {
             // Cannot read file
-            android.util.Log.e(TAG, "I/O error reading database header", e)
+            AppLogger.e(TAG, "I/O error reading database header", e)
             DatabaseEncryptionStatus.Corrupted("I/O error: ${e.message}")
 
         } catch (e: Exception) {
             // Any other exception - assume encrypted to be safe
-            android.util.Log.w(TAG, "Unexpected exception reading header, assuming encrypted", e)
+            AppLogger.w(TAG, "Unexpected exception reading header, assuming encrypted", e)
             DatabaseEncryptionStatus.Encrypted
         }
     }
@@ -225,14 +226,14 @@ object DatabaseMigrationHelper {
 
         try {
             // Step 1: Create backup
-            android.util.Log.d(TAG, "Creating backup at: ${backupFile.absolutePath}")
+            AppLogger.d(TAG, "Creating backup at: ${backupFile.absolutePath}")
             plaintextDbFile.copyTo(backupFile, overwrite = false)
 
             // Step 2: Get encryption passphrase
             val passphrase = DatabaseKeyManager.getOrCreatePassphrase(context)
 
             // Step 3: Open plaintext database and export to encrypted
-            android.util.Log.d(TAG, "Opening plaintext database")
+            AppLogger.d(TAG, "Opening plaintext database")
             val plaintextDb = SQLiteDatabase.openDatabase(
                 plaintextDbFile.absolutePath,
                 null,
@@ -241,7 +242,7 @@ object DatabaseMigrationHelper {
 
             try {
                 // Step 4: Attach encrypted database and export
-                android.util.Log.d(TAG, "Creating encrypted database and migrating data")
+                AppLogger.d(TAG, "Creating encrypted database and migrating data")
 
                 // Initialize SQLCipher library
                 System.loadLibrary("sqlcipher")
@@ -260,7 +261,7 @@ object DatabaseMigrationHelper {
                 // Detach encrypted database
                 plaintextDb.execSQL("DETACH DATABASE encrypted")
 
-                android.util.Log.d(TAG, "Data migration completed")
+                AppLogger.d(TAG, "Data migration completed")
             } finally {
                 plaintextDb.close()
                 // Clear passphrase from memory
@@ -268,11 +269,11 @@ object DatabaseMigrationHelper {
             }
 
             // Step 5: Verify encrypted database integrity
-            android.util.Log.d(TAG, "Verifying encrypted database integrity")
+            AppLogger.d(TAG, "Verifying encrypted database integrity")
             verifyEncryptedDatabase(context, tempEncryptedFile)
 
             // Step 6: Replace plaintext database with encrypted version
-            android.util.Log.d(TAG, "Replacing plaintext database with encrypted version")
+            AppLogger.d(TAG, "Replacing plaintext database with encrypted version")
 
             // Delete plaintext database
             if (!plaintextDbFile.delete()) {
@@ -290,11 +291,11 @@ object DatabaseMigrationHelper {
             File(plaintextDbFile.parent, "$DATABASE_NAME-wal").delete()
             File(plaintextDbFile.parent, "$DATABASE_NAME-shm").delete()
 
-            android.util.Log.i(TAG, "Migration completed successfully")
+            AppLogger.i(TAG, "Migration completed successfully")
             return MigrationResult.Success(backupFile.absolutePath)
 
         } catch (e: Exception) {
-            android.util.Log.e(TAG, "Migration failed, cleaning up", e)
+            AppLogger.e(TAG, "Migration failed, cleaning up", e)
 
             // Clean up temp files
             tempEncryptedFile.delete()
@@ -336,7 +337,7 @@ object DatabaseMigrationHelper {
                         if (cursor.moveToFirst()) cursor.getInt(0) else 0
                     }
 
-                android.util.Log.d(TAG, "Encrypted database verified, contains $mineralCount minerals")
+                AppLogger.d(TAG, "Encrypted database verified, contains $mineralCount minerals")
             } finally {
                 tempDb.close()
             }

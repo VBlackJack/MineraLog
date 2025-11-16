@@ -1,13 +1,21 @@
 package net.meshcore.mineralog.ui.screens.main
 
 import androidx.lifecycle.ViewModel
+import net.meshcore.mineralog.util.AppLogger
 import androidx.lifecycle.viewModelScope
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.MutableStateFlow
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.StateFlow
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.flow.asStateFlow
+import net.meshcore.mineralog.util.AppLogger
 import kotlinx.coroutines.launch
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.migration.AutoReferenceCreator
+import net.meshcore.mineralog.util.AppLogger
 import net.meshcore.mineralog.data.migration.MigrationReport
+import net.meshcore.mineralog.util.AppLogger
 
 /**
  * ViewModel for managing automatic reference mineral migration.
@@ -47,7 +55,7 @@ class MigrationViewModel(
                         _showMigrationDialog.value = true
                     }
                 } catch (e: Exception) {
-                    android.util.Log.e("MigrationViewModel", "Migration failed", e)
+                    AppLogger.e("MigrationViewModel", "Migration failed", e)
                 }
             }
         }

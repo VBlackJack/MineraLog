@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import net.meshcore.mineralog.data.local.entity.SimplePropertiesEntity
@@ -100,4 +101,47 @@ interface SimplePropertiesDao {
      */
     @Query("UPDATE simple_properties SET referenceMineralId = :referenceMineralId WHERE mineralId = :mineralId")
     suspend fun updateReferenceMineralId(mineralId: String, referenceMineralId: String?)
+
+    /**
+     * Get all simple properties with mineral names for migration analysis.
+     * This query joins simple_properties with minerals table to retrieve the mineral name.
+     * Used by AutoReferenceCreator to analyze specimens and create reference minerals.
+     *
+     * @return A list of SimplePropertiesWithName containing properties and mineral name.
+     */
+    @Transaction
+    @Query("""
+        SELECT sp.*, m.name as mineralName
+        FROM simple_properties sp
+        INNER JOIN minerals m ON sp.mineralId = m.id
+        ORDER BY m.name ASC
+    """)
+    suspend fun getAllWithMineralName(): List<SimplePropertiesWithName>
+
+    /**
+     * Data class for simple properties with mineral name (for JOIN query).
+     * Used by AutoReferenceCreator migration to group specimens by name.
+     */
+    data class SimplePropertiesWithName(
+        val id: String,
+        val mineralId: String,
+        val referenceMineralId: String?,
+        val group: String?,
+        val mohsMin: Float?,
+        val mohsMax: Float?,
+        val density: Float?,
+        val formula: String?,
+        val crystalSystem: String?,
+        val luster: String?,
+        val diaphaneity: String?,
+        val cleavage: String?,
+        val fracture: String?,
+        val habit: String?,
+        val streak: String?,
+        val fluorescence: String?,
+        val colorVariety: String?,
+        val actualDiaphaneity: String?,
+        val qualityNotes: String?,
+        val mineralName: String // From JOIN with minerals table
+    )
 }

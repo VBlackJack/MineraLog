@@ -9,6 +9,7 @@ import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.repository.*
+import net.meshcore.mineralog.util.AppLogger
 
 /**
  * Main Application class for MineraLog.
@@ -89,7 +90,7 @@ class MineraLogApplication : Application(), Configuration.Provider {
         try {
             AeadConfig.register()
         } catch (e: Exception) {
-            android.util.Log.e("MineraLogApp", "Failed to initialize Tink", e)
+            AppLogger.e("MineraLogApp", "Failed to initialize Tink", e)
         }
 
         // Initialize WorkManager

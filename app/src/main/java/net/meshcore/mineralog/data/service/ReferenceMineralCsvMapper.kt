@@ -1,7 +1,9 @@
 package net.meshcore.mineralog.data.service
 
 import net.meshcore.mineralog.data.local.entity.ReferenceMineralEntity
+import net.meshcore.mineralog.util.AppLogger
 import java.time.Instant
+import net.meshcore.mineralog.util.AppLogger
 
 /**
  * Mapper for converting ReferenceMineralEntity to/from CSV format.
@@ -142,7 +144,7 @@ class ReferenceMineralCsvMapper {
                 updatedAt = updatedAt
             )
         } catch (e: Exception) {
-            android.util.Log.e("RefMineralCsvMapper", "Failed to parse CSV row", e)
+            AppLogger.e("RefMineralCsvMapper", "Failed to parse CSV row", e)
             null
         }
     }
