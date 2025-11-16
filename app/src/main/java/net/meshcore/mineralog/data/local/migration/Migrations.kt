@@ -300,5 +300,131 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
 }
 
 /**
+ * Migration from version 5 to version 6.
+ *
+ * Changes:
+ * - Create reference_minerals table (library of mineral templates)
+ * - Add referenceMineralId column to simple_properties (link to reference)
+ * - Add referenceMineralId column to mineral_components (link to reference)
+ * - Add specimen-specific columns to simple_properties (colorVariety, actualDiaphaneity, qualityNotes)
+ * - Add indices for new columns and tables
+ *
+ * v3.0.0 feature: Reference Mineral Library
+ *
+ * The reference_minerals table contains a library of mineral templates with
+ * standardized properties. When creating a specimen, users can select a
+ * reference mineral to auto-fill technical properties.
+ *
+ * Backward compatibility:
+ * - All existing specimens have referenceMineralId = NULL (manual entry mode)
+ * - New specimen-specific fields default to NULL
+ * - Initial dataset population happens via database callback (not in migration)
+ */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // 1. Create reference_minerals table
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS reference_minerals (
+                id TEXT PRIMARY KEY NOT NULL,
+                nameFr TEXT NOT NULL,
+                nameEn TEXT NOT NULL,
+                synonyms TEXT,
+                mineralGroup TEXT,
+                formula TEXT,
+                mohsMin REAL,
+                mohsMax REAL,
+                density REAL,
+                crystalSystem TEXT,
+                cleavage TEXT,
+                fracture TEXT,
+                habit TEXT,
+                luster TEXT,
+                streak TEXT,
+                diaphaneity TEXT,
+                fluorescence TEXT,
+                magnetism TEXT,
+                radioactivity TEXT,
+                notes TEXT,
+                isUserDefined INTEGER NOT NULL DEFAULT 0,
+                source TEXT,
+                createdAt INTEGER NOT NULL,
+                updatedAt INTEGER NOT NULL
+            )
+        """.trimIndent())
+
+        // 2. Create indices on reference_minerals table
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_reference_minerals_nameFr
+            ON reference_minerals(nameFr)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_reference_minerals_nameEn
+            ON reference_minerals(nameEn)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_reference_minerals_mineralGroup
+            ON reference_minerals(mineralGroup)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_reference_minerals_crystalSystem
+            ON reference_minerals(crystalSystem)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_reference_minerals_isUserDefined
+            ON reference_minerals(isUserDefined)
+        """.trimIndent())
+
+        // 3. Add referenceMineralId column to simple_properties
+        db.execSQL("""
+            ALTER TABLE simple_properties
+            ADD COLUMN referenceMineralId TEXT DEFAULT NULL
+        """.trimIndent())
+
+        // Create index for referenceMineralId (for usage statistics queries)
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_simple_properties_referenceMineralId
+            ON simple_properties(referenceMineralId)
+        """.trimIndent())
+
+        // 4. Add specimen-specific columns to simple_properties
+        // These fields store specimen-specific variations that override reference properties
+        db.execSQL("""
+            ALTER TABLE simple_properties
+            ADD COLUMN colorVariety TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE simple_properties
+            ADD COLUMN actualDiaphaneity TEXT DEFAULT NULL
+        """.trimIndent())
+
+        db.execSQL("""
+            ALTER TABLE simple_properties
+            ADD COLUMN qualityNotes TEXT DEFAULT NULL
+        """.trimIndent())
+
+        // 5. Add referenceMineralId column to mineral_components
+        db.execSQL("""
+            ALTER TABLE mineral_components
+            ADD COLUMN referenceMineralId TEXT DEFAULT NULL
+        """.trimIndent())
+
+        // Create index for referenceMineralId
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_mineral_components_referenceMineralId
+            ON mineral_components(referenceMineralId)
+        """.trimIndent())
+
+        // Note: Initial dataset population (50-100 minerals) happens via
+        // a database callback when the database is first created, not in this migration.
+        // This ensures clean separation between schema evolution and data seeding.
+    }
+}
+
+/**
  * Future migrations will be added here as the schema evolves.
  */

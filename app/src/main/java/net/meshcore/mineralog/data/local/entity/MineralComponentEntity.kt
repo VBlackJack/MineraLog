@@ -54,7 +54,8 @@ import java.util.UUID
         Index(value = ["aggregateId"]),
         Index(value = ["role"]),
         Index(value = ["mineralName"]),
-        Index(value = ["displayOrder"])
+        Index(value = ["displayOrder"]),
+        Index(value = ["referenceMineralId"])
     ]
 )
 data class MineralComponentEntity(
@@ -64,6 +65,10 @@ data class MineralComponentEntity(
     // Relationship
     val aggregateId: String,
     val displayOrder: Int,
+
+    // Reference mineral link (v3.0.0+)
+    // When set, this component's properties inherit from a reference mineral template
+    val referenceMineralId: String? = null,
 
     // Component identification
     val mineralName: String,
