@@ -150,12 +150,31 @@ class MineralCsvMapper {
 
     /**
      * Escape CSV values containing special characters.
+     * P1-7: Implements CSV injection protection by sanitizing formula characters.
+     *
+     * Protects against formula injection attacks where values starting with
+     * =, +, -, @ could be interpreted as formulas by spreadsheet applications.
+     *
+     * @param value The value to escape
+     * @return Escaped and sanitized CSV value
      */
     fun escapeCSV(value: String): String {
-        return if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
-            "\"${value.replace("\"", "\"\"")}\""
+        if (value.isEmpty()) return value
+
+        // P1-7: CSV Injection protection - sanitize formula characters
+        // Remove dangerous characters at the start of fields to prevent formula injection
+        val sanitized = if (value.firstOrNull() in listOf('=', '+', '-', '@', '\t', '\r')) {
+            // Remove leading formula characters
+            value.dropWhile { it in listOf('=', '+', '-', '@', '\t', '\r') }
         } else {
             value
+        }
+
+        // Standard CSV escaping for special characters
+        return if (sanitized.contains(",") || sanitized.contains("\"") || sanitized.contains("\n")) {
+            "\"${sanitized.replace("\"", "\"\"")}\""
+        } else {
+            sanitized
         }
     }
 }

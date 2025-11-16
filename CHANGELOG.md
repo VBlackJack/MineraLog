@@ -89,6 +89,109 @@ ALTER TABLE reference_minerals ADD COLUMN sensitivity TEXT;
 
 ---
 
+## [3.0.0-beta] - 2025-11-16
+
+### 🔒 Security & Reliability (Phase P1)
+
+**P1-4: Enhanced Error Handling**
+- **Camera Module**: Implemented sealed `CameraState` class for better error management
+  - Specific error messages for camera initialization, binding, I/O, and capture failures
+  - Retry mechanism with actionable error snackbars
+  - Comprehensive error strings in EN and FR
+- **QR Scanner**: Implemented sealed `QrScannerState` class for scan validation
+  - Invalid QR code detection and user-friendly error messages
+  - Format validation for mineral deep links
+  - Proper null handling and edge case coverage
+
+**P1-5: Lifecycle Management**
+- Added `DisposableEffect` cleanup in `CameraCaptureScreen`
+  - Automatic camera provider unbinding on dispose
+  - Prevents resource leaks
+- Added `DisposableEffect` cleanup in `QrScannerScreen`
+  - Camera provider and executor shutdown
+  - Proper resource management
+
+**P1-7: CSV Injection Protection**
+- Enhanced `MineralCsvMapper.escapeCSV()` with formula injection prevention
+  - Sanitizes leading `=`, `+`, `-`, `@`, `\t`, `\r` characters
+  - Protects against spreadsheet formula execution attacks
+  - Maintains standard CSV escaping for quotes and commas
+
+### 🧪 Testing (Phase P1)
+
+**New Test Files:**
+- `ComponentEditorTest.kt` - Component editor unit tests
+  - Validates component creation, percentage sums, role types
+  - Tests edge cases (empty names, invalid percentages, boundary values)
+  - List operations (add, remove, edit)
+- `CameraIntegrationTest.kt` - Camera functionality instrumentation tests
+  - Permission handling validation
+  - Photo type selection and UI interactions
+  - Accessibility content descriptions
+  - Capture button and torch toggle verification
+- `QrCodeScannerTest.kt` - QR code generation and scanning tests
+  - Valid/invalid QR code format validation
+  - UUID format extraction
+  - Deep link parsing (mineralapp:// and legacy mineralog://)
+  - Batch generation and custom sizes
+  - State transition validation
+
+**Test Coverage:**
+- Added comprehensive tests for aggregate component editing
+- Camera integration tests with permission scenarios
+- QR code generation/scanning with edge cases and error paths
+
+### 🌍 Internationalization (Phase P1)
+
+**Enhanced Error Messages:**
+- Added 11 new camera error strings (EN/FR):
+  - `camera_init_failed`, `camera_binding_failed`, `camera_invalid_config`
+  - `camera_not_initialized`, `camera_storage_error`, `camera_file_creation_error`
+  - `camera_closed_error`, `camera_capture_failed_error`, `camera_file_io_error`
+  - `camera_invalid_camera_error`, `retry`
+- Added 2 new QR scanner error strings (EN/FR):
+  - `qr_scanner_invalid_code`, `qr_scanner_invalid_format`
+- Maintained French typography standards (espaces insécables)
+
+### 📝 Code Quality
+
+**Improved Error Reporting:**
+- Camera errors now provide specific, actionable messages instead of generic failures
+- QR scanner validates format and provides clear feedback for invalid codes
+- CSV exports automatically sanitized against injection attacks
+
+### 📁 Files Modified
+
+**Core Modules:**
+- `CameraCaptureScreen.kt` - Enhanced error handling and lifecycle cleanup
+- `QrScannerScreen.kt` - State management and resource cleanup
+- `MineralCsvMapper.kt` - CSV injection protection
+
+**Resources:**
+- `values/strings.xml` - 13 new error strings
+- `values-fr/strings.xml` - 13 new French error strings
+
+**Tests (New):**
+- `ui/components/ComponentEditorTest.kt` (210 lines)
+- `ui/screens/camera/CameraIntegrationTest.kt` (245 lines)
+- `ui/screens/qr/QrCodeScannerTest.kt` (285 lines)
+
+### 🎯 Phase P1 Summary
+
+**Completed Items:**
+- ✅ P1-4: Enhanced error handling (Camera + QR Scanner)
+- ✅ P1-5: Lifecycle cleanup (DisposableEffect)
+- ✅ P1-7: CSV injection protection
+- ✅ P1-1: Core functional tests (Component, Camera, QR)
+
+**Phase P1 Goals:**
+- Improve application reliability and error handling
+- Enhance security posture (CSV injection prevention)
+- Increase test coverage for critical features
+- Maintain bilingual support (FR/EN) for all new strings
+
+---
+
 ## [2.0.0] - 2025-11-16
 
 ### ✨ Added

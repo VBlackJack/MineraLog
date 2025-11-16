@@ -489,6 +489,20 @@
     <string name="camera_capture_success">Photo captured successfully</string>
     <string name="camera_capture_failed">Photo capture failed. Please try again</string>
 
+    <!-- P1-4: Enhanced camera error messages -->
+    <string name="camera_init_failed">Failed to initialize camera</string>
+    <string name="camera_binding_failed">Camera binding failed. Please restart the app</string>
+    <string name="camera_invalid_config">Invalid camera configuration</string>
+    <string name="camera_unknown_error">Camera error: %s</string>
+    <string name="camera_not_initialized">Camera not ready. Please wait</string>
+    <string name="camera_storage_error">Storage error. Cannot save photos</string>
+    <string name="camera_file_creation_error">Failed to create photo file</string>
+    <string name="camera_closed_error">Camera closed unexpectedly</string>
+    <string name="camera_capture_failed_error">Capture failed. Please try again</string>
+    <string name="camera_file_io_error">File I/O error. Check storage space</string>
+    <string name="camera_invalid_camera_error">Invalid camera. Please restart</string>
+    <string name="retry">Retry</string>
+
     <!-- Photo Gallery -->
     <string name="gallery_title_with_count">Photos (%d)</string>
     <string name="gallery_no_photos">No photos yet</string>
@@ -618,6 +632,10 @@
     <string name="qr_scanner_grant_permission">Grant Permission</string>
     <string name="qr_scanner_align_instruction">Align QR code within frame</string>
     <string name="qr_scanner_detected">QR Code Detected</string>
+
+    <!-- P1-4: QR Scanner error messages -->
+    <string name="qr_scanner_invalid_code">Invalid QR code data</string>
+    <string name="qr_scanner_invalid_format">Invalid QR code format: %s. Expected mineral deep link</string>
 
     <!-- Sort -->
     <string name="sort_title">Sort By</string>

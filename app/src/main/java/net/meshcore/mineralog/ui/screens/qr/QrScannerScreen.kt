@@ -36,8 +36,20 @@ import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 
 /**
+ * Sealed class representing QR scanner states (P1-4: Enhanced error handling).
+ */
+sealed class QrScannerState {
+    data object Idle : QrScannerState()
+    data object Scanning : QrScannerState()
+    data class Success(val qrData: String) : QrScannerState()
+    data class Error(val message: String) : QrScannerState()
+}
+
+/**
  * QR Scanner screen using CameraX and ML Kit Barcode Scanning.
  * Scans QR codes and extracts mineral IDs from deep links (mineralapp://mineral/{uuid}).
+ * P1-4: Enhanced error handling for invalid QR codes.
+ * P1-5: Lifecycle cleanup with DisposableEffect.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +74,10 @@ fun QrScannerScreen(
     var scannedText by remember { mutableStateOf<String?>(null) }
     var scanInProgress by remember { mutableStateOf(false) }
 
+    // P1-4: Enhanced state management
+    var scannerState by remember { mutableStateOf<QrScannerState>(QrScannerState.Idle) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -75,7 +91,19 @@ fun QrScannerScreen(
         }
     }
 
+    // P1-4: Handle scanner state changes and show errors
+    LaunchedEffect(scannerState) {
+        when (val state = scannerState) {
+            is QrScannerState.Error -> {
+                snackbarHostState.showSnackbar(state.message)
+                scannerState = QrScannerState.Idle
+            }
+            else -> {}
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.qr_scanner_title)) },
@@ -134,13 +162,31 @@ fun QrScannerScreen(
                         onBarcodeDetected = { barcode ->
                             if (!scanInProgress) {
                                 scanInProgress = true
-                                val rawValue = barcode.rawValue ?: return@CameraPreview
+                                val rawValue = barcode.rawValue
+
+                                // P1-4: Enhanced error handling for invalid QR codes
+                                if (rawValue == null) {
+                                    scannerState = QrScannerState.Error(
+                                        context.getString(R.string.qr_scanner_invalid_code)
+                                    )
+                                    scanInProgress = false
+                                    return@CameraPreview
+                                }
+
                                 scannedText = rawValue
 
                                 // Extract mineral ID from deep link
                                 val mineralId = extractMineralIdFromQrCode(rawValue)
                                 if (mineralId != null) {
+                                    scannerState = QrScannerState.Success(rawValue)
                                     onQrCodeScanned(mineralId)
+                                } else {
+                                    // P1-4: Invalid QR code format
+                                    scannerState = QrScannerState.Error(
+                                        context.getString(R.string.qr_scanner_invalid_format, rawValue)
+                                    )
+                                    scannedText = null
+                                    scanInProgress = false
                                 }
                             }
                         },
@@ -227,6 +273,7 @@ fun CameraPreview(
 
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     val executor = remember { Executors.newSingleThreadExecutor() }
+    var cameraProvider: ProcessCameraProvider? by remember { mutableStateOf(null) }
 
     AndroidView(
         factory = { ctx ->
@@ -239,7 +286,14 @@ fun CameraPreview(
             }
         },
         update = { previewView ->
-            val cameraProvider = cameraProviderFuture.get()
+            // P1-4: Enhanced error handling
+            val provider = try {
+                cameraProviderFuture.get()
+            } catch (e: Exception) {
+                AppLogger.e("QrScanner", "Failed to get camera provider", e)
+                return@AndroidView
+            }
+            cameraProvider = provider
 
             // Preview use case
             val preview = Preview.Builder().build().also {
@@ -280,10 +334,10 @@ fun CameraPreview(
 
             try {
                 // Unbind all use cases before rebinding
-                cameraProvider.unbindAll()
+                provider.unbindAll()
 
                 // Bind use cases to camera
-                val camera = cameraProvider.bindToLifecycle(
+                val camera = provider.bindToLifecycle(
                     lifecycleOwner,
                     cameraSelector,
                     preview,
@@ -294,11 +348,25 @@ fun CameraPreview(
                 camera.cameraControl.enableTorch(torchEnabled)
 
             } catch (e: Exception) {
+                // P1-4: Enhanced error reporting
                 AppLogger.e("QrScanner", "Camera binding failed", e)
             }
         },
         modifier = modifier
     )
+
+    // P1-5: Lifecycle cleanup with DisposableEffect
+    DisposableEffect(lifecycleOwner) {
+        onDispose {
+            try {
+                cameraProvider?.unbindAll()
+                executor.shutdown()
+                AppLogger.d("QrScanner", "Camera and executor resources released")
+            } catch (e: Exception) {
+                AppLogger.e("QrScanner", "Error releasing camera resources", e)
+            }
+        }
+    }
 }
 
 @Composable

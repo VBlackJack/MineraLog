@@ -489,6 +489,20 @@
     <string name="camera_capture_success">Photo capturée avec succès</string>
     <string name="camera_capture_failed">Échec de la capture. Veuillez réessayer</string>
 
+    <!-- P1-4 : Messages d'erreur améliorés pour la caméra -->
+    <string name="camera_init_failed">Échec de l\'initialisation de la caméra</string>
+    <string name="camera_binding_failed">Échec de la liaison caméra. Veuillez redémarrer l\'application</string>
+    <string name="camera_invalid_config">Configuration caméra invalide</string>
+    <string name="camera_unknown_error">Erreur caméra : %s</string>
+    <string name="camera_not_initialized">Caméra non prête. Veuillez patienter</string>
+    <string name="camera_storage_error">Erreur de stockage. Impossible d\'enregistrer les photos</string>
+    <string name="camera_file_creation_error">Échec de la création du fichier photo</string>
+    <string name="camera_closed_error">Caméra fermée de manière inattendue</string>
+    <string name="camera_capture_failed_error">Échec de la capture. Veuillez réessayer</string>
+    <string name="camera_file_io_error">Erreur E/S fichier. Vérifiez l\'espace de stockage</string>
+    <string name="camera_invalid_camera_error">Caméra invalide. Veuillez redémarrer</string>
+    <string name="retry">Réessayer</string>
+
     <!-- Photo Gallery -->
     <string name="gallery_title_with_count">Photos (%d)</string>
     <string name="gallery_no_photos">Aucune photo pour le moment</string>
@@ -618,6 +632,10 @@
     <string name="qr_scanner_grant_permission">Accorder la permission</string>
     <string name="qr_scanner_align_instruction">Alignez le code QR dans le cadre</string>
     <string name="qr_scanner_detected">Code QR détecté</string>
+
+    <!-- P1-4 : Messages d'erreur du scanner QR -->
+    <string name="qr_scanner_invalid_code">Données de code QR invalides</string>
+    <string name="qr_scanner_invalid_format">Format de code QR invalide : %s. Lien profond minéral attendu</string>
 
     <!-- Sort -->
     <string name="sort_title">Trier par</string>
