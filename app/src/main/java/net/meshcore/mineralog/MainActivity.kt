@@ -45,16 +45,25 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Get deep link URI if present, validate UUID to prevent injection attacks
-        val deepLinkMineralId = intent?.data?.lastPathSegment?.let { id ->
-            try {
-                // Validate that the ID is a valid UUID
-                UUID.fromString(id)
-                id // Return the valid ID
-            } catch (e: IllegalArgumentException) {
-                // Log security event without exposing the invalid UUID
-                AppLogger.w("MainActivity", "Invalid deep link UUID rejected")
-                null
+        // Get deep link URI if present, validate scheme/host/UUID to prevent injection attacks
+        val deepLinkMineralId = intent?.data?.let { uri ->
+            // Validate scheme and host first
+            if (uri.scheme != "mineralapp" || uri.host != "mineral") {
+                AppLogger.w("MainActivity", "Invalid deep link scheme or host rejected: ${uri.scheme}://${uri.host}")
+                return@let null
+            }
+
+            // Then validate UUID format
+            uri.lastPathSegment?.let { id ->
+                try {
+                    // Validate that the ID is a valid UUID
+                    UUID.fromString(id)
+                    id // Return the valid ID
+                } catch (e: IllegalArgumentException) {
+                    // Log security event without exposing the invalid UUID
+                    AppLogger.w("MainActivity", "Invalid deep link UUID rejected")
+                    null
+                }
             }
         }
 

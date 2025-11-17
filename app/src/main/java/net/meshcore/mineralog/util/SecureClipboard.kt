@@ -35,14 +35,18 @@ object SecureClipboard {
      * @param context Android context for accessing clipboard service
      * @param label Label for the clipboard data (shown in clipboard UI)
      * @param text Text to copy to clipboard
-     * @param delayMs Delay in milliseconds before auto-clearing (default: 30 seconds)
+     * @param delayMs Delay in milliseconds before auto-clearing (default: 10 seconds)
+     * @param isSensitive If true, uses a shorter 5-second delay for extra security
      */
     fun copyWithAutoCleanup(
         context: Context,
         label: String,
         text: String,
-        delayMs: Long = 30_000L // 30 seconds default
+        delayMs: Long = 10_000L, // 10 seconds default (reduced from 30s for better security)
+        isSensitive: Boolean = false
     ) {
+        // Use shorter delay for sensitive data
+        val actualDelay = if (isSensitive) 5_000L else delayMs
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
 
         if (clipboard == null) {
@@ -54,19 +58,19 @@ object SecureClipboard {
         val clip = ClipData.newPlainText(label, text)
         clipboard.setPrimaryClip(clip)
 
-        AppLogger.d("SecureClipboard", "Copied to clipboard: '$label' (will clear in ${delayMs}ms)")
+        AppLogger.d("SecureClipboard", "Copied to clipboard: '$label' (will clear in ${actualDelay}ms)")
 
         // Cancel any existing clear job
         clearJob?.cancel()
 
         // Schedule auto-clear
         clearJob = CoroutineScope(Dispatchers.Main).launch {
-            delay(delayMs)
+            delay(actualDelay)
             try {
                 // Clear clipboard by setting empty content
                 val emptyClip = ClipData.newPlainText("", "")
                 clipboard.setPrimaryClip(emptyClip)
-                AppLogger.d("SecureClipboard", "Clipboard cleared after ${delayMs}ms")
+                AppLogger.d("SecureClipboard", "Clipboard cleared after ${actualDelay}ms")
             } catch (e: Exception) {
                 AppLogger.e("SecureClipboard", "Failed to clear clipboard", e)
             }
