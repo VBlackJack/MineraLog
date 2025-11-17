@@ -74,7 +74,7 @@ suspend fun MineralRepositoryImpl.insertSimpleMineral(
             createdAt = mineral.createdAt,
             updatedAt = mineral.updatedAt
         )
-        db.mineralDao().insert(mineralEntity)
+        db.mineralBasicDao().insert(mineralEntity)
 
         // Insert properties
         val propertiesEntity = mineral.properties.toEntity(mineral.id)
@@ -112,7 +112,7 @@ suspend fun MineralRepositoryImpl.insertAggregate(
             createdAt = aggregate.createdAt,
             updatedAt = aggregate.updatedAt
         )
-        db.mineralDao().insert(mineralEntity)
+        db.mineralBasicDao().insert(mineralEntity)
 
         // Insert components
         val componentEntities = aggregate.components.mapIndexed { index, component ->
@@ -153,9 +153,9 @@ suspend fun MineralRepositoryImpl.updateAggregateComponents(
         db.mineralComponentDao().insertAll(componentEntities)
 
         // Update mineral's updatedAt timestamp
-        val mineral = db.mineralDao().getById(aggregateId)
+        val mineral = db.mineralBasicDao().getById(aggregateId)
         mineral?.let {
-            db.mineralDao().update(it.copy(updatedAt = Instant.now()))
+            db.mineralBasicDao().update(it.copy(updatedAt = Instant.now()))
         }
     }
 }
@@ -169,7 +169,7 @@ suspend fun MineralRepositoryImpl.updateAggregateComponents(
 suspend fun MineralRepositoryImpl.getSimpleProperties(mineralId: String): SimpleProperties? {
     val db = database
 
-    val mineral = db.mineralDao().getById(mineralId)
+    val mineral = db.mineralBasicDao().getById(mineralId)
     if (mineral?.type != "SIMPLE") return null
 
     return db.simplePropertiesDao().getByMineralId(mineralId)?.toDomain()
@@ -182,7 +182,7 @@ suspend fun MineralRepositoryImpl.getSimpleProperties(mineralId: String): Simple
  * @return The mineral type, or SIMPLE if not found.
  */
 suspend fun MineralRepositoryImpl.getMineralType(mineralId: String): MineralType {
-    val mineral = database.mineralDao().getById(mineralId)
+    val mineral = database.mineralBasicDao().getById(mineralId)
     return when (mineral?.type) {
         "AGGREGATE" -> MineralType.AGGREGATE
         else -> MineralType.SIMPLE
@@ -198,7 +198,7 @@ suspend fun MineralRepositoryImpl.getMineralType(mineralId: String): MineralType
 suspend fun MineralRepositoryImpl.getAggregateComponents(aggregateId: String): List<MineralComponent> {
     val db = database
 
-    val mineral = db.mineralDao().getById(aggregateId)
+    val mineral = db.mineralBasicDao().getById(aggregateId)
     if (mineral?.type != "AGGREGATE") return emptyList()
 
     return db.mineralComponentDao().getByAggregateId(aggregateId)
@@ -238,7 +238,7 @@ fun MineralRepositoryImpl.searchAggregatesByComponent(componentName: String): Fl
 fun MineralRepositoryImpl.getAllSimpleMinerals(): Flow<List<MineralEntity>> {
     val db = database
 
-    return db.mineralDao().getAllSimpleMinerals()
+    return db.mineralQueryDao().getAllSimpleMinerals()
 }
 
 /**
@@ -249,7 +249,7 @@ fun MineralRepositoryImpl.getAllSimpleMinerals(): Flow<List<MineralEntity>> {
 fun MineralRepositoryImpl.getAllAggregates(): Flow<List<MineralEntity>> {
     val db = database
 
-    return db.mineralDao().getAllAggregates()
+    return db.mineralQueryDao().getAllAggregates()
 }
 
 /**
@@ -261,7 +261,7 @@ fun MineralRepositoryImpl.getAllAggregates(): Flow<List<MineralEntity>> {
 suspend fun MineralRepositoryImpl.countByType(type: String): Int {
     val db = database
 
-    return db.mineralDao().countByType(type)
+    return db.mineralQueryDao().countByType(type)
 }
 
 /**
@@ -272,7 +272,7 @@ suspend fun MineralRepositoryImpl.countByType(type: String): Int {
 suspend fun MineralRepositoryImpl.getTypeDistribution(): Map<String, Int> {
     val db = database
 
-    return db.mineralDao().getTypeDistribution()
+    return db.mineralStatisticsDao().getTypeDistribution()
 }
 
 /**
