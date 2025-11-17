@@ -9,6 +9,8 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import net.meshcore.mineralog.data.model.FilterCriteria
 import net.meshcore.mineralog.data.repository.BackupRepository
 import net.meshcore.mineralog.data.repository.CsvImportMode
@@ -70,8 +72,9 @@ class HomeViewModel(
     private val _selectedIds = MutableStateFlow<Set<String>>(emptySet())
     val selectedIds: StateFlow<Set<String>> = _selectedIds.asStateFlow()
 
-    // Undo delete state
+    // Undo delete state - protected by mutex to prevent race conditions
     private var deletedMinerals: List<Mineral> = emptyList()
+    private val deletedMineralsMutex = Mutex()
 
     val selectionCount: StateFlow<Int> = _selectedIds.map { it.size }
         .stateIn(
@@ -198,7 +201,9 @@ class HomeViewModel(
     }
 
     fun selectAll() {
-        _selectedIds.value = minerals.value.map { it.id }.toSet()
+        // Create snapshot to avoid race condition if minerals list updates during operation
+        val currentMinerals = minerals.value
+        _selectedIds.value = currentMinerals.map { it.id }.toSet()
     }
 
     fun deselectAll() {
@@ -207,8 +212,10 @@ class HomeViewModel(
 
     fun deleteSelected() {
         viewModelScope.launch {
-            // Store minerals for undo functionality
-            deletedMinerals = getSelectedMinerals()
+            // Store minerals for undo functionality - protected by mutex
+            deletedMineralsMutex.withLock {
+                deletedMinerals = getSelectedMinerals()
+            }
 
             val idsToDelete = _selectedIds.value.toList()
             val total = idsToDelete.size
@@ -251,11 +258,16 @@ class HomeViewModel(
 
     fun undoDelete() {
         viewModelScope.launch {
-            // Restore previously deleted minerals
-            deletedMinerals.forEach { mineral ->
+            // Restore previously deleted minerals - protected by mutex
+            val mineralsToRestore = deletedMineralsMutex.withLock {
+                val minerals = deletedMinerals
+                deletedMinerals = emptyList()
+                minerals
+            }
+
+            mineralsToRestore.forEach { mineral ->
                 mineralRepository.insert(mineral)
             }
-            deletedMinerals = emptyList()
         }
     }
 
