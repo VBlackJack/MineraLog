@@ -40,6 +40,7 @@ class ZipBackupService(
     private val MAX_FILE_SIZE = 100 * 1024 * 1024L // 100 MB compressed
     private val MAX_DECOMPRESSED_SIZE = 500 * 1024 * 1024L // 500 MB decompressed
     private val MAX_DECOMPRESSION_RATIO = 100 // Prevent ZIP bombs
+    private val MAX_ENTRY_SIZE = 10 * 1024 * 1024L // 10 MB per individual entry to prevent OOM attacks
 
     private val json = Json {
         prettyPrint = true
@@ -219,6 +220,16 @@ class ZipBackupService(
                             }
                         }
 
+                        // Security: Check individual entry size before reading into memory
+                        if (entryUncompressedSize > MAX_ENTRY_SIZE) {
+                            val entryMB = entryUncompressedSize / 1024 / 1024
+                            val maxMB = MAX_ENTRY_SIZE / 1024 / 1024
+                            errors.add("Skipped entry '$sanitizedPath': size ${entryMB}MB exceeds ${maxMB}MB limit")
+                            zip.closeEntry()
+                            entry = zip.nextEntry
+                            continue
+                        }
+
                         when {
                             sanitizedPath == "manifest.json" -> {
                                 manifestJson = zip.readBytes().toString(Charsets.UTF_8)
@@ -271,8 +282,11 @@ class ZipBackupService(
 
                         // Decrypt
                         try {
+                            if (mineralsBytes == null) {
+                                return@withContext Result.failure(Exception("Missing minerals.json in encrypted backup"))
+                            }
                             val decryptedBytes = encryptionService.decrypt(
-                                ciphertext = mineralsBytes!!,
+                                ciphertext = mineralsBytes,
                                 password = password,
                                 encodedSalt = encodedSalt,
                                 encodedIv = encodedIv
