@@ -158,17 +158,20 @@ class MineralCsvMapper {
      * Protects against formula injection attacks where values starting with
      * =, +, -, @ could be interpreted as formulas by spreadsheet applications.
      *
+     * Uses OWASP recommendation: prefix with single quote instead of removing characters
+     * to preserve data integrity (e.g., "=CaCO3" becomes "'=CaCO3" instead of "CaCO3")
+     *
      * @param value The value to escape
      * @return Escaped and sanitized CSV value
      */
     fun escapeCSV(value: String): String {
         if (value.isEmpty()) return value
 
-        // P1-7: CSV Injection protection - sanitize formula characters
-        // Remove dangerous characters at the start of fields to prevent formula injection
+        // P1-7: CSV Injection protection - prefix formula characters with single quote (OWASP standard)
+        // This prevents formula injection while preserving the original data
         val sanitized = if (value.firstOrNull() in listOf('=', '+', '-', '@', '\t', '\r')) {
-            // Remove leading formula characters
-            value.dropWhile { it in listOf('=', '+', '-', '@', '\t', '\r') }
+            // Prefix with single quote to escape formula characters (OWASP recommendation)
+            "'$value"
         } else {
             value
         }
