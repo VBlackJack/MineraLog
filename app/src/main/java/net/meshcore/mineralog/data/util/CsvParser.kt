@@ -321,27 +321,32 @@ object CsvColumnMapper {
     )
 
     /**
+     * Reversed mapping for O(1) lookup performance.
+     * Maps normalized variation name to domain field.
+     */
+    private val reversedMappings by lazy {
+        columnMappings
+            .flatMap { (domainField, variations) ->
+                variations.map { normalizeHeaderName(it) to domainField }
+            }
+            .toMap()
+    }
+
+    /**
      * Map CSV headers to domain field names.
      * Uses fuzzy matching (case-insensitive, ignores spaces/underscores).
+     *
+     * PERFORMANCE: O(n) instead of O(n*m) thanks to reversed mapping.
      *
      * @param csvHeaders List of headers from CSV file
      * @return Map of CSV header to domain field name
      */
     fun mapHeaders(csvHeaders: List<String>): Map<String, String> {
-        val mapping = mutableMapOf<String, String>()
-
-        csvHeaders.forEach { csvHeader ->
+        return csvHeaders.mapNotNull { csvHeader ->
             val normalized = normalizeHeaderName(csvHeader)
-
-            // Find matching domain field
-            columnMappings.entries.forEach { (domainField, variations) ->
-                if (variations.any { normalizeHeaderName(it) == normalized }) {
-                    mapping[csvHeader] = domainField
-                }
-            }
-        }
-
-        return mapping
+            val domainField = reversedMappings[normalized]
+            if (domainField != null) csvHeader to domainField else null
+        }.toMap()
     }
 
     /**

@@ -20,9 +20,12 @@ class MineralCsvMapper {
         columnMapping: Map<String, String>,
         existingMineral: Mineral?
     ): Mineral {
+        // PERFORMANCE: Invert mapping once for O(1) lookup instead of O(n) linear search
+        val invertedMapping = columnMapping.entries.associate { (k, v) -> v to k }
+
         // Helper to get mapped value
         fun getMapped(domainField: String): String? {
-            val csvHeader = columnMapping.entries.find { it.value == domainField }?.key
+            val csvHeader = invertedMapping[domainField]  // O(1) instead of O(n)
             return csvHeader?.let { row[it] }?.takeIf { it.isNotBlank() }
         }
 

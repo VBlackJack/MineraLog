@@ -5,6 +5,7 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import net.meshcore.mineralog.util.AppLogger
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -62,10 +63,10 @@ object DatabaseKeyManager {
         // Generate new passphrase
         val newPassphrase = generateSecurePassphrase()
 
-        // Store encrypted passphrase
+        // Store encrypted passphrase (use commit() for synchronous write to ensure data is persisted)
         encryptedPrefs.edit()
             .putString(KEY_DB_PASSPHRASE, byteArrayToHexString(newPassphrase))
-            .apply()
+            .commit()
 
         return newPassphrase
     }
@@ -119,7 +120,7 @@ object DatabaseKeyManager {
      */
     private fun generateFallbackPassphrase(): ByteArray {
         // Log warning when fallback is used (may indicate device security issues)
-        android.util.Log.w("DatabaseKeyManager", "Using fallback passphrase generation - Keystore extraction failed")
+        AppLogger.w("DatabaseKeyManager", "Using fallback passphrase generation - Keystore extraction failed")
         val passphrase = ByteArray(32)
         java.security.SecureRandom().nextBytes(passphrase)
         return passphrase
