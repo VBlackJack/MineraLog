@@ -66,9 +66,11 @@ android {
                 this.keyAlias = keyAlias
                 this.keyPassword = keyPassword
 
-                // Enable v1 and v2 signing for compatibility
-                enableV1Signing = true
-                enableV2Signing = true
+                // Enable v1, v2, v3, and v4 signing for maximum compatibility and features
+                enableV1Signing = true  // Android 4.4-6.0 (Nougat) compatibility
+                enableV2Signing = true  // Android 7.0+ (full-APK signature)
+                enableV3Signing = true  // Android 9.0+ (key rotation support)
+                enableV4Signing = true  // Android 11+ (faster installation)
             } else {
                 // Fallback to debug signing for local development
                 // WARNING: This is NOT suitable for production releases!
@@ -262,7 +264,13 @@ detekt {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    ignoreFailures = true  // Allow coverage generation even with test failures
+    ignoreFailures = false
+    // Configure test logging
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = false
+    }
 }
 
 // JaCoCo configuration for code coverage

@@ -138,9 +138,14 @@ class QrLabelPdfGenerator(
             margin = 0
         )
 
-        val qrX = x + MARGIN
-        val qrY = y + MARGIN
-        canvas.drawBitmap(qrBitmap, qrX, qrY, null)
+        try {
+            val qrX = x + MARGIN
+            val qrY = y + MARGIN
+            canvas.drawBitmap(qrBitmap, qrX, qrY, null)
+        } finally {
+            // Recycle bitmap to free memory immediately
+            qrBitmap.recycle()
+        }
 
         // Draw text information
         val textX = x + MARGIN

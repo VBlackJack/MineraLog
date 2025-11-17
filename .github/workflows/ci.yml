@@ -114,7 +114,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api-level: [27, 35]
+        # Only test API 35 on PRs to save CI time, test both on main/develop
+        api-level: ${{ github.event_name == 'pull_request' && fromJSON('[35]') || fromJSON('[27, 35]') }}
     steps:
       - uses: actions/checkout@v4
 
