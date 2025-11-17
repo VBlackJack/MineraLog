@@ -21,6 +21,7 @@ import net.meshcore.mineralog.ui.screens.home.SortOption
 import net.meshcore.mineralog.domain.model.Photo
 import net.meshcore.mineralog.domain.model.Provenance
 import net.meshcore.mineralog.domain.model.Storage
+import net.meshcore.mineralog.domain.sorting.MineralSortStrategy
 
 interface MineralRepository {
     suspend fun insert(mineral: Mineral): String
@@ -167,16 +168,8 @@ class MineralRepositoryImpl(
                 )
             }
 
-            // Apply in-memory sorting (legacy flow for bulk operations)
-            when (sortOption) {
-                SortOption.NAME_ASC -> minerals.sortedBy { it.name.lowercase() }
-                SortOption.NAME_DESC -> minerals.sortedByDescending { it.name.lowercase() }
-                SortOption.DATE_NEWEST -> minerals.sortedByDescending { it.updatedAt }
-                SortOption.DATE_OLDEST -> minerals.sortedBy { it.updatedAt }
-                SortOption.GROUP -> minerals.sortedWith(compareBy({ it.group }, { it.name.lowercase() }))
-                SortOption.HARDNESS_LOW -> minerals.sortedWith(compareBy({ it.mohsMin }, { it.name.lowercase() }))
-                SortOption.HARDNESS_HIGH -> minerals.sortedWith(compareByDescending<Mineral> { it.mohsMax }.thenBy { it.name.lowercase() })
-            }
+            // Apply in-memory sorting using Strategy Pattern (Sprint 2: Architecture Refactoring)
+            MineralSortStrategy.sort(minerals, sortOption)
         }
     }
 
@@ -219,16 +212,8 @@ class MineralRepositoryImpl(
                 )
             }
 
-            // Apply in-memory sorting (legacy flow for bulk operations)
-            when (sortOption) {
-                SortOption.NAME_ASC -> minerals.sortedBy { it.name.lowercase() }
-                SortOption.NAME_DESC -> minerals.sortedByDescending { it.name.lowercase() }
-                SortOption.DATE_NEWEST -> minerals.sortedByDescending { it.updatedAt }
-                SortOption.DATE_OLDEST -> minerals.sortedBy { it.updatedAt }
-                SortOption.GROUP -> minerals.sortedWith(compareBy({ it.group }, { it.name.lowercase() }))
-                SortOption.HARDNESS_LOW -> minerals.sortedWith(compareBy({ it.mohsMin }, { it.name.lowercase() }))
-                SortOption.HARDNESS_HIGH -> minerals.sortedWith(compareByDescending<Mineral> { it.mohsMax }.thenBy { it.name.lowercase() })
-            }
+            // Apply in-memory sorting using Strategy Pattern (Sprint 2: Architecture Refactoring)
+            MineralSortStrategy.sort(minerals, sortOption)
         }
     }
 
@@ -266,16 +251,8 @@ class MineralRepositoryImpl(
                 )
             }
 
-            // Apply in-memory sorting (legacy flow for bulk operations)
-            when (sortOption) {
-                SortOption.NAME_ASC -> minerals.sortedBy { it.name.lowercase() }
-                SortOption.NAME_DESC -> minerals.sortedByDescending { it.name.lowercase() }
-                SortOption.DATE_NEWEST -> minerals.sortedByDescending { it.updatedAt }
-                SortOption.DATE_OLDEST -> minerals.sortedBy { it.updatedAt }
-                SortOption.GROUP -> minerals.sortedWith(compareBy({ it.group }, { it.name.lowercase() }))
-                SortOption.HARDNESS_LOW -> minerals.sortedWith(compareBy({ it.mohsMin }, { it.name.lowercase() }))
-                SortOption.HARDNESS_HIGH -> minerals.sortedWith(compareByDescending<Mineral> { it.mohsMax }.thenBy { it.name.lowercase() })
-            }
+            // Apply in-memory sorting using Strategy Pattern (Sprint 2: Architecture Refactoring)
+            MineralSortStrategy.sort(minerals, sortOption)
         }
     }
 
