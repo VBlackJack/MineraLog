@@ -10,8 +10,13 @@ import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SupportFactory
 import net.meshcore.mineralog.data.local.converter.Converters
 import net.meshcore.mineralog.data.local.dao.FilterPresetDao
+import net.meshcore.mineralog.data.local.dao.MineralBasicDao
 import net.meshcore.mineralog.data.local.dao.MineralComponentDao
 import net.meshcore.mineralog.data.local.dao.MineralDao
+import net.meshcore.mineralog.data.local.dao.MineralDaoComposite
+import net.meshcore.mineralog.data.local.dao.MineralPagingDao
+import net.meshcore.mineralog.data.local.dao.MineralQueryDao
+import net.meshcore.mineralog.data.local.dao.MineralStatisticsDao
 import net.meshcore.mineralog.data.local.dao.PhotoDao
 import net.meshcore.mineralog.data.local.dao.ProvenanceDao
 import net.meshcore.mineralog.data.local.dao.ReferenceMineralDao
@@ -63,7 +68,57 @@ import net.meshcore.mineralog.util.AppLogger
 @TypeConverters(Converters::class)
 abstract class MineraLogDatabase : RoomDatabase() {
 
+    // ========== LEGACY DAO (deprecated, use mineralDaoComposite() instead) ==========
+
+    /**
+     * Legacy MineralDao - use [mineralDaoComposite] instead for better maintainability.
+     * @deprecated Use [mineralDaoComposite] which delegates to specialized DAOs
+     */
+    @Deprecated(
+        message = "Use mineralDaoComposite() for better maintainability",
+        replaceWith = ReplaceWith("mineralDaoComposite()"),
+        level = DeprecationLevel.WARNING
+    )
     abstract fun mineralDao(): MineralDao
+
+    // ========== SPECIALIZED MINERAL DAOs ==========
+
+    /**
+     * Basic CRUD operations for minerals.
+     */
+    abstract fun mineralBasicDao(): MineralBasicDao
+
+    /**
+     * Query operations with filters and search for minerals.
+     */
+    abstract fun mineralQueryDao(): MineralQueryDao
+
+    /**
+     * Statistics and aggregation operations for minerals.
+     */
+    abstract fun mineralStatisticsDao(): MineralStatisticsDao
+
+    /**
+     * Paginated query operations for minerals.
+     */
+    abstract fun mineralPagingDao(): MineralPagingDao
+
+    /**
+     * Composite DAO that provides the same API as the legacy MineralDao
+     * but delegates to specialized DAOs for better maintainability.
+     * This is the recommended way to access mineral data.
+     */
+    fun mineralDaoComposite(): MineralDaoComposite {
+        return MineralDaoComposite(
+            basicDao = mineralBasicDao(),
+            queryDao = mineralQueryDao(),
+            statisticsDao = mineralStatisticsDao(),
+            pagingDao = mineralPagingDao()
+        )
+    }
+
+    // ========== OTHER DAOs ==========
+
     abstract fun simplePropertiesDao(): SimplePropertiesDao
     abstract fun mineralComponentDao(): MineralComponentDao
     abstract fun referenceMineralDao(): ReferenceMineralDao

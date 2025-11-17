@@ -3,13 +3,13 @@ package net.meshcore.mineralog.data.repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import net.meshcore.mineralog.data.local.dao.*
+import net.meshcore.mineralog.data.local.dao.MineralDaoComposite
 import net.meshcore.mineralog.data.model.CollectionStatistics
 import net.meshcore.mineralog.data.model.MineralSummary
 
 /**
  * Repository for computing collection statistics.
- * Aggregates data from MineralDao to produce CollectionStatistics.
+ * Aggregates data from MineralDaoComposite to produce CollectionStatistics.
  */
 interface StatisticsRepository {
     suspend fun getStatistics(): CollectionStatistics
@@ -17,7 +17,7 @@ interface StatisticsRepository {
 }
 
 class StatisticsRepositoryImpl(
-    private val mineralDao: MineralDao
+    private val mineralDao: MineralDaoComposite
 ) : StatisticsRepository {
 
     // Cache configuration

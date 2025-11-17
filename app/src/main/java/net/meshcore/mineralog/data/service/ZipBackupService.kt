@@ -57,7 +57,7 @@ class ZipBackupService(
     suspend fun exportZip(uri: Uri, password: CharArray?): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             // Get all data with batch queries to avoid N+1 problem
-            val mineralEntities = database.mineralDao().getAll()
+            val mineralEntities = database.mineralBasicDao().getAll()
             if (mineralEntities.isEmpty()) {
                 return@withContext Result.failure(Exception("No minerals to export"))
             }
@@ -306,7 +306,7 @@ class ZipBackupService(
                         // Use transaction to ensure atomicity
                         database.withTransaction {
                             if (mode == ImportMode.REPLACE) {
-                                database.mineralDao().deleteAll()
+                                database.mineralBasicDao().deleteAll()
                                 database.provenanceDao().deleteAll()
                                 database.storageDao().deleteAll()
                                 database.photoDao().deleteAll()
@@ -314,7 +314,7 @@ class ZipBackupService(
 
                             minerals.forEach { mineral ->
                                 try {
-                                    database.mineralDao().insert(mineral.toEntity())
+                                    database.mineralBasicDao().insert(mineral.toEntity())
                                     mineral.provenance?.let { database.provenanceDao().insert(it.toEntity()) }
                                     mineral.storage?.let { database.storageDao().insert(it.toEntity()) }
                                     mineral.photos.forEach { database.photoDao().insert(it.toEntity()) }

@@ -167,14 +167,14 @@ class CsvBackupService(
                 val mapping = columnMapping ?: net.meshcore.mineralog.data.util.CsvColumnMapper.mapHeaders(parseResult.headers)
 
                 // Get existing minerals for name-based lookups
-                val existingMinerals = database.mineralDao().getAll()
+                val existingMinerals = database.mineralBasicDao().getAll()
                 val existingByName = existingMinerals.associateBy { it.name.lowercase() }
 
                 // Use transaction for atomicity
                 database.withTransaction {
                     // Handle REPLACE mode
                     if (mode == CsvImportMode.REPLACE) {
-                        database.mineralDao().deleteAll()
+                        database.mineralBasicDao().deleteAll()
                         database.provenanceDao().deleteAll()
                         database.storageDao().deleteAll()
                         database.photoDao().deleteAll()
@@ -237,7 +237,7 @@ class CsvBackupService(
                             }
 
                             // Insert or update mineral
-                            database.mineralDao().insert(mineral.toEntity())
+                            database.mineralBasicDao().insert(mineral.toEntity())
 
                             // Insert provenance if present
                             mineral.provenance?.let { prov ->

@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import net.meshcore.mineralog.data.local.MineraLogDatabase
-import net.meshcore.mineralog.data.local.dao.MineralDao
+import net.meshcore.mineralog.data.local.dao.MineralDaoComposite
 import net.meshcore.mineralog.data.local.dao.PhotoDao
 import net.meshcore.mineralog.data.local.dao.ProvenanceDao
 import net.meshcore.mineralog.data.local.dao.StorageDao
@@ -62,7 +62,7 @@ interface MineralRepository {
 
 class MineralRepositoryImpl(
     internal val database: MineraLogDatabase,
-    private val mineralDao: MineralDao,
+    private val mineralDao: MineralDaoComposite,
     private val provenanceDao: ProvenanceDao,
     private val storageDao: StorageDao,
     private val photoDao: PhotoDao
