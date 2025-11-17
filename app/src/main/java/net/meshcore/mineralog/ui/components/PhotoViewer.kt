@@ -37,6 +37,8 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import net.meshcore.mineralog.R
 import net.meshcore.mineralog.ui.screens.edit.PhotoItem
 import java.io.File
@@ -267,7 +269,8 @@ fun ZoomablePhoto(
             },
         contentAlignment = Alignment.Center
     ) {
-        val photoModel = if (photo.uri != null) {
+        val context = LocalContext.current
+        val photoData = if (photo.uri != null) {
             photo.uri
         } else if (photo.isExisting) {
             File(photosDir, photo.fileName)
@@ -275,8 +278,15 @@ fun ZoomablePhoto(
             null
         }
 
+        // Optimize AsyncImage with size constraints and caching to prevent OOM crashes
         AsyncImage(
-            model = photoModel,
+            model = ImageRequest.Builder(context)
+                .data(photoData)
+                .crossfade(true)
+                .size(2048, 2048) // Limit max size to prevent memory issues
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .build(),
             contentDescription = photo.caption ?: "Photo",
             modifier = Modifier
                 .fillMaxSize()

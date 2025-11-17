@@ -518,6 +518,8 @@ private fun capturePhoto(
                 val savedUri = Uri.fromFile(photoFile)
                 AppLogger.d("CameraCapture", "Photo saved: $savedUri")
                 onSuccess(savedUri)
+                // BUGFIX: Shutdown executor to prevent resource leak
+                executor.shutdown()
             }
 
             override fun onError(exception: ImageCaptureException) {
@@ -536,6 +538,8 @@ private fun capturePhoto(
                         context.getString(R.string.camera_capture_failed)
                 }
                 onError(errorMessage)
+                // BUGFIX: Shutdown executor to prevent resource leak
+                executor.shutdown()
             }
         }
     )

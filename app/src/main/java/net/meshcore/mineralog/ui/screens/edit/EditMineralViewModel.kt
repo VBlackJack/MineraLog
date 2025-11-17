@@ -132,7 +132,10 @@ class EditMineralViewModel(
 
     private val _interestingFeatures = MutableStateFlow("")
     val interestingFeatures: StateFlow<String> = _interestingFeatures.asStateFlow()
-    private var originalMineral: Mineral? = null
+
+    // Store original mineral as StateFlow to prevent race conditions
+    private val _originalMineral = MutableStateFlow<Mineral?>(null)
+    private val originalMineral: StateFlow<Mineral?> = _originalMineral.asStateFlow()
 
     init {
         loadMineral()
@@ -159,7 +162,7 @@ class EditMineralViewModel(
 
                 mineralRepository.getByIdFlow(mineralId).collect { mineral ->
                     if (mineral != null) {
-                        originalMineral = mineral
+                        _originalMineral.value = mineral
                         _name.value = mineral.name
                         _group.value = mineral.group ?: ""
                         _formula.value = mineral.formula ?: ""
@@ -404,27 +407,30 @@ class EditMineralViewModel(
                     .filter { it.isNotBlank() }
 
                 // v3.1: Create or update Provenance object
+                // Capture current state to prevent race conditions
+                val currentOriginal = originalMineral.value
+
                 val updatedProvenance = if (
                     _mineName.value.isNotBlank() ||
                     _dealer.value.isNotBlank() ||
                     _catalogNumber.value.isNotBlank() ||
                     _collectorName.value.isNotBlank() ||
                     _acquisitionNotes.value.isNotBlank() ||
-                    originalMineral?.provenance != null
+                    currentOriginal?.provenance != null
                 ) {
                     net.meshcore.mineralog.domain.model.Provenance(
-                        id = originalMineral?.provenance?.id ?: UUID.randomUUID().toString(),
+                        id = currentOriginal?.provenance?.id ?: UUID.randomUUID().toString(),
                         mineralId = mineralId,
-                        site = originalMineral?.provenance?.site,
-                        locality = originalMineral?.provenance?.locality,
-                        country = originalMineral?.provenance?.country,
-                        latitude = originalMineral?.provenance?.latitude,
-                        longitude = originalMineral?.provenance?.longitude,
-                        acquiredAt = originalMineral?.provenance?.acquiredAt,
-                        source = originalMineral?.provenance?.source,
-                        price = originalMineral?.provenance?.price,
-                        estimatedValue = originalMineral?.provenance?.estimatedValue,
-                        currency = originalMineral?.provenance?.currency,
+                        site = currentOriginal?.provenance?.site,
+                        locality = currentOriginal?.provenance?.locality,
+                        country = currentOriginal?.provenance?.country,
+                        latitude = currentOriginal?.provenance?.latitude,
+                        longitude = currentOriginal?.provenance?.longitude,
+                        acquiredAt = currentOriginal?.provenance?.acquiredAt,
+                        source = currentOriginal?.provenance?.source,
+                        price = currentOriginal?.provenance?.price,
+                        estimatedValue = currentOriginal?.provenance?.estimatedValue,
+                        currency = currentOriginal?.provenance?.currency,
                         mineName = _mineName.value.trim().takeIf { it.isNotBlank() },
                         dealer = _dealer.value.trim().takeIf { it.isNotBlank() },
                         catalogNumber = _catalogNumber.value.trim().takeIf { it.isNotBlank() },
@@ -454,15 +460,15 @@ class EditMineralViewModel(
                     dominantMinerals = _dominantMinerals.value.trim().takeIf { it.isNotBlank() },
                     interestingFeatures = _interestingFeatures.value.trim().takeIf { it.isNotBlank() },
                     tags = tagsList,
-                    status = originalMineral?.status ?: "incomplete",
-                    statusType = originalMineral?.statusType ?: "in_collection",
-                    statusDetails = originalMineral?.statusDetails,
-                    qualityRating = originalMineral?.qualityRating,
-                    completeness = originalMineral?.completeness ?: 0,
-                    createdAt = originalMineral?.createdAt ?: Instant.now(),
+                    status = currentOriginal?.status ?: "incomplete",
+                    statusType = currentOriginal?.statusType ?: "in_collection",
+                    statusDetails = currentOriginal?.statusDetails,
+                    qualityRating = currentOriginal?.qualityRating,
+                    completeness = currentOriginal?.completeness ?: 0,
+                    createdAt = currentOriginal?.createdAt ?: Instant.now(),
                     updatedAt = Instant.now(),
                     provenance = updatedProvenance,
-                    storage = originalMineral?.storage
+                    storage = currentOriginal?.storage
                 )
 
                 mineralRepository.update(updatedMineral)
@@ -478,7 +484,7 @@ class EditMineralViewModel(
                 // Handle photos
                 // Delete removed photos
                 val existingPhotoIds = _photos.value.filter { it.isExisting }.map { it.id }.toSet()
-                val originalPhotoIds = originalMineral?.photos?.map { it.id }?.toSet() ?: emptySet()
+                val originalPhotoIds = currentOriginal?.photos?.map { it.id }?.toSet() ?: emptySet()
                 val removedPhotoIds = originalPhotoIds - existingPhotoIds
 
                 removedPhotoIds.forEach { photoId ->
@@ -517,7 +523,7 @@ class EditMineralViewModel(
 
                 // Update captions for existing photos
                 _photos.value.filter { it.isExisting }.forEach { photoItem ->
-                    val originalPhoto = originalMineral?.photos?.find { it.id == photoItem.id }
+                    val originalPhoto = currentOriginal?.photos?.find { it.id == photoItem.id }
                     if (originalPhoto != null && originalPhoto.caption != photoItem.caption) {
                         val updatedPhoto = originalPhoto.copy(caption = photoItem.caption)
                         mineralRepository.insertPhoto(updatedPhoto)
