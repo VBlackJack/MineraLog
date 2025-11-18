@@ -8,6 +8,7 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import kotlin.text.Charsets
 
 /**
  * Robust CSV parser with encoding detection and flexible column mapping.
@@ -59,8 +60,8 @@ class CsvParser {
         // Create reader with detected encoding
         val reader = BufferedReader(InputStreamReader(bufferedStream, encoding))
 
-        // Read first line to detect delimiter and headers
-        val firstLine = reader.readLine() ?: return@withContext ParseResult(
+        // Read first record (headers) using RFC-compliant reader to support multiline headers
+        val headerRecord = readRecord(reader) ?: return@withContext ParseResult(
             headers = emptyList(),
             rows = emptyList(),
             encoding = encoding,
@@ -69,19 +70,31 @@ class CsvParser {
             errors = listOf(ParseError(0, "Empty CSV file"))
         )
 
-        val delimiter = detectDelimiter(firstLine)
-        val headers = parseLine(firstLine, delimiter)
+        val delimiter = detectDelimiter(headerRecord.text)
+        val headers = parseLine(headerRecord.text, delimiter)
 
         // Parse data rows
         val rows = mutableListOf<Map<String, String>>()
         val errors = mutableListOf<ParseError>()
-        var lineNumber = 2 // Line 1 is headers
+        var consumedLines = headerRecord.physicalLines
 
         while (true) {
-            val line = reader.readLine() ?: break
-            if (maxRows > 0 && rows.size >= maxRows) break
+            val record = try {
+                readRecord(reader)
+            } catch (e: IllegalArgumentException) {
+                errors.add(ParseError(consumedLines + 1, e.message ?: "Malformed CSV record"))
+                break
+            } ?: break
+
+            val recordStartLine = consumedLines + 1
+            val line = record.text
 
             try {
+                if (line.isEmpty()) {
+                    consumedLines += record.physicalLines
+                    continue
+                }
+
                 val values = parseLine(line, delimiter)
 
                 // Create map from headers to values
@@ -95,10 +108,11 @@ class CsvParser {
 
                 rows.add(rowMap)
             } catch (e: Exception) {
-                errors.add(ParseError(lineNumber, "Parse error: ${e.message}"))
+                errors.add(ParseError(recordStartLine, "Parse error: ${e.message}"))
             }
 
-            lineNumber++
+            consumedLines += record.physicalLines
+            if (maxRows > 0 && rows.size >= maxRows) break
         }
 
         ParseResult(
@@ -106,9 +120,45 @@ class CsvParser {
             rows = rows,
             encoding = encoding,
             delimiter = delimiter,
-            lineCount = lineNumber - 1,
+            lineCount = consumedLines,
             errors = errors
         )
+    }
+
+    private data class CsvRecord(val text: String, val physicalLines: Int)
+
+    private fun readRecord(reader: BufferedReader): CsvRecord? {
+        val firstLine = reader.readLine() ?: return null
+        var linesRead = 1
+        val builder = StringBuilder(firstLine)
+        var inQuotes = updateQuoteState(firstLine)
+
+        while (inQuotes) {
+            val nextLine = reader.readLine()
+                ?: throw IllegalArgumentException("Unclosed quoted field at end of file")
+            builder.append('\n').append(nextLine)
+            linesRead++
+            inQuotes = updateQuoteState(nextLine, inQuotes)
+        }
+
+        return CsvRecord(builder.toString(), linesRead)
+    }
+
+    private fun updateQuoteState(chunk: CharSequence, initialState: Boolean = false): Boolean {
+        var inQuotes = initialState
+        var i = 0
+        while (i < chunk.length) {
+            val ch = chunk[i]
+            if (ch == '"') {
+                if (i + 1 < chunk.length && chunk[i + 1] == '"') {
+                    i++ // Skip escaped quote
+                } else {
+                    inQuotes = !inQuotes
+                }
+            }
+            i++
+        }
+        return inQuotes
     }
 
     /**
@@ -119,31 +169,88 @@ class CsvParser {
     private fun detectEncoding(inputStream: InputStream): Charset {
         require(inputStream.markSupported()) { "InputStream must support mark/reset for encoding detection" }
 
-        inputStream.mark(4096) // Mark with generous read-ahead limit
+        // First, look for a BOM and skip it if present
+        inputStream.mark(4096)
         val bom = ByteArray(4)
         val read = inputStream.read(bom)
         inputStream.reset()
 
-        // Check for UTF-8 BOM (EF BB BF) - skip it if found
-        if (read >= 3 && bom[0] == 0xEF.toByte() && bom[1] == 0xBB.toByte() && bom[2] == 0xBF.toByte()) {
-            inputStream.skip(3) // Skip the UTF-8 BOM
-            return StandardCharsets.UTF_8
+        val bomEncoding = when {
+            read >= 3 && bom[0] == 0xEF.toByte() && bom[1] == 0xBB.toByte() && bom[2] == 0xBF.toByte() -> StandardCharsets.UTF_8 to 3
+            read >= 2 && bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte() -> Charsets.UTF_16BE to 2
+            read >= 2 && bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() -> Charsets.UTF_16LE to 2
+            else -> null
         }
 
-        // Check for UTF-16 BOMs
-        if (read >= 2) {
-            if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte()) {
-                inputStream.skip(2) // Skip the UTF-16BE BOM
-                return Charsets.UTF_16BE
+        if (bomEncoding != null) {
+            val (encoding, bomLength) = bomEncoding
+            inputStream.skip(bomLength.toLong())
+            return encoding
+        }
+
+        // No BOM: sample the stream to differentiate UTF-8 from Latin-1/Windows-1252
+        inputStream.mark(8192)
+        val sampleBuffer = ByteArray(4096)
+        val sampleLength = inputStream.read(sampleBuffer)
+        inputStream.reset()
+
+        if (sampleLength > 0) {
+            val looksUtf8 = looksLikeUtf8(sampleBuffer, sampleLength)
+            if (looksUtf8) {
+                return StandardCharsets.UTF_8
             }
-            if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte()) {
-                inputStream.skip(2) // Skip the UTF-16LE BOM
-                return Charsets.UTF_16LE
+
+            if (containsExtendedAscii(sampleBuffer, sampleLength)) {
+                // Prefer Windows-1252 over ISO-8859-1 for broader glyph coverage
+                return Charsets.WINDOWS_1252
             }
         }
 
         // Default to UTF-8 (most common for modern CSVs)
         return StandardCharsets.UTF_8
+    }
+
+    private fun looksLikeUtf8(buffer: ByteArray, length: Int): Boolean {
+        var i = 0
+        while (i < length) {
+            val byte = buffer[i].toInt() and 0xFF
+            when {
+                byte < 0x80 -> i++ // ASCII
+                byte in 0xC2..0xDF -> {
+                    if (i + 1 >= length || !isContinuationByte(buffer[i + 1])) return false
+                    i += 2
+                }
+                byte in 0xE0..0xEF -> {
+                    if (i + 2 >= length || !isContinuationByte(buffer[i + 1]) || !isContinuationByte(buffer[i + 2])) return false
+                    i += 3
+                }
+                byte in 0xF0..0xF4 -> {
+                    if (
+                        i + 3 >= length ||
+                        !isContinuationByte(buffer[i + 1]) ||
+                        !isContinuationByte(buffer[i + 2]) ||
+                        !isContinuationByte(buffer[i + 3])
+                    ) return false
+                    i += 4
+                }
+                else -> return false
+            }
+        }
+        return true
+    }
+
+    private fun isContinuationByte(byte: Byte): Boolean {
+        val value = byte.toInt() and 0xFF
+        return value in 0x80..0xBF
+    }
+
+    private fun containsExtendedAscii(buffer: ByteArray, length: Int): Boolean {
+        for (i in 0 until length) {
+            if (buffer[i].toInt() and 0xFF >= 0x80) {
+                return true
+            }
+        }
+        return false
     }
 
     /**
@@ -268,6 +375,7 @@ object CsvColumnMapper {
         "name" to listOf("name", "mineral_name", "specimen_name", "mineral"),
         "group" to listOf("group", "mineral_group", "classification"),
         "formula" to listOf("formula", "chemical_formula", "composition"),
+        "mineralType" to listOf("mineral_type", "mineral type", "type de minéral", "specimen_type"),
         "crystalSystem" to listOf("crystal_system", "crystal system", "crystallography", "system"),
 
         // Physical properties
@@ -294,26 +402,43 @@ object CsvColumnMapper {
         // Status
         "status" to listOf("status", "statut"),
         "statusType" to listOf("status_type", "status type", "type"),
+        "statusDetails" to listOf("status_details", "status details", "statut detail", "lifecycle_notes"),
         "qualityRating" to listOf("quality_rating", "quality", "qualité", "rating"),
         "completeness" to listOf("completeness", "complétude", "completeness"),
+
+        // Aggregate specifics
+        "rockType" to listOf("rock_type", "rock type", "lithology", "type de roche"),
+        "texture" to listOf("texture", "grain", "fabric"),
+        "dominantMinerals" to listOf("dominant_minerals", "dominant minerals", "principal minerals"),
+        "interestingFeatures" to listOf("interesting_features", "interesting features", "features", "remarques"),
+        "componentNames" to listOf("component_names", "component names", "components", "component list"),
+        "componentPercentages" to listOf("component_percentages", "component percentages", "component %", "component percents"),
+        "componentRoles" to listOf("component_roles", "component roles", "component role"),
 
         // Provenance
         "prov_country" to listOf("country", "provenance_country", "prov_country", "pays"),
         "prov_locality" to listOf("locality", "provenance_locality", "prov_locality", "localité"),
         "prov_site" to listOf("site", "provenance_site", "prov_site", "mine"),
-        "prov_latitude" to listOf("latitude", "prov_latitude", "prov latitude", "lat"),
-        "prov_longitude" to listOf("longitude", "prov_longitude", "prov longitude", "lon", "long"),
+        "prov_latitude" to listOf("latitude", "prov_latitude", "prov latitude", "lat", "provenance latitude"),
+        "prov_longitude" to listOf("longitude", "prov_longitude", "prov longitude", "lon", "long", "provenance longitude"),
         "prov_acquiredAt" to listOf("acquired_at", "acquisition_date", "prov_date", "date"),
         "prov_source" to listOf("source", "provenance_source", "prov_source", "dealer"),
         "prov_price" to listOf("price", "prov_price", "prix", "cost"),
         "prov_estimatedValue" to listOf("estimated_value", "prov_value", "valeur", "value"),
         "prov_currency" to listOf("currency", "prov_currency", "devise"),
+        "prov_mineName" to listOf("mine_name", "mine name", "provenance mine", "mine"),
+        "prov_collectorName" to listOf("collector", "collector_name", "collector name", "provenance collector"),
+        "prov_dealer" to listOf("dealer", "vendor", "marchand"),
+        "prov_catalogNumber" to listOf("catalog_number", "catalog number", "inventory", "reference"),
+        "prov_acquisitionNotes" to listOf("acquisition_notes", "acquisition notes", "notes acquisition", "provenance notes"),
 
         // Storage
         "storage_place" to listOf("place", "storage_place", "storage_location", "location", "lieu"),
         "storage_container" to listOf("container", "storage_container", "conteneur"),
         "storage_box" to listOf("box", "storage_box", "boîte"),
         "storage_slot" to listOf("slot", "storage_slot", "position", "emplacement"),
+        "storage_nfcTagId" to listOf("storage_nfc", "storage_nfc_tag", "nfc tag", "nfc"),
+        "storage_qrContent" to listOf("storage_qr", "qr_content", "qr content", "qr code"),
 
         // Other
         "notes" to listOf("notes", "note", "comments", "description"),
