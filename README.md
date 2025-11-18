@@ -1,6 +1,6 @@
 # MineraLog 🪨
 
-[![Version](https://img.shields.io/badge/Version-1.9.0-brightgreen.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-3.0.0--alpha-brightgreen.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-8.0+-green.svg)](https://www.android.com)
 
@@ -128,7 +128,7 @@ MineraLog s'adresse à :
 ### Méthode 1 : Télécharger le fichier APK (recommandé)
 
 1. Rendez-vous sur la page [Releases](https://github.com/VBlackJack/MineraLog/releases) de GitHub
-2. Téléchargez le fichier `MineraLog-v1.9.0.apk` (dernière version)
+2. Téléchargez le fichier `MineraLog-v3.0.0-alpha.apk` (dernière version)
 3. Ouvrez le fichier téléchargé
 4. Autorisez l'installation depuis "Sources inconnues" si demandé
 5. Tapez sur "Installer"
@@ -463,7 +463,7 @@ MineraLog is designed for:
 ### Method 1: Download the APK file (recommended)
 
 1. Go to the [Releases](https://github.com/VBlackJack/MineraLog/releases) page on GitHub
-2. Download the `MineraLog-v1.9.0.apk` file (latest version)
+2. Download the `MineraLog-v3.0.0-alpha.apk` file (latest version)
 3. Open the downloaded file
 4. Allow installation from "Unknown sources" if prompted
 5. Tap "Install"

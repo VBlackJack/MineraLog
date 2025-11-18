@@ -31,8 +31,9 @@ class CsvInjectionProtectionTest {
         // Act
         val sanitized = csvMapper.escapeCSV(maliciousValue)
 
-        // Assert
-        assertEquals("1+1", sanitized) // Leading = removed
+        // Assert - OWASP recommendation: prefix with single quote to preserve data
+        assertEquals("'=1+1", sanitized) // Prefixed with ' instead of removing =
+        assertTrue(sanitized.startsWith("'"))
         assertFalse(sanitized.startsWith("="))
     }
 
@@ -44,8 +45,9 @@ class CsvInjectionProtectionTest {
         // Act
         val sanitized = csvMapper.escapeCSV(maliciousValue)
 
-        // Assert
-        assertEquals("1234567890", sanitized)
+        // Assert - Data preserved with prefix
+        assertEquals("'+1234567890", sanitized)
+        assertTrue(sanitized.startsWith("'"))
         assertFalse(sanitized.startsWith("+"))
     }
 
@@ -57,7 +59,9 @@ class CsvInjectionProtectionTest {
         // Act
         val sanitized = csvMapper.escapeCSV(maliciousValue)
 
-        // Assert
+        // Assert - Data preserved with prefix
+        assertEquals("'-cmd|'/c calc'!A1", sanitized)
+        assertTrue(sanitized.startsWith("'"))
         assertFalse(sanitized.startsWith("-"))
     }
 
@@ -69,8 +73,9 @@ class CsvInjectionProtectionTest {
         // Act
         val sanitized = csvMapper.escapeCSV(maliciousValue)
 
-        // Assert
-        assertEquals("SUM(A1:A10)", sanitized)
+        // Assert - Data preserved with prefix
+        assertEquals("'@SUM(A1:A10)", sanitized)
+        assertTrue(sanitized.startsWith("'"))
         assertFalse(sanitized.startsWith("@"))
     }
 
@@ -82,9 +87,10 @@ class CsvInjectionProtectionTest {
         // Act
         val sanitized = csvMapper.escapeCSV(maliciousValue)
 
-        // Assert
-        assertEquals("cmd", sanitized)
-        assertFalse(sanitized.any { it in listOf('=', '+', '@', '-') })
+        // Assert - Only the first dangerous character triggers prefix
+        assertEquals("'=+@-cmd", sanitized)
+        assertTrue(sanitized.startsWith("'"))
+        assertFalse(sanitized.startsWith("="))
     }
 
     @Test
@@ -95,9 +101,10 @@ class CsvInjectionProtectionTest {
         // Act
         val sanitized = csvMapper.escapeCSV(maliciousValue)
 
-        // Assert
+        // Assert - Tab triggers prefix
+        assertEquals("'\t=1+1", sanitized)
+        assertTrue(sanitized.startsWith("'"))
         assertFalse(sanitized.startsWith("\t"))
-        assertFalse(sanitized.startsWith("="))
     }
 
     @Test
@@ -108,9 +115,10 @@ class CsvInjectionProtectionTest {
         // Act
         val sanitized = csvMapper.escapeCSV(maliciousValue)
 
-        // Assert
+        // Assert - CR triggers prefix
+        assertEquals("'\r=HYPERLINK", sanitized)
+        assertTrue(sanitized.startsWith("'"))
         assertFalse(sanitized.startsWith("\r"))
-        assertFalse(sanitized.startsWith("="))
     }
 
     // Standard CSV Escaping Tests
@@ -192,10 +200,10 @@ class CsvInjectionProtectionTest {
         // Act
         val sanitized = csvMapper.escapeCSV(malicious)
 
-        // Assert
-        assertFalse(sanitized.startsWith("="))
+        // Assert - Prefix applied first, then CSV escaping for comma
         assertTrue(sanitized.startsWith("\"")) // Quoted due to comma
-        assertTrue(sanitized.contains("1+1, attack"))
+        assertTrue(sanitized.contains("'=1+1, attack")) // Prefix inside quotes
+        assertFalse(sanitized.startsWith("="))
     }
 
     @Test
@@ -206,9 +214,11 @@ class CsvInjectionProtectionTest {
         // Act
         val sanitized = csvMapper.escapeCSV(malicious)
 
-        // Assert
-        assertFalse(sanitized.startsWith("="))
+        // Assert - Prefix applied first, then CSV escaping for quotes
+        assertTrue(sanitized.startsWith("\"")) // Wrapped in quotes
+        assertTrue(sanitized.contains("'=HYPERLINK(")) // Prefix preserved
         assertTrue(sanitized.contains("\"\"")) // Quotes doubled
+        assertFalse(sanitized.startsWith("="))
     }
 
     // Real-world Mineral Data Tests
@@ -284,9 +294,10 @@ class CsvInjectionProtectionTest {
         // Act
         val sanitized = csvMapper.escapeCSV(ddeAttack)
 
-        // Assert
+        // Assert - DDE attack neutralized with prefix, data preserved
+        assertEquals("'=cmd|'/c calc'!A1", sanitized)
+        assertTrue(sanitized.startsWith("'"))
         assertFalse(sanitized.startsWith("="))
-        assertEquals("cmd|'/c calc'!A1", sanitized)
     }
 
     @Test
@@ -297,7 +308,9 @@ class CsvInjectionProtectionTest {
         // Act
         val sanitized = csvMapper.escapeCSV(hyperlinkAttack)
 
-        // Assert
+        // Assert - HYPERLINK attack neutralized with prefix
+        assertTrue(sanitized.startsWith("\"")) // Quoted due to internal quotes
+        assertTrue(sanitized.contains("'=HYPERLINK")) // Prefix preserved inside quotes
         assertFalse(sanitized.startsWith("="))
     }
 }
