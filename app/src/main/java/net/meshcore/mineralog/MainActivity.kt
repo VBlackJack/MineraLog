@@ -19,10 +19,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
-import kotlinx.coroutines.flow.first
+import androidx.navigation.compose.rememberNavController
 import net.meshcore.mineralog.data.migration.AutoReferenceCreator
 import net.meshcore.mineralog.ui.dialogs.MigrationReportDialog
 import net.meshcore.mineralog.ui.navigation.MineraLogNavHost
+import net.meshcore.mineralog.ui.navigation.Screen
 import net.meshcore.mineralog.ui.screens.main.MigrationViewModel
 import net.meshcore.mineralog.ui.theme.MineraLogTheme
 import net.meshcore.mineralog.util.AppLogger
@@ -107,6 +108,7 @@ fun MineraLogApp(
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as MineraLogApplication
+    val navController = rememberNavController() // Hoist controller so global UI (dialogs) can drive navigation safely
 
     // Create migration ViewModel
     val migrationViewModel = remember {
@@ -138,6 +140,7 @@ fun MineraLogApp(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
+            navController = navController,
             deepLinkMineralId = deepLinkMineralId
         )
 
@@ -148,8 +151,11 @@ fun MineraLogApp(
                 onDismiss = { migrationViewModel.dismissMigrationDialog() },
                 onViewLibrary = {
                     migrationViewModel.dismissMigrationDialog()
-                    // TODO: Navigate to reference library
-                    // This would require passing a navigation callback or using a shared navigation state
+                    // Direct the user to the reference library once migration completes successfully
+                    navController.navigate(Screen.ReferenceLibrary.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
             )
         }

@@ -1,6 +1,14 @@
 package net.meshcore.mineralog.data.service
 
+import net.meshcore.mineralog.domain.model.ComponentRole
 import net.meshcore.mineralog.domain.model.Mineral
+import net.meshcore.mineralog.domain.model.MineralComponent
+import net.meshcore.mineralog.domain.model.MineralType
+import net.meshcore.mineralog.domain.model.Provenance
+import net.meshcore.mineralog.domain.model.Storage
+import java.time.Instant
+import java.util.Locale
+import java.util.UUID
 
 /**
  * Service responsible for mapping CSV rows to Mineral domain objects.
@@ -23,33 +31,35 @@ class MineralCsvMapper {
         // PERFORMANCE: Invert mapping once for O(1) lookup instead of O(n) linear search
         val invertedMapping = columnMapping.entries.associate { (k, v) -> v to k }
 
+        fun hasColumn(domainField: String): Boolean = invertedMapping.containsKey(domainField)
+
         // Helper to get mapped value
-        fun getMapped(domainField: String): String? {
+        fun getRaw(domainField: String): String? {
             val csvHeader = invertedMapping[domainField]  // O(1) instead of O(n)
-            return csvHeader?.let { row[it] }?.takeIf { it.isNotBlank() }
+            return csvHeader?.let { row[it] }
         }
 
-        fun getFloat(domainField: String): Float? {
-            return getMapped(domainField)?.toFloatOrNull()
+        fun getMapped(domainField: String): String? = getRaw(domainField)?.takeIf { it.isNotBlank() }
+
+        fun getFloat(domainField: String): Float? = getMapped(domainField)?.toFloatOrNull()
+
+        fun getInt(domainField: String): Int? = getMapped(domainField)?.toIntOrNull()
+
+        fun getDouble(domainField: String): Double? = getMapped(domainField)?.toDoubleOrNull()
+
+        fun getBoolean(domainField: String): Boolean? {
+            val value = getMapped(domainField)?.lowercase(Locale.ROOT) ?: return null
+            return when (value) {
+                "true", "yes", "1", "y", "oui" -> true
+                "false", "no", "0", "n", "non" -> false
+                else -> throw IllegalArgumentException("Invalid boolean value '$value' for $domainField")
+            }
         }
 
-        fun getInt(domainField: String): Int? {
-            return getMapped(domainField)?.toIntOrNull()
-        }
-
-        fun getDouble(domainField: String): Double? {
-            return getMapped(domainField)?.toDoubleOrNull()
-        }
-
-        fun getBoolean(domainField: String): Boolean {
-            val value = getMapped(domainField)?.lowercase() ?: return false
-            return value in listOf("true", "yes", "1", "y", "oui")
-        }
-
-        fun getInstant(domainField: String): java.time.Instant? {
+        fun getInstant(domainField: String): Instant? {
             val value = getMapped(domainField) ?: return null
             return try {
-                java.time.Instant.parse(value)
+                Instant.parse(value)
             } catch (e: java.time.format.DateTimeParseException) {
                 throw IllegalArgumentException("Invalid date format for $domainField: '$value'. Expected ISO 8601 format (e.g., 2024-01-15T10:30:00Z)")
             }
@@ -59,96 +69,216 @@ class MineralCsvMapper {
         val mineralId = existingMineral?.id ?: java.util.UUID.randomUUID().toString()
 
         // Parse basic mineral fields
-        val name = getMapped("name") ?: throw IllegalArgumentException("Name is required")
+        val name = getMapped("name") ?: existingMineral?.name ?: throw IllegalArgumentException("Name is required")
+        // When merging we prefer explicit CSV values, but we fall back to the already persisted data to avoid wiping user input
+        val mineralType = getMapped("mineralType")?.let { rawType ->
+            runCatching { MineralType.valueOf(rawType.uppercase(Locale.ROOT)) }
+                .getOrElse { throw IllegalArgumentException("Invalid mineral type '$rawType'") }
+        } ?: existingMineral?.mineralType ?: MineralType.SIMPLE
 
         // Handle special case: single "mohs" field maps to both min and max
-        val mohsMin = getFloat("mohsMin") ?: getFloat("mohs")
-        val mohsMax = getFloat("mohsMax") ?: getFloat("mohs")
+        val mohsMinCsv = getFloat("mohsMin") ?: getFloat("mohs")
+        val mohsMaxCsv = getFloat("mohsMax") ?: getFloat("mohs")
+        val mohsMin = mohsMinCsv ?: existingMineral?.mohsMin
+        val mohsMax = mohsMaxCsv ?: existingMineral?.mohsMax
 
-        // Validate Mohs hardness range (1.0 to 10.0)
-        if (mohsMin != null && (mohsMin < 1.0f || mohsMin > 10.0f)) {
-            throw IllegalArgumentException("Mohs Min must be between 1.0 and 10.0 (got: $mohsMin)")
+        // Validate Mohs hardness range (1.0 to 10.0) when provided by CSV
+        if (mohsMinCsv != null && (mohsMinCsv < 1.0f || mohsMinCsv > 10.0f)) {
+            throw IllegalArgumentException("Mohs Min must be between 1.0 and 10.0 (got: $mohsMinCsv)")
         }
-        if (mohsMax != null && (mohsMax < 1.0f || mohsMax > 10.0f)) {
-            throw IllegalArgumentException("Mohs Max must be between 1.0 and 10.0 (got: $mohsMax)")
+        if (mohsMaxCsv != null && (mohsMaxCsv < 1.0f || mohsMaxCsv > 10.0f)) {
+            throw IllegalArgumentException("Mohs Max must be between 1.0 and 10.0 (got: $mohsMaxCsv)")
         }
 
         // Parse provenance fields
-        val hasProvenance = listOf("prov_country", "prov_locality", "prov_site", "prov_source").any { getMapped(it) != null }
+        val existingProvenance = existingMineral?.provenance
+        val hasProvenance = existingProvenance != null || listOf(
+            "prov_country",
+            "prov_locality",
+            "prov_site",
+            "prov_source",
+            "prov_latitude",
+            "prov_longitude",
+            "prov_mineName",
+            "prov_collectorName",
+            "prov_dealer",
+            "prov_catalogNumber",
+            "prov_acquisitionNotes"
+        ).any { getMapped(it) != null }
+
+        val latitudeCsv = getDouble("prov_latitude")
+        if (latitudeCsv != null && (latitudeCsv < -90.0 || latitudeCsv > 90.0)) {
+            throw IllegalArgumentException("Latitude must be between -90.0 and 90.0 (got: $latitudeCsv)")
+        }
+        val longitudeCsv = getDouble("prov_longitude")
+        if (longitudeCsv != null && (longitudeCsv < -180.0 || longitudeCsv > 180.0)) {
+            throw IllegalArgumentException("Longitude must be between -180.0 and 180.0 (got: $longitudeCsv)")
+        }
+
         val provenance = if (hasProvenance) {
-            // Parse and validate coordinates
-            val latitude = getDouble("prov_latitude")
-            val longitude = getDouble("prov_longitude")
-
-            // Validate latitude range (-90.0 to 90.0)
-            if (latitude != null && (latitude < -90.0 || latitude > 90.0)) {
-                throw IllegalArgumentException("Latitude must be between -90.0 and 90.0 (got: $latitude)")
-            }
-
-            // Validate longitude range (-180.0 to 180.0)
-            if (longitude != null && (longitude < -180.0 || longitude > 180.0)) {
-                throw IllegalArgumentException("Longitude must be between -180.0 and 180.0 (got: $longitude)")
-            }
-
-            net.meshcore.mineralog.domain.model.Provenance(
-                id = existingMineral?.provenance?.id ?: java.util.UUID.randomUUID().toString(),
+            Provenance(
+                id = existingProvenance?.id ?: java.util.UUID.randomUUID().toString(),
                 mineralId = mineralId,
-                country = getMapped("prov_country"),
-                locality = getMapped("prov_locality"),
-                site = getMapped("prov_site"),
-                latitude = latitude,
-                longitude = longitude,
-                acquiredAt = getInstant("prov_acquiredAt"),
-                source = getMapped("prov_source"),
-                price = getFloat("prov_price"),
-                estimatedValue = getFloat("prov_estimatedValue"),
-                currency = getMapped("prov_currency") ?: "USD"
+                country = getMapped("prov_country") ?: existingProvenance?.country,
+                locality = getMapped("prov_locality") ?: existingProvenance?.locality,
+                site = getMapped("prov_site") ?: existingProvenance?.site,
+                latitude = latitudeCsv ?: existingProvenance?.latitude,
+                longitude = longitudeCsv ?: existingProvenance?.longitude,
+                acquiredAt = getInstant("prov_acquiredAt") ?: existingProvenance?.acquiredAt,
+                source = getMapped("prov_source") ?: existingProvenance?.source,
+                price = getFloat("prov_price") ?: existingProvenance?.price,
+                estimatedValue = getFloat("prov_estimatedValue") ?: existingProvenance?.estimatedValue,
+                currency = getMapped("prov_currency") ?: existingProvenance?.currency ?: "USD",
+                mineName = getMapped("prov_mineName") ?: existingProvenance?.mineName,
+                collectorName = getMapped("prov_collectorName") ?: existingProvenance?.collectorName,
+                dealer = getMapped("prov_dealer") ?: existingProvenance?.dealer,
+                catalogNumber = getMapped("prov_catalogNumber") ?: existingProvenance?.catalogNumber,
+                acquisitionNotes = getMapped("prov_acquisitionNotes") ?: existingProvenance?.acquisitionNotes
             )
         } else null
 
         // Parse storage fields
-        val hasStorage = listOf("storage_place", "storage_container", "storage_box", "storage_slot").any { getMapped(it) != null }
+        val existingStorage = existingMineral?.storage
+        val hasStorage = existingStorage != null || listOf(
+            "storage_place",
+            "storage_container",
+            "storage_box",
+            "storage_slot",
+            "storage_nfcTagId",
+            "storage_qrContent"
+        ).any { getMapped(it) != null }
         val storage = if (hasStorage) {
-            net.meshcore.mineralog.domain.model.Storage(
-                id = existingMineral?.storage?.id ?: java.util.UUID.randomUUID().toString(),
+            Storage(
+                id = existingStorage?.id ?: java.util.UUID.randomUUID().toString(),
                 mineralId = mineralId,
-                place = getMapped("storage_place"),
-                container = getMapped("storage_container"),
-                box = getMapped("storage_box"),
-                slot = getMapped("storage_slot")
+                place = getMapped("storage_place") ?: existingStorage?.place,
+                container = getMapped("storage_container") ?: existingStorage?.container,
+                box = getMapped("storage_box") ?: existingStorage?.box,
+                slot = getMapped("storage_slot") ?: existingStorage?.slot,
+                nfcTagId = getMapped("storage_nfcTagId") ?: existingStorage?.nfcTagId,
+                qrContent = getMapped("storage_qrContent") ?: existingStorage?.qrContent
             )
         } else null
+
+        val tags = getMapped("tags")?.split(";")?.map { it.trim() }?.filter { it.isNotEmpty() }
+
+        val components = parseComponents(
+            namesRaw = getRaw("componentNames"),
+            percentagesRaw = getRaw("componentPercentages"),
+            rolesRaw = getRaw("componentRoles"),
+            hasComponentColumns = hasColumn("componentNames") || hasColumn("componentPercentages") || hasColumn("componentRoles"),
+            existingComponents = existingMineral?.components ?: emptyList()
+        )
 
         return Mineral(
             id = mineralId,
             name = name,
-            group = getMapped("group"),
-            formula = getMapped("formula"),
-            crystalSystem = getMapped("crystalSystem"),
+            mineralType = mineralType,
+            group = getMapped("group") ?: existingMineral?.group,
+            formula = getMapped("formula") ?: existingMineral?.formula,
+            crystalSystem = getMapped("crystalSystem") ?: existingMineral?.crystalSystem,
             mohsMin = mohsMin,
             mohsMax = mohsMax,
-            cleavage = getMapped("cleavage"),
-            fracture = getMapped("fracture"),
-            luster = getMapped("luster"),
-            streak = getMapped("streak"),
-            diaphaneity = getMapped("diaphaneity"),
-            habit = getMapped("habit"),
-            specificGravity = getFloat("specificGravity"),
-            fluorescence = getMapped("fluorescence"),
-            magnetic = getBoolean("magnetic"),
-            radioactive = getBoolean("radioactive"),
-            dimensionsMm = getMapped("dimensionsMm"),
-            weightGr = getFloat("weightGr"),
-            status = getMapped("status") ?: "incomplete",
-            statusType = getMapped("statusType") ?: "in_collection",
-            qualityRating = getInt("qualityRating"),
-            completeness = getInt("completeness") ?: 0,
-            notes = getMapped("notes"),
-            tags = getMapped("tags")?.split(";")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList(),
+            cleavage = getMapped("cleavage") ?: existingMineral?.cleavage,
+            fracture = getMapped("fracture") ?: existingMineral?.fracture,
+            luster = getMapped("luster") ?: existingMineral?.luster,
+            streak = getMapped("streak") ?: existingMineral?.streak,
+            diaphaneity = getMapped("diaphaneity") ?: existingMineral?.diaphaneity,
+            habit = getMapped("habit") ?: existingMineral?.habit,
+            specificGravity = getFloat("specificGravity") ?: existingMineral?.specificGravity,
+            fluorescence = getMapped("fluorescence") ?: existingMineral?.fluorescence,
+            magnetic = getBoolean("magnetic") ?: existingMineral?.magnetic ?: false,
+            radioactive = getBoolean("radioactive") ?: existingMineral?.radioactive ?: false,
+            dimensionsMm = getMapped("dimensionsMm") ?: existingMineral?.dimensionsMm,
+            weightGr = getFloat("weightGr") ?: existingMineral?.weightGr,
+            rockType = getMapped("rockType") ?: existingMineral?.rockType,
+            texture = getMapped("texture") ?: existingMineral?.texture,
+            dominantMinerals = getMapped("dominantMinerals") ?: existingMineral?.dominantMinerals,
+            interestingFeatures = getMapped("interestingFeatures") ?: existingMineral?.interestingFeatures,
+            notes = getMapped("notes") ?: existingMineral?.notes,
+            tags = tags ?: existingMineral?.tags ?: emptyList(),
+            status = getMapped("status") ?: existingMineral?.status ?: "incomplete",
+            statusType = getMapped("statusType") ?: existingMineral?.statusType ?: "in_collection",
+            statusDetails = getMapped("statusDetails") ?: existingMineral?.statusDetails,
+            qualityRating = getInt("qualityRating") ?: existingMineral?.qualityRating,
+            completeness = getInt("completeness") ?: existingMineral?.completeness ?: 0,
+            createdAt = existingMineral?.createdAt ?: Instant.now(),
+            updatedAt = Instant.now(),
             provenance = provenance,
             storage = storage,
-            photos = emptyList() // CSV doesn't include photos
+            photos = existingMineral?.photos ?: emptyList(),
+            components = components
         )
+    }
+
+    private fun parseComponents(
+        namesRaw: String?,
+        percentagesRaw: String?,
+        rolesRaw: String?,
+        hasComponentColumns: Boolean,
+        existingComponents: List<MineralComponent>
+    ): List<MineralComponent> {
+        if (!hasComponentColumns) return existingComponents
+
+        val names = namesRaw
+            ?.split(';')
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
+            ?: emptyList()
+
+        if (names.isEmpty()) return emptyList()
+
+        val percentages = percentagesRaw?.split(';')?.map { it.trim() }
+        val roles = rolesRaw?.split(';')?.map { it.trim() }
+
+        val normalizedExisting = existingComponents
+            .filter { it.mineralName.isNotBlank() }
+            .associateBy { it.mineralName.trim().lowercase(Locale.ROOT) }
+        val claimedFallbackIds = mutableSetOf<String>()
+
+        return names.mapIndexed { index, name ->
+            val normalized = name.lowercase(Locale.ROOT)
+            val fallback = normalizedExisting[normalized]
+                ?.takeUnless { claimedFallbackIds.contains(it.id) }
+                ?: existingComponents.getOrNull(index)?.takeUnless { component ->
+                    claimedFallbackIds.contains(component.id)
+                }
+
+            fallback?.id?.let { claimedFallbackIds.add(it) }
+            val parsedPercentage = percentages?.getOrNull(index)?.toFloatOrNull()
+                ?: fallback?.percentage
+            val parsedRole = roles?.getOrNull(index)
+                ?.takeIf { it.isNotBlank() }
+                ?.let { value ->
+                    runCatching { ComponentRole.valueOf(value.uppercase(Locale.ROOT)) }
+                        .getOrElse { throw IllegalArgumentException("Invalid component role '$value'") }
+                }
+                ?: fallback?.role
+                ?: ComponentRole.fromPercentage(parsedPercentage)
+
+            MineralComponent(
+                id = fallback?.id ?: UUID.randomUUID().toString(),
+                mineralName = name,
+                mineralGroup = fallback?.mineralGroup,
+                percentage = parsedPercentage,
+                role = parsedRole,
+                mohsMin = fallback?.mohsMin,
+                mohsMax = fallback?.mohsMax,
+                density = fallback?.density,
+                formula = fallback?.formula,
+                crystalSystem = fallback?.crystalSystem,
+                luster = fallback?.luster,
+                diaphaneity = fallback?.diaphaneity,
+                cleavage = fallback?.cleavage,
+                fracture = fallback?.fracture,
+                habit = fallback?.habit,
+                streak = fallback?.streak,
+                fluorescence = fallback?.fluorescence,
+                notes = fallback?.notes,
+                createdAt = fallback?.createdAt ?: Instant.now(),
+                updatedAt = Instant.now()
+            )
+        }
     }
 
     /**

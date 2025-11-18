@@ -11,6 +11,8 @@ import net.meshcore.mineralog.data.mapper.toEntity
 import net.meshcore.mineralog.data.repository.CsvImportMode
 import net.meshcore.mineralog.data.repository.ImportResult
 import net.meshcore.mineralog.domain.model.Mineral
+import java.io.IOException
+import java.util.Locale
 
 /**
  * Service responsible for CSV backup operations (export and import).
@@ -31,99 +33,141 @@ class CsvBackupService(
      */
     suspend fun exportCsv(uri: Uri, minerals: List<Mineral>): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                outputStream.bufferedWriter().use { writer ->
-                    // Write CSV header (v2.0: added Mineral Type and Component columns)
-                    writer.write("Mineral Type,Name,Group,Formula,Streak,Luster,Mohs Min,Mohs Max,")
-                    writer.write("Crystal System,Specific Gravity,Cleavage,Fracture,")
-                    writer.write("Diaphaneity,Habit,Fluorescence,Radioactive,Magnetic,")
-                    writer.write("Dimensions (mm),Weight (g),Status,Status Type,Quality Rating,Completeness,")
-                    writer.write("Provenance Country,Provenance Locality,Provenance Site,")
-                    writer.write("Provenance Acquired At,Provenance Source,Price,Estimated Value,Currency,")
-                    writer.write("Storage Place,Storage Container,Storage Box,Storage Slot,Notes,Tags,")
-                    writer.write("Component Names,Component Percentages,Component Roles\n")
+            val outputStream = context.contentResolver.openOutputStream(uri)
+                ?: return@withContext Result.failure(IOException("Failed to open CSV output stream for $uri"))
 
-                    // Write data rows
-                    minerals.forEach { mineral ->
-                        // v2.0: Write mineral type
-                        writer.write(csvMapper.escapeCSV(mineral.mineralType.name))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.name))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.group ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.formula ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.streak ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.luster ?: ""))
-                        writer.write(",")
-                        writer.write(mineral.mohsMin?.toString() ?: "")
-                        writer.write(",")
-                        writer.write(mineral.mohsMax?.toString() ?: "")
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.crystalSystem ?: ""))
-                        writer.write(",")
-                        writer.write(mineral.specificGravity?.toString() ?: "")
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.cleavage ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.fracture ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.diaphaneity ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.habit ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.fluorescence ?: ""))
-                        writer.write(",")
-                        writer.write(mineral.radioactive.toString())
-                        writer.write(",")
-                        writer.write(mineral.magnetic.toString())
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.dimensionsMm ?: ""))
-                        writer.write(",")
-                        writer.write(mineral.weightGr?.toString() ?: "")
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.status))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.statusType))
-                        writer.write(",")
-                        writer.write(mineral.qualityRating?.toString() ?: "")
-                        writer.write(",")
-                        writer.write(mineral.completeness.toString())
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.provenance?.country ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.provenance?.locality ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.provenance?.site ?: ""))
-                        writer.write(",")
-                        writer.write(mineral.provenance?.acquiredAt?.toString() ?: "")
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.provenance?.source ?: ""))
-                        writer.write(",")
-                        writer.write(mineral.provenance?.price?.toString() ?: "")
-                        writer.write(",")
-                        writer.write(mineral.provenance?.estimatedValue?.toString() ?: "")
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.provenance?.currency ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.storage?.place ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.storage?.container ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.storage?.box ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.storage?.slot ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.notes ?: ""))
-                        writer.write(",")
-                        writer.write(csvMapper.escapeCSV(mineral.tags.joinToString("; ")))
-                        writer.write(",")
-                        // v2.0: Component columns (TODO: fetch from repository for aggregates)
-                        writer.write(",,") // Empty for now: Component Names, Percentages, Roles
-                        writer.write("\n")
+            outputStream.bufferedWriter().use { writer ->
+                // Export the full schema (aggregates, provenance metadata, storage identifiers) to keep backups lossless over time
+                writer.appendLine(
+                    listOf(
+                        "Mineral Type",
+                        "Name",
+                        "Group",
+                        "Formula",
+                        "Streak",
+                        "Luster",
+                        "Mohs Min",
+                        "Mohs Max",
+                        "Crystal System",
+                        "Specific Gravity",
+                        "Cleavage",
+                        "Fracture",
+                        "Diaphaneity",
+                        "Habit",
+                        "Fluorescence",
+                        "Radioactive",
+                        "Magnetic",
+                        "Dimensions (mm)",
+                        "Weight (g)",
+                        "Rock Type",
+                        "Texture",
+                        "Dominant Minerals",
+                        "Interesting Features",
+                        "Status",
+                        "Status Type",
+                        "Status Details",
+                        "Quality Rating",
+                        "Completeness",
+                        "Provenance Country",
+                        "Provenance Locality",
+                        "Provenance Site",
+                        "Provenance Latitude",
+                        "Provenance Longitude",
+                        "Provenance Acquired At",
+                        "Provenance Source",
+                        "Price",
+                        "Estimated Value",
+                        "Currency",
+                        "Provenance Mine Name",
+                        "Provenance Collector",
+                        "Provenance Dealer",
+                        "Provenance Catalog Number",
+                        "Provenance Acquisition Notes",
+                        "Storage Place",
+                        "Storage Container",
+                        "Storage Box",
+                        "Storage Slot",
+                        "Storage NFC Tag",
+                        "Storage QR Content",
+                        "Notes",
+                        "Tags",
+                        "Component Names",
+                        "Component Percentages",
+                        "Component Roles"
+                    ).joinToString(",")
+                )
+
+                minerals.forEach { mineral ->
+                    val provenance = mineral.provenance
+                    val storage = mineral.storage
+                    // Persist aggregate composition so spreadsheets reflect what the user sees in-app
+                    val validComponents = mineral.components.filter { it.mineralName.isNotBlank() }
+                    val componentNames = validComponents.joinToString("; ") { it.mineralName.trim() }
+                    val componentPercentages = validComponents.joinToString("; ") { component ->
+                        component.percentage?.let { String.format(Locale.ROOT, "%.2f", it) } ?: ""
                     }
+                    val componentRoles = validComponents.joinToString("; ") { component ->
+                        component.role.name
+                    }
+
+                    val columns = listOf(
+                        csvMapper.escapeCSV(mineral.mineralType.name),
+                        csvMapper.escapeCSV(mineral.name),
+                        csvMapper.escapeCSV(mineral.group ?: ""),
+                        csvMapper.escapeCSV(mineral.formula ?: ""),
+                        csvMapper.escapeCSV(mineral.streak ?: ""),
+                        csvMapper.escapeCSV(mineral.luster ?: ""),
+                        mineral.mohsMin?.toString() ?: "",
+                        mineral.mohsMax?.toString() ?: "",
+                        csvMapper.escapeCSV(mineral.crystalSystem ?: ""),
+                        mineral.specificGravity?.toString() ?: "",
+                        csvMapper.escapeCSV(mineral.cleavage ?: ""),
+                        csvMapper.escapeCSV(mineral.fracture ?: ""),
+                        csvMapper.escapeCSV(mineral.diaphaneity ?: ""),
+                        csvMapper.escapeCSV(mineral.habit ?: ""),
+                        csvMapper.escapeCSV(mineral.fluorescence ?: ""),
+                        mineral.radioactive.toString(),
+                        mineral.magnetic.toString(),
+                        csvMapper.escapeCSV(mineral.dimensionsMm ?: ""),
+                        mineral.weightGr?.toString() ?: "",
+                        csvMapper.escapeCSV(mineral.rockType ?: ""),
+                        csvMapper.escapeCSV(mineral.texture ?: ""),
+                        csvMapper.escapeCSV(mineral.dominantMinerals ?: ""),
+                        csvMapper.escapeCSV(mineral.interestingFeatures ?: ""),
+                        csvMapper.escapeCSV(mineral.status),
+                        csvMapper.escapeCSV(mineral.statusType),
+                        csvMapper.escapeCSV(mineral.statusDetails ?: ""),
+                        mineral.qualityRating?.toString() ?: "",
+                        mineral.completeness.toString(),
+                        csvMapper.escapeCSV(provenance?.country ?: ""),
+                        csvMapper.escapeCSV(provenance?.locality ?: ""),
+                        csvMapper.escapeCSV(provenance?.site ?: ""),
+                        provenance?.latitude?.toString() ?: "",
+                        provenance?.longitude?.toString() ?: "",
+                        provenance?.acquiredAt?.toString() ?: "",
+                        csvMapper.escapeCSV(provenance?.source ?: ""),
+                        provenance?.price?.toString() ?: "",
+                        provenance?.estimatedValue?.toString() ?: "",
+                        csvMapper.escapeCSV(provenance?.currency ?: ""),
+                        csvMapper.escapeCSV(provenance?.mineName ?: ""),
+                        csvMapper.escapeCSV(provenance?.collectorName ?: ""),
+                        csvMapper.escapeCSV(provenance?.dealer ?: ""),
+                        csvMapper.escapeCSV(provenance?.catalogNumber ?: ""),
+                        csvMapper.escapeCSV(provenance?.acquisitionNotes ?: ""),
+                        csvMapper.escapeCSV(storage?.place ?: ""),
+                        csvMapper.escapeCSV(storage?.container ?: ""),
+                        csvMapper.escapeCSV(storage?.box ?: ""),
+                        csvMapper.escapeCSV(storage?.slot ?: ""),
+                        csvMapper.escapeCSV(storage?.nfcTagId ?: ""),
+                        csvMapper.escapeCSV(storage?.qrContent ?: ""),
+                        csvMapper.escapeCSV(mineral.notes ?: ""),
+                        csvMapper.escapeCSV(mineral.tags.joinToString("; ")),
+                        csvMapper.escapeCSV(componentNames),
+                        csvMapper.escapeCSV(componentPercentages),
+                        csvMapper.escapeCSV(componentRoles)
+                    )
+
+                    writer.appendLine(columns.joinToString(","))
                 }
             }
             Result.success(Unit)
@@ -166,9 +210,32 @@ class CsvBackupService(
                 // Use provided column mapping or auto-map headers to domain fields
                 val mapping = columnMapping ?: net.meshcore.mineralog.data.util.CsvColumnMapper.mapHeaders(parseResult.headers)
 
-                // Get existing minerals for name-based lookups
+                // Get existing minerals and related entities for name-based lookups
                 val existingMinerals = database.mineralBasicDao().getAll()
-                val existingByName = existingMinerals.associateBy { it.name.lowercase() }
+                val existingIds = existingMinerals.map { it.id }
+                val provenancesByMineralId = if (existingIds.isNotEmpty()) {
+                    database.provenanceDao().getByMineralIds(existingIds).associateBy { it.mineralId }
+                } else {
+                    emptyMap()
+                }
+                val storagesByMineralId = if (existingIds.isNotEmpty()) {
+                    database.storageDao().getByMineralIds(existingIds).associateBy { it.mineralId }
+                } else {
+                    emptyMap()
+                }
+                val photosByMineralId = if (existingIds.isNotEmpty()) {
+                    database.photoDao().getByMineralIds(existingIds).groupBy { it.mineralId }
+                } else {
+                    emptyMap()
+                }
+                val componentsByMineralId = if (existingIds.isNotEmpty()) {
+                    database.mineralComponentDao().getAllDirect().groupBy { it.aggregateId }
+                } else {
+                    emptyMap()
+                }
+                val existingByName = existingMinerals.associateBy { normalizeName(it.name) }
+                // Track minerals processed during this import run to detect duplicates and reuse IDs before hitting the database
+                val stagedMinerals = mutableMapOf<String, Mineral>()
 
                 // Use transaction for atomicity
                 database.withTransaction {
@@ -178,6 +245,7 @@ class CsvBackupService(
                         database.provenanceDao().deleteAll()
                         database.storageDao().deleteAll()
                         database.photoDao().deleteAll()
+                        database.mineralComponentDao().deleteAll()
                     }
 
                     // Process each row
@@ -191,12 +259,14 @@ class CsvBackupService(
                             )
 
                             // Check for existing mineral by name
-                            val existing = existingByName[parsedMineral.name.lowercase()]
+                            val normalizedName = normalizeName(parsedMineral.name)
+                            val existingEntity = existingByName[normalizedName]
+                            val stagedExisting = stagedMinerals[normalizedName]
 
                             // Check for duplicates based on mode
                             when (mode) {
                                 CsvImportMode.SKIP_DUPLICATES -> {
-                                    if (existing != null) {
+                                    if (existingEntity != null || stagedExisting != null) {
                                         skipped++
                                         return@forEachIndexed
                                     }
@@ -210,20 +280,24 @@ class CsvBackupService(
                             }
 
                             // For MERGE mode, reuse existing IDs if found
-                            val mineral = if (mode == CsvImportMode.MERGE && existing != null) {
-                                // Load related entities for existing mineral
-                                val existingProvenance = database.provenanceDao().getByMineralId(existing.id)
-                                val existingStorage = database.storageDao().getByMineralId(existing.id)
-                                val existingPhotos = database.photoDao().getByMineralId(existing.id)
+                            val existingDomain = if (mode == CsvImportMode.MERGE) {
+                                when {
+                                    stagedExisting != null -> stagedExisting
+                                    existingEntity != null -> existingEntity.toDomain(
+                                        provenancesByMineralId[existingEntity.id],
+                                        storagesByMineralId[existingEntity.id],
+                                        photosByMineralId[existingEntity.id] ?: emptyList(),
+                                        componentsByMineralId[existingEntity.id] ?: emptyList()
+                                    )
+                                    else -> null
+                                }
+                            } else null
 
+                            val mineral = if (existingDomain != null) {
                                 csvMapper.parseMineralFromCsvRow(
                                     row = row,
                                     columnMapping = mapping,
-                                    existingMineral = existing.toDomain(
-                                        existingProvenance,
-                                        existingStorage,
-                                        existingPhotos
-                                    )
+                                    existingMineral = existingDomain
                                 )
                             } else {
                                 parsedMineral
@@ -249,6 +323,26 @@ class CsvBackupService(
                                 database.storageDao().insert(storage.toEntity())
                             }
 
+                            val existingComponents = existingDomain?.components ?: emptyList()
+                            when {
+                                mineral.components.isNotEmpty() -> {
+                                    val componentEntities = mineral.components
+                                        .filter { it.mineralName.isNotBlank() }
+                                        .mapIndexed { index, component ->
+                                            component.toEntity(mineral.id, index)
+                                        }
+                                    database.mineralComponentDao().deleteByAggregateId(mineral.id)
+                                    if (componentEntities.isNotEmpty()) {
+                                        database.mineralComponentDao().insertAll(componentEntities)
+                                    }
+                                }
+                                existingComponents.isNotEmpty() -> {
+                                    // CSV explicitly cleared components – remove stale records
+                                    database.mineralComponentDao().deleteByAggregateId(mineral.id)
+                                }
+                            }
+
+                            stagedMinerals[normalizedName] = mineral
                             imported++
                         } catch (e: Exception) {
                             errors.add("Row ${index + 2}: ${e.message}")
@@ -263,4 +357,6 @@ class CsvBackupService(
             Result.failure(e)
         }
     }
+
+    private fun normalizeName(name: String): String = name.trim().lowercase(Locale.ROOT)
 }

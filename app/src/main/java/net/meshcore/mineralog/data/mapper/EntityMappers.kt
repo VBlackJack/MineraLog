@@ -23,7 +23,8 @@ import java.util.UUID
 fun MineralEntity.toDomain(
     provenance: ProvenanceEntity? = null,
     storage: StorageEntity? = null,
-    photos: List<PhotoEntity> = emptyList()
+    photos: List<PhotoEntity> = emptyList(),
+    components: List<MineralComponentEntity> = emptyList()
 ): Mineral {
     return Mineral(
         id = id,
@@ -66,7 +67,10 @@ fun MineralEntity.toDomain(
         updatedAt = updatedAt,
         provenance = provenance?.toDomain(),
         storage = storage?.toDomain(),
-        photos = photos.map { it.toDomain() }
+        photos = photos.map { it.toDomain() },
+        components = components
+            .sortedBy { it.displayOrder }
+            .map { it.toDomain() }
     )
 }
 
