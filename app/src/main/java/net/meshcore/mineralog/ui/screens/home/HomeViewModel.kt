@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -21,6 +23,7 @@ import net.meshcore.mineralog.data.util.QrLabelPdfGenerator
 import net.meshcore.mineralog.domain.model.FilterPreset
 import net.meshcore.mineralog.domain.model.Mineral
 
+@OptIn(FlowPreview::class)
 class HomeViewModel(
     private val context: Context,
     private val mineralRepository: MineralRepository,
@@ -29,61 +32,9 @@ class HomeViewModel(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
-    // Export state
-    private val _exportState = MutableStateFlow<ExportState>(ExportState.Idle)
-    val exportState: StateFlow<ExportState> = _exportState.asStateFlow()
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    // Import state
-    private val _importState = MutableStateFlow<ImportState>(ImportState.Idle)
-    val importState: StateFlow<ImportState> = _importState.asStateFlow()
-
-    // Label generation state (v1.5.0)
-    private val _labelGenerationState = MutableStateFlow<LabelGenerationState>(LabelGenerationState.Idle)
-    val labelGenerationState: StateFlow<LabelGenerationState> = _labelGenerationState.asStateFlow()
-
-    // Bulk operation progress state (v1.7.0 - Quick Win #6)
-    private val _bulkOperationProgress = MutableStateFlow<BulkOperationProgress>(BulkOperationProgress.Idle)
-    val bulkOperationProgress: StateFlow<BulkOperationProgress> = _bulkOperationProgress.asStateFlow()
-
-    // CSV export warning state
-    val csvExportWarningShown: StateFlow<Boolean> = settingsRepository.getCsvExportWarningShown()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = false
-        )
-
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
-    private val _sortOption = MutableStateFlow(SortOption.DATE_NEWEST)
-    val sortOption: StateFlow<SortOption> = _sortOption.asStateFlow()
-
-    private val _filterCriteria = MutableStateFlow(FilterCriteria.EMPTY)
-    val filterCriteria: StateFlow<FilterCriteria> = _filterCriteria.asStateFlow()
-
-    private val _isFilterActive = MutableStateFlow(false)
-    val isFilterActive: StateFlow<Boolean> = _isFilterActive.asStateFlow()
-
-    // Bulk selection state (v1.3.0)
-    private val _selectionMode = MutableStateFlow(false)
-    val selectionMode: StateFlow<Boolean> = _selectionMode.asStateFlow()
-
-    private val _selectedIds = MutableStateFlow<Set<String>>(emptySet())
-    val selectedIds: StateFlow<Set<String>> = _selectedIds.asStateFlow()
-
-    // Undo delete state - protected by mutex to prevent race conditions
-    private var deletedMinerals: List<Mineral> = emptyList()
-    private val deletedMineralsMutex = Mutex()
-
-    val selectionCount: StateFlow<Int> = _selectedIds.map { it.size }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = 0
-        )
-
-    // Filter presets from database
     val filterPresets: StateFlow<List<FilterPreset>> = filterPresetRepository.getAllFlow()
         .stateIn(
             scope = viewModelScope,
@@ -91,78 +42,84 @@ class HomeViewModel(
             initialValue = emptyList()
         )
 
-    // Refresh trigger to invalidate PagingData cache after mineral creation/deletion
+    private var deletedMinerals: List<Mineral> = emptyList()
+    private val deletedMineralsMutex = Mutex()
+
     private val _refreshTrigger = MutableStateFlow(0)
 
-    // Paged minerals for efficient large dataset handling (v1.5.0)
+    init {
+        viewModelScope.launch {
+            settingsRepository.getCsvExportWarningShown().collect { shown ->
+                _uiState.update { it.copy(csvExportWarningShown = shown) }
+            }
+        }
+
+        viewModelScope.launch {
+            combine(
+                _uiState.map { it.searchQuery }.distinctUntilChanged().debounce(300),
+                _uiState.map { it.sortOption }.distinctUntilChanged(),
+                _uiState.map { it.filterCriteria }.distinctUntilChanged(),
+                _uiState.map { it.isFilterActive }.distinctUntilChanged()
+            ) { query, sort, criteria, filterActive ->
+                Triple(query, Pair(sort, criteria), filterActive)
+            }.flatMapLatest { (query, sortAndCriteria, filterActive) ->
+                val (sort, criteria) = sortAndCriteria
+                when {
+                    query.isNotBlank() -> mineralRepository.searchFlow(query, sort)
+                    filterActive && !criteria.isEmpty() -> mineralRepository.filterAdvancedFlow(criteria, sort)
+                    else -> mineralRepository.getAllFlow(sort)
+                }
+            }.collect { minerals ->
+                _uiState.update { it.copy(minerals = minerals) }
+            }
+        }
+    }
+
     val mineralsPaged: Flow<PagingData<Mineral>> = combine(
-        _searchQuery.debounce(300),
-        _sortOption,
-        _filterCriteria,
-        _isFilterActive,
-        _refreshTrigger  // BUGFIX: Trigger re-collection after insert/delete
+        _uiState.map { it.searchQuery }.distinctUntilChanged().debounce(300),
+        _uiState.map { it.sortOption }.distinctUntilChanged(),
+        _uiState.map { it.filterCriteria }.distinctUntilChanged(),
+        _uiState.map { it.isFilterActive }.distinctUntilChanged(),
+        _refreshTrigger
     ) { query, sort, criteria, filterActive, _ ->
         Triple(query, Pair(sort, criteria), filterActive)
     }.flatMapLatest { (query, sortAndCriteria, filterActive) ->
         val (sort, criteria) = sortAndCriteria
         when {
-            // Search takes precedence
             query.isNotBlank() -> mineralRepository.searchPaged(query, sort)
-            // Apply filters if active
             filterActive && !criteria.isEmpty() -> mineralRepository.filterAdvancedPaged(criteria, sort)
-            // Default: show all
             else -> mineralRepository.getAllPaged(sort)
         }
     }.cachedIn(viewModelScope)
 
-    /**
-     * Refresh the minerals list by invalidating the PagingData cache.
-     * Call this after creating, updating, or deleting minerals.
-     */
     fun refreshMineralsList() {
         _refreshTrigger.value += 1
     }
 
-    // Legacy non-paged flow for bulk operations that need full list access
-    val minerals: StateFlow<List<Mineral>> = combine(
-        _searchQuery.debounce(300),
-        _sortOption,
-        _filterCriteria,
-        _isFilterActive
-    ) { query, sort, criteria, filterActive ->
-        Triple(query, Pair(sort, criteria), filterActive)
-    }.flatMapLatest { (query, sortAndCriteria, filterActive) ->
-        val (sort, criteria) = sortAndCriteria
-        when {
-            // Search takes precedence
-            query.isNotBlank() -> mineralRepository.searchFlow(query, sort)
-            // Apply filters if active
-            filterActive && !criteria.isEmpty() -> mineralRepository.filterAdvancedFlow(criteria, sort)
-            // Default: show all
-            else -> mineralRepository.getAllFlow(sort)
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
-
     fun onSearchQueryChange(query: String) {
-        _searchQuery.value = query
+        _uiState.update { it.copy(searchQuery = query) }
     }
 
     fun onSortOptionChange(option: SortOption) {
-        _sortOption.value = option
+        _uiState.update { it.copy(sortOption = option) }
     }
 
     fun onFilterCriteriaChange(criteria: FilterCriteria) {
-        _filterCriteria.value = criteria
-        _isFilterActive.value = !criteria.isEmpty()
+        _uiState.update {
+            it.copy(
+                filterCriteria = criteria,
+                isFilterActive = !criteria.isEmpty()
+            )
+        }
     }
 
     fun clearFilter() {
-        _filterCriteria.value = FilterCriteria.EMPTY
-        _isFilterActive.value = false
+        _uiState.update {
+            it.copy(
+                filterCriteria = FilterCriteria.EMPTY,
+                isFilterActive = false
+            )
+        }
     }
 
     fun applyPreset(preset: FilterPreset) {
@@ -181,128 +138,146 @@ class HomeViewModel(
         }
     }
 
-    // Bulk selection methods (v1.3.0)
     fun enterSelectionMode() {
-        _selectionMode.value = true
-        _selectedIds.value = emptySet()
+        _uiState.update { it.copy(selectionMode = true, selectedIds = emptySet()) }
     }
 
     fun exitSelectionMode() {
-        _selectionMode.value = false
-        _selectedIds.value = emptySet()
+        _uiState.update { it.copy(selectionMode = false, selectedIds = emptySet()) }
     }
 
     fun toggleSelection(mineralId: String) {
-        _selectedIds.value = if (mineralId in _selectedIds.value) {
-            _selectedIds.value - mineralId
-        } else {
-            _selectedIds.value + mineralId
+        _uiState.update { state ->
+            val currentIds = state.selectedIds
+            val newIds = if (mineralId in currentIds) {
+                currentIds - mineralId
+            } else {
+                currentIds + mineralId
+            }
+            state.copy(selectedIds = newIds)
         }
     }
 
     fun selectAll() {
-        // Create snapshot to avoid race condition if minerals list updates during operation
-        val currentMinerals = minerals.value
-        _selectedIds.value = currentMinerals.map { it.id }.toSet()
+        val allIds = _uiState.value.minerals.map { it.id }.toSet()
+        _uiState.update { it.copy(selectedIds = allIds) }
     }
 
     fun deselectAll() {
-        _selectedIds.value = emptySet()
+        _uiState.update { it.copy(selectedIds = emptySet()) }
     }
 
     fun deleteSelected() {
         viewModelScope.launch {
-            // Store minerals for undo functionality - protected by mutex
+            val currentState = _uiState.value
+            val mineralsToDelete = currentState.minerals.filter { it.id in currentState.selectedIds }
+
             deletedMineralsMutex.withLock {
-                deletedMinerals = getSelectedMinerals()
+                deletedMinerals = mineralsToDelete
             }
 
-            val idsToDelete = _selectedIds.value.toList()
+            val idsToDelete = currentState.selectedIds.toList()
             val total = idsToDelete.size
 
-            // Quick Win #6: Track progress for bulk delete operations
             if (total > 10) {
-                // Show progress for larger operations
-                try {
-                    _bulkOperationProgress.value = BulkOperationProgress.InProgress(0, total, "delete")
-
-                    // Delete in batches to allow progress updates
-                    val batchSize = 10
-                    idsToDelete.chunked(batchSize).forEachIndexed { index, batch ->
-                        mineralRepository.deleteByIds(batch)
-                        val current = minOf((index + 1) * batchSize, total)
-                        _bulkOperationProgress.value = BulkOperationProgress.InProgress(current, total, "delete")
-
-                        // Small delay to prevent UI blocking
-                        if (current < total) {
-                            kotlinx.coroutines.delay(50)
-                        }
-                    }
-
-                    _bulkOperationProgress.value = BulkOperationProgress.Complete(total, "delete")
-                    kotlinx.coroutines.delay(2000) // Show completion for 2s
-                    _bulkOperationProgress.value = BulkOperationProgress.Idle
-                } catch (e: Exception) {
-                    _bulkOperationProgress.value = BulkOperationProgress.Error(e.message ?: "Delete failed")
-                    kotlinx.coroutines.delay(3000)
-                    _bulkOperationProgress.value = BulkOperationProgress.Idle
-                }
+                processBulkDeleteWithProgress(idsToDelete, total)
             } else {
-                // Small operations - no progress tracking needed
                 mineralRepository.deleteByIds(idsToDelete)
             }
 
             exitSelectionMode()
+            refreshMineralsList()
+        }
+    }
+
+    private suspend fun processBulkDeleteWithProgress(ids: List<String>, total: Int) {
+        try {
+            _uiState.update { it.copy(bulkOperationProgress = BulkOperationProgress.InProgress(0, total, "delete")) }
+
+            val batchSize = 10
+            ids.chunked(batchSize).forEachIndexed { index, batch ->
+                mineralRepository.deleteByIds(batch)
+                val current = minOf((index + 1) * batchSize, total)
+
+                _uiState.update { it.copy(bulkOperationProgress = BulkOperationProgress.InProgress(current, total, "delete")) }
+
+                if (current < total) delay(50)
+            }
+
+            _uiState.update { it.copy(bulkOperationProgress = BulkOperationProgress.Complete(total, "delete")) }
+            delay(2000)
+            _uiState.update { it.copy(bulkOperationProgress = BulkOperationProgress.Idle) }
+        } catch (e: Exception) {
+            _uiState.update { it.copy(bulkOperationProgress = BulkOperationProgress.Error(e.message ?: "Delete failed")) }
+            delay(3000)
+            _uiState.update { it.copy(bulkOperationProgress = BulkOperationProgress.Idle) }
         }
     }
 
     fun undoDelete() {
         viewModelScope.launch {
-            // Restore previously deleted minerals - protected by mutex
             val mineralsToRestore = deletedMineralsMutex.withLock {
                 val minerals = deletedMinerals
                 deletedMinerals = emptyList()
                 minerals
             }
 
-            mineralsToRestore.forEach { mineral ->
-                mineralRepository.insert(mineral)
-            }
+            mineralsToRestore.forEach { mineralRepository.insert(it) }
+            refreshMineralsList()
         }
     }
 
     fun getSelectedMinerals(): List<Mineral> {
-        return minerals.value.filter { it.id in _selectedIds.value }
+        val state = _uiState.value
+        return state.minerals.filter { it.id in state.selectedIds }
     }
 
-    // Export functionality (v1.4.0)
+    fun showFilterDialog() = _uiState.update { it.copy(activeDialog = DialogType.Filter) }
+    fun showSortDialog() = _uiState.update { it.copy(activeDialog = DialogType.Sort) }
+    fun showBulkActionsDialog() = _uiState.update { it.copy(activeDialog = DialogType.BulkActions) }
+
+    fun showCsvExportWarning() = _uiState.update { it.copy(activeDialog = DialogType.CsvExportWarning) }
+
+    fun showExportCsvDialog() {
+        _uiState.update { it.copy(
+            activeDialog = DialogType.ExportCsv,
+            selectedCsvUri = null
+        )}
+    }
+
+    fun showImportCsvDialog(uri: Uri? = null) {
+         _uiState.update { it.copy(
+            activeDialog = DialogType.ImportCsv(uri),
+            selectedCsvUri = uri
+         )}
+    }
+
+    fun dismissDialog() = _uiState.update { it.copy(activeDialog = DialogType.None) }
+
     fun exportSelectedToCsv(uri: Uri) {
         viewModelScope.launch {
-            _exportState.value = ExportState.Exporting
+            _uiState.update { it.copy(exportState = ExportState.Exporting) }
             try {
                 val mineralsToExport = getSelectedMinerals()
                 if (mineralsToExport.isEmpty()) {
-                    _exportState.value = ExportState.Error("No minerals selected for export")
+                    _uiState.update { it.copy(exportState = ExportState.Error("No minerals selected")) }
                     return@launch
                 }
 
                 val result = backupRepository.exportCsv(uri, mineralsToExport)
-
                 if (result.isSuccess) {
-                    _exportState.value = ExportState.Success(mineralsToExport.size)
+                    _uiState.update { it.copy(exportState = ExportState.Success(mineralsToExport.size)) }
                 } else {
-                    _exportState.value = ExportState.Error(
-                        result.exceptionOrNull()?.message ?: "Unknown error"
-                    )
+                    _uiState.update { it.copy(exportState = ExportState.Error(result.exceptionOrNull()?.message ?: "Unknown error")) }
                 }
             } catch (e: Exception) {
-                _exportState.value = ExportState.Error(e.message ?: "Unknown error")
+                _uiState.update { it.copy(exportState = ExportState.Error(e.message ?: "Unknown error")) }
             }
         }
     }
 
     fun resetExportState() {
-        _exportState.value = ExportState.Idle
+        _uiState.update { it.copy(exportState = ExportState.Idle) }
     }
 
     fun markCsvExportWarningShown() {
@@ -311,73 +286,55 @@ class HomeViewModel(
         }
     }
 
-    // Import functionality
     fun importCsvFile(uri: Uri, columnMapping: Map<String, String>, mode: CsvImportMode) {
         viewModelScope.launch {
-            _importState.value = ImportState.Importing
+            _uiState.update { it.copy(importState = ImportState.Importing) }
             try {
                 val result = backupRepository.importCsv(uri, columnMapping, mode)
-
                 if (result.isSuccess) {
                     val importResult = result.getOrThrow()
-                    _importState.value = ImportState.Success(
-                        imported = importResult.imported,
-                        skipped = importResult.skipped,
-                        errors = importResult.errors
-                    )
+                    _uiState.update { it.copy(importState = ImportState.Success(importResult.imported, importResult.skipped, importResult.errors)) }
                 } else {
-                    _importState.value = ImportState.Error(
-                        result.exceptionOrNull()?.message ?: "Unknown error"
-                    )
+                    _uiState.update { it.copy(importState = ImportState.Error(result.exceptionOrNull()?.message ?: "Unknown error")) }
                 }
             } catch (e: Exception) {
-                _importState.value = ImportState.Error(e.message ?: "Unknown error")
+                _uiState.update { it.copy(importState = ImportState.Error(e.message ?: "Unknown error")) }
             }
         }
     }
 
     fun resetImportState() {
-        _importState.value = ImportState.Idle
+         _uiState.update { it.copy(importState = ImportState.Idle) }
     }
 
-    // QR Label generation (v1.5.0)
     fun generateLabelsForSelected(outputUri: Uri) {
         viewModelScope.launch {
-            _labelGenerationState.value = LabelGenerationState.Generating
+            _uiState.update { it.copy(labelGenerationState = LabelGenerationState.Generating) }
             try {
-                // Get selected minerals
                 val selectedMinerals = getSelectedMinerals()
-
                 if (selectedMinerals.isEmpty()) {
-                    _labelGenerationState.value = LabelGenerationState.Error("No minerals selected")
+                     _uiState.update { it.copy(labelGenerationState = LabelGenerationState.Error("No minerals selected")) }
                     return@launch
                 }
-
-                // Generate PDF with QR labels
                 val generator = QrLabelPdfGenerator(context)
                 val result = generator.generate(selectedMinerals, outputUri)
-
                 if (result.isSuccess) {
-                    _labelGenerationState.value = LabelGenerationState.Success(selectedMinerals.size)
+                     _uiState.update { it.copy(labelGenerationState = LabelGenerationState.Success(selectedMinerals.size)) }
                 } else {
-                    _labelGenerationState.value = LabelGenerationState.Error(
-                        result.exceptionOrNull()?.message ?: "Failed to generate labels"
-                    )
+                     _uiState.update { it.copy(labelGenerationState = LabelGenerationState.Error(result.exceptionOrNull()?.message ?: "Error")) }
                 }
             } catch (e: Exception) {
-                _labelGenerationState.value = LabelGenerationState.Error(
-                    e.message ?: "Unknown error generating labels"
-                )
+                 _uiState.update { it.copy(labelGenerationState = LabelGenerationState.Error(e.message ?: "Unknown error")) }
             }
         }
     }
 
     fun resetLabelGenerationState() {
-        _labelGenerationState.value = LabelGenerationState.Idle
+        _uiState.update { it.copy(labelGenerationState = LabelGenerationState.Idle) }
     }
 
     fun resetBulkOperationProgress() {
-        _bulkOperationProgress.value = BulkOperationProgress.Idle
+        _uiState.update { it.copy(bulkOperationProgress = BulkOperationProgress.Idle) }
     }
 }
 
@@ -402,7 +359,6 @@ sealed class LabelGenerationState {
     data class Error(val message: String) : LabelGenerationState()
 }
 
-// Quick Win #6: Bulk operations progress tracking (v1.7.0)
 sealed class BulkOperationProgress {
     data object Idle : BulkOperationProgress()
     data class InProgress(val current: Int, val total: Int, val operation: String) : BulkOperationProgress()

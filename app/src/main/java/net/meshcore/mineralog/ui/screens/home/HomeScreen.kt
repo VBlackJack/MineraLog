@@ -24,22 +24,29 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.R
+import net.meshcore.mineralog.data.model.FilterCriteria
+import net.meshcore.mineralog.data.repository.CsvImportMode
+import net.meshcore.mineralog.domain.model.FilterPreset
 import net.meshcore.mineralog.domain.model.Mineral
 import net.meshcore.mineralog.ui.screens.home.components.*
 
 /**
  * HomeScreen - Main screen displaying the mineral collection.
  *
- * Refactored to follow Single Responsibility Principle (SRP).
+ * Phase 1 State Centralization (Sprint 2):
+ * - Uses single HomeUiState instead of 14 individual StateFlows
+ * - Dialog state managed via DialogType sealed class
+ * - Reduced recompositions and improved testability
+ *
+ * Previously: 14 collectAsState() calls, 7 remember { mutableStateOf } for dialogs
+ * Now: 1 collectAsState() for uiState, 2 for paging/presets
+ *
  * Decomposed from 919 lines into specialized components:
  * - HomeScreenTopBar: Top app bar (normal + selection modes)
  * - SearchFilterBar: Search, sort, and filter controls
  * - BulkOperationProgressCard: Bulk operation progress indicator
  * - MineralPagingList: Paginated mineral list with empty states
  * - HomeScreenDialogs: All dialogs and bottom sheets
- *
- * Sprint 2: Architecture Refactoring
- * Target: Reduce god composable from 918 lines to ~300 lines
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,31 +73,18 @@ fun HomeScreen(
         viewModel.refreshMineralsList()
     }
 
-    // State collection
-    val mineralsPaged = viewModel.mineralsPaged.collectAsLazyPagingItems()
-    val minerals by viewModel.minerals.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val sortOption by viewModel.sortOption.collectAsState()
-    val filterCriteria by viewModel.filterCriteria.collectAsState()
-    val isFilterActive by viewModel.isFilterActive.collectAsState()
+    // Phase 1: Unified state collection (replaces 14 individual collectAsState calls)
+    val uiState by viewModel.uiState.collectAsState()
     val filterPresets by viewModel.filterPresets.collectAsState()
-    val selectionMode by viewModel.selectionMode.collectAsState()
-    val selectedIds by viewModel.selectedIds.collectAsState()
-    val selectionCount by viewModel.selectionCount.collectAsState()
-    val exportState by viewModel.exportState.collectAsState()
-    val importState by viewModel.importState.collectAsState()
-    val labelGenerationState by viewModel.labelGenerationState.collectAsState()
-    val bulkOperationProgress by viewModel.bulkOperationProgress.collectAsState()
-    val csvExportWarningShown by viewModel.csvExportWarningShown.collectAsState()
+    val mineralsPaged = viewModel.mineralsPaged.collectAsLazyPagingItems()
 
-    // Dialog states
-    var showFilterSheet by remember { mutableStateOf(false) }
-    var showSortSheet by remember { mutableStateOf(false) }
-    var showBulkActionsSheet by remember { mutableStateOf(false) }
-    var showCsvExportWarningDialog by remember { mutableStateOf(false) }
-    var showExportCsvDialog by remember { mutableStateOf(false) }
-    var showImportCsvDialog by remember { mutableStateOf(false) }
-    var selectedCsvUri by remember { mutableStateOf<Uri?>(null) }
+    // Derived dialog visibility from activeDialog (replaces 7 local remember states)
+    val showFilterSheet = uiState.activeDialog is DialogType.Filter
+    val showSortSheet = uiState.activeDialog is DialogType.Sort
+    val showBulkActionsSheet = uiState.activeDialog is DialogType.BulkActions
+    val showCsvExportWarningDialog = uiState.activeDialog is DialogType.CsvExportWarning
+    val showExportCsvDialog = uiState.activeDialog is DialogType.ExportCsv
+    val showImportCsvDialog = uiState.activeDialog is DialogType.ImportCsv
 
     val snackbarHostState = remember { SnackbarHostState() }
     val hapticFeedback = LocalHapticFeedback.current
@@ -100,18 +94,15 @@ fun HomeScreen(
     val csvImportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { selectedUri ->
-            selectedCsvUri = selectedUri
-            showImportCsvDialog = true
-        }
+        uri?.let { viewModel.showImportCsvDialog(it) }
     }
 
     // Handle export state changes
-    LaunchedEffect(exportState) {
-        when (exportState) {
+    LaunchedEffect(uiState.exportState) {
+        when (val state = uiState.exportState) {
             is ExportState.Success -> {
                 snackbarHostState.showSnackbar(
-                    message = "Exported ${(exportState as ExportState.Success).count} minerals successfully",
+                    message = "Exported ${state.count} minerals successfully",
                     duration = SnackbarDuration.Short
                 )
                 viewModel.resetExportState()
@@ -119,7 +110,7 @@ fun HomeScreen(
             }
             is ExportState.Error -> {
                 snackbarHostState.showSnackbar(
-                    message = "Export failed: ${(exportState as ExportState.Error).message}",
+                    message = "Export failed: ${state.message}",
                     duration = SnackbarDuration.Long
                 )
                 viewModel.resetExportState()
@@ -129,19 +120,18 @@ fun HomeScreen(
     }
 
     // Handle import state changes
-    LaunchedEffect(importState) {
-        when (importState) {
+    LaunchedEffect(uiState.importState) {
+        when (val state = uiState.importState) {
             is ImportState.Success -> {
-                val success = importState as ImportState.Success
                 snackbarHostState.showSnackbar(
-                    message = "Imported ${success.imported} minerals. Skipped: ${success.skipped}",
+                    message = "Imported ${state.imported} minerals. Skipped: ${state.skipped}",
                     duration = SnackbarDuration.Long
                 )
                 viewModel.resetImportState()
             }
             is ImportState.Error -> {
                 snackbarHostState.showSnackbar(
-                    message = "Import failed: ${(importState as ImportState.Error).message}",
+                    message = "Import failed: ${state.message}",
                     duration = SnackbarDuration.Long
                 )
                 viewModel.resetImportState()
@@ -151,12 +141,11 @@ fun HomeScreen(
     }
 
     // Handle label generation state changes (v1.5.0)
-    LaunchedEffect(labelGenerationState) {
-        when (labelGenerationState) {
+    LaunchedEffect(uiState.labelGenerationState) {
+        when (val state = uiState.labelGenerationState) {
             is LabelGenerationState.Success -> {
-                val count = (labelGenerationState as LabelGenerationState.Success).count
                 snackbarHostState.showSnackbar(
-                    message = "Generated $count QR labels successfully",
+                    message = "Generated ${state.count} QR labels successfully",
                     duration = SnackbarDuration.Short
                 )
                 viewModel.resetLabelGenerationState()
@@ -164,7 +153,7 @@ fun HomeScreen(
             }
             is LabelGenerationState.Error -> {
                 snackbarHostState.showSnackbar(
-                    message = "Label generation failed: ${(labelGenerationState as LabelGenerationState.Error).message}",
+                    message = "Label generation failed: ${state.message}",
                     duration = SnackbarDuration.Long
                 )
                 viewModel.resetLabelGenerationState()
@@ -174,10 +163,9 @@ fun HomeScreen(
     }
 
     // Quick Win #6: Handle bulk operation progress announcements
-    LaunchedEffect(bulkOperationProgress) {
-        when (bulkOperationProgress) {
+    LaunchedEffect(uiState.bulkOperationProgress) {
+        when (val state = uiState.bulkOperationProgress) {
             is BulkOperationProgress.Complete -> {
-                val state = bulkOperationProgress as BulkOperationProgress.Complete
                 val operationName = state.operation.replaceFirstChar {
                     if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString()
                 }
@@ -188,7 +176,7 @@ fun HomeScreen(
             }
             is BulkOperationProgress.Error -> {
                 snackbarHostState.showSnackbar(
-                    message = "Operation failed: ${(bulkOperationProgress as BulkOperationProgress.Error).message}",
+                    message = "Operation failed: ${state.message}",
                     duration = SnackbarDuration.Long
                 )
             }
@@ -200,12 +188,12 @@ fun HomeScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             HomeScreenTopBar(
-                selectionMode = selectionMode,
-                selectionCount = selectionCount,
-                totalCount = minerals.size,
+                selectionMode = uiState.selectionMode,
+                selectionCount = uiState.selectionCount,
+                totalCount = uiState.minerals.size,
                 onExitSelectionMode = { viewModel.exitSelectionMode() },
                 onSelectAll = { viewModel.selectAll() },
-                onShowBulkActionsSheet = { showBulkActionsSheet = true },
+                onShowBulkActionsSheet = { viewModel.showBulkActionsDialog() },
                 onLibraryClick = onLibraryClick,
                 onQrScanClick = onQrScanClick,
                 onEnterSelectionMode = { viewModel.enterSelectionMode() },
@@ -231,30 +219,30 @@ fun HomeScreen(
         ) {
             // Search and filter bar
             SearchFilterBar(
-                searchQuery = searchQuery,
-                sortOption = sortOption,
-                filterCriteria = filterCriteria,
-                isFilterActive = isFilterActive,
+                searchQuery = uiState.searchQuery,
+                sortOption = uiState.sortOption,
+                filterCriteria = uiState.filterCriteria,
+                isFilterActive = uiState.isFilterActive,
                 onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
-                onShowSortSheet = { showSortSheet = true },
-                onShowFilterSheet = { showFilterSheet = true },
+                onShowSortSheet = { viewModel.showSortDialog() },
+                onShowFilterSheet = { viewModel.showFilterDialog() },
                 onClearFilter = { viewModel.clearFilter() }
             )
 
             // Quick Win #6: Bulk operation progress indicator
-            if (bulkOperationProgress is BulkOperationProgress.InProgress) {
+            if (uiState.bulkOperationProgress is BulkOperationProgress.InProgress) {
                 BulkOperationProgressCard(
-                    progress = bulkOperationProgress as BulkOperationProgress.InProgress
+                    progress = uiState.bulkOperationProgress as BulkOperationProgress.InProgress
                 )
             }
 
             // Mineral list with pagination (v1.5.0)
             MineralPagingList(
                 mineralsPaged = mineralsPaged,
-                searchQuery = searchQuery,
-                isFilterActive = isFilterActive,
-                selectionMode = selectionMode,
-                selectedIds = selectedIds,
+                searchQuery = uiState.searchQuery,
+                isFilterActive = uiState.isFilterActive,
+                selectionMode = uiState.selectionMode,
+                selectedIds = uiState.selectedIds,
                 onMineralClick = onMineralClick,
                 onToggleSelection = { viewModel.toggleSelection(it) },
                 onClearSearch = { viewModel.onSearchQueryChange("") },
@@ -271,15 +259,15 @@ fun HomeScreen(
         showCsvExportWarningDialog = showCsvExportWarningDialog,
         showExportCsvDialog = showExportCsvDialog,
         showImportCsvDialog = showImportCsvDialog,
-        filterCriteria = filterCriteria,
+        filterCriteria = uiState.filterCriteria,
         filterPresets = filterPresets,
-        sortOption = sortOption,
-        selectedCsvUri = selectedCsvUri,
-        selectionCount = selectionCount,
+        sortOption = uiState.sortOption,
+        selectedCsvUri = uiState.selectedCsvUri,
+        selectionCount = uiState.selectionCount,
         selectedMineralNames = viewModel.getSelectedMinerals().map { it.name },
-        csvExportWarningShown = csvExportWarningShown,
-        exportState = exportState,
-        labelGenerationState = labelGenerationState,
+        csvExportWarningShown = uiState.csvExportWarningShown,
+        exportState = uiState.exportState,
+        labelGenerationState = uiState.labelGenerationState,
         onFilterCriteriaChange = { viewModel.onFilterCriteriaChange(it) },
         onClearFilter = { viewModel.clearFilter() },
         onSavePreset = { viewModel.savePreset(it) },
@@ -287,7 +275,7 @@ fun HomeScreen(
         onDeletePreset = { viewModel.deletePreset(it) },
         onSortSelected = { viewModel.onSortOptionChange(it) },
         onDeleteSelected = {
-            val count = selectionCount
+            val count = uiState.selectionCount
             viewModel.deleteSelected()
             // Quick Win #4: Indefinite Undo snackbar with haptic feedback
             coroutineScope.launch {
@@ -313,7 +301,7 @@ fun HomeScreen(
             viewModel.importCsvFile(uri, columnMapping, mode)
         },
         onGenerateLabels = { viewModel.generateLabelsForSelected(it) },
-        onCompareClick = if (selectionCount in 2..3) {
+        onCompareClick = if (uiState.selectionCount in 2..3) {
             {
                 val selectedMinerals = viewModel.getSelectedMinerals()
                 onCompareClick(selectedMinerals.map { it.id })
@@ -321,17 +309,20 @@ fun HomeScreen(
             }
         } else null,
         onMarkCsvExportWarningShown = { viewModel.markCsvExportWarningShown() },
-        onDismissFilterSheet = { showFilterSheet = false },
-        onDismissSortSheet = { showSortSheet = false },
-        onDismissBulkActionsSheet = { showBulkActionsSheet = false },
-        onDismissCsvExportWarningDialog = { showCsvExportWarningDialog = false },
-        onDismissExportCsvDialog = { showExportCsvDialog = false },
-        onDismissImportCsvDialog = {
-            showImportCsvDialog = false
-            selectedCsvUri = null
+        onDismissFilterSheet = { viewModel.dismissDialog() },
+        onDismissSortSheet = { viewModel.dismissDialog() },
+        onDismissBulkActionsSheet = { viewModel.dismissDialog() },
+        onDismissCsvExportWarningDialog = { viewModel.dismissDialog() },
+        onDismissExportCsvDialog = { viewModel.dismissDialog() },
+        onDismissImportCsvDialog = { viewModel.dismissDialog() },
+        onShowExportCsvDialog = {
+            if (!uiState.csvExportWarningShown) {
+                viewModel.showCsvExportWarning()
+            } else {
+                viewModel.showExportCsvDialog()
+            }
         },
-        onShowExportCsvDialog = { showExportCsvDialog = true },
-        onShowCsvExportWarningDialog = { showCsvExportWarningDialog = true }
+        onShowCsvExportWarningDialog = { viewModel.showCsvExportWarning() }
     )
 }
 

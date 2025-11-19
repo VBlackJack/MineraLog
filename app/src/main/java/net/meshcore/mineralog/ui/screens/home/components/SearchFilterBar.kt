@@ -12,7 +12,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import net.meshcore.mineralog.R
-import net.meshcore.mineralog.ui.screens.home.FilterCriteria
+import net.meshcore.mineralog.data.model.FilterCriteria
 import net.meshcore.mineralog.ui.screens.home.SortOption
 
 /**

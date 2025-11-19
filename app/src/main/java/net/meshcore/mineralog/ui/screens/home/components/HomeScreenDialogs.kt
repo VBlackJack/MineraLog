@@ -19,6 +19,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.R
+import net.meshcore.mineralog.data.model.FilterCriteria
+import net.meshcore.mineralog.data.repository.CsvImportMode
+import net.meshcore.mineralog.domain.model.FilterPreset
 import net.meshcore.mineralog.ui.screens.home.*
 
 /**
@@ -60,13 +63,13 @@ fun HomeScreenDialogs(
     // Actions
     onFilterCriteriaChange: (FilterCriteria) -> Unit,
     onClearFilter: () -> Unit,
-    onSavePreset: (String) -> Unit,
+    onSavePreset: (FilterPreset) -> Unit,
     onLoadPreset: (FilterPreset) -> Unit,
-    onDeletePreset: (FilterPreset) -> Unit,
+    onDeletePreset: (String) -> Unit,
     onSortSelected: (SortOption) -> Unit,
     onDeleteSelected: () -> Unit,
     onExportCsv: (Uri) -> Unit,
-    onImportCsv: (Uri, Map<String, String>, ImportMode) -> Unit,
+    onImportCsv: (Uri, Map<String, String>, CsvImportMode) -> Unit,
     onGenerateLabels: (Uri) -> Unit,
     onCompareClick: (() -> Unit)?,
     onMarkCsvExportWarningShown: () -> Unit,

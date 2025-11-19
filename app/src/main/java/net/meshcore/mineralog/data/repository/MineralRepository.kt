@@ -259,6 +259,7 @@ class MineralRepositoryImpl @Inject constructor(
 
     override suspend fun insertProvenance(provenance: Provenance) = ioCall {
         provenanceDao.insert(provenance.toEntity())
+        Unit
     }
 
     override suspend fun updateProvenance(provenance: Provenance) = ioCall {
@@ -267,6 +268,7 @@ class MineralRepositoryImpl @Inject constructor(
 
     override suspend fun insertStorage(storage: Storage) = ioCall {
         storageDao.insert(storage.toEntity())
+        Unit
     }
 
     override suspend fun updateStorage(storage: Storage) = ioCall {
@@ -275,6 +277,7 @@ class MineralRepositoryImpl @Inject constructor(
 
     override suspend fun insertPhoto(photo: Photo) = ioCall {
         photoDao.insert(photo.toEntity())
+        Unit
     }
 
     override suspend fun deletePhoto(photoId: String) = ioCall {
