@@ -1,14 +1,10 @@
 package net.meshcore.mineralog.ui.screens.camera
 
 import android.Manifest
-import android.content.Context
-import android.net.Uri
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
-import net.meshcore.mineralog.data.local.entity.PhotoType
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,21 +31,15 @@ class CameraIntegrationTest {
         Manifest.permission.CAMERA
     )
 
-    private val context: Context = ApplicationProvider.getApplicationContext()
-
     @Test
     fun cameraScreen_permissionGranted_showsCameraPreview() {
         // Arrange
         var navigatedBack = false
-        var capturedPhoto: Pair<Uri, PhotoType>? = null
 
         // Act
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-id",
-                onPhotoCaptured = { uri, type ->
-                    capturedPhoto = Pair(uri, type)
-                },
                 onNavigateBack = { navigatedBack = true }
             )
         }
@@ -72,7 +62,6 @@ class CameraIntegrationTest {
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-id",
-                onPhotoCaptured = { _, _ -> },
                 onNavigateBack = { navigatedBack = true }
             )
         }
@@ -94,7 +83,6 @@ class CameraIntegrationTest {
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-id",
-                onPhotoCaptured = { _, _ -> },
                 onNavigateBack = { }
             )
         }
@@ -128,7 +116,6 @@ class CameraIntegrationTest {
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-id",
-                onPhotoCaptured = { _, _ -> },
                 onNavigateBack = { }
             )
         }
@@ -145,7 +132,6 @@ class CameraIntegrationTest {
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-id",
-                onPhotoCaptured = { _, _ -> },
                 onNavigateBack = { }
             )
         }
@@ -165,7 +151,6 @@ class CameraIntegrationTest {
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-id",
-                onPhotoCaptured = { _, _ -> },
                 onNavigateBack = { }
             )
         }
@@ -195,7 +180,6 @@ class CameraIntegrationTest {
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-id",
-                onPhotoCaptured = { _, _ -> },
                 onNavigateBack = { }
             )
         }

@@ -1,12 +1,9 @@
 package net.meshcore.mineralog.ui.navigation
 
 import android.util.Log
-import net.meshcore.mineralog.util.AppLogger
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import kotlinx.coroutines.launch
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -221,53 +218,8 @@ fun MineraLogNavHost(
             )
         ) { backStackEntry ->
             val mineralId = backStackEntry.arguments?.getString("mineralId") ?: return@composable
-            val application = LocalContext.current.applicationContext as MineraLogApplication
-            val context = LocalContext.current
-
-            val viewModelScope = rememberCoroutineScope()
-
             CameraCaptureScreen(
                 mineralId = mineralId,
-                onPhotoCaptured = { uri, photoType ->
-                    // BUGFIX: Copy photo file from camera temp directory to photos directory
-                    viewModelScope.launch {
-                        try {
-                            // Create photos directory if it doesn't exist
-                            val photosDir = java.io.File(context.filesDir, "photos")
-                            if (!photosDir.exists()) {
-                                photosDir.mkdirs()
-                            }
-
-                            // Generate new filename
-                            val fileName = "photo_${System.currentTimeMillis()}.jpg"
-                            val destinationFile = java.io.File(photosDir, fileName)
-
-                            // Copy file from URI to photos directory
-                            context.contentResolver.openInputStream(uri)?.use { input ->
-                                destinationFile.outputStream().use { output ->
-                                    input.copyTo(output)
-                                }
-                            }
-
-                            // Save photo metadata to database
-                            val photo = net.meshcore.mineralog.domain.model.Photo(
-                                id = java.util.UUID.randomUUID().toString(),
-                                mineralId = mineralId,
-                                type = photoType.name,
-                                caption = null,
-                                takenAt = java.time.Instant.now(),
-                                fileName = fileName
-                            )
-                            application.mineralRepository.insertPhoto(photo)
-
-                            AppLogger.d("Navigation", "Photo saved: $fileName")
-                        } catch (e: Exception) {
-                            AppLogger.e("Navigation", "Failed to save photo", e)
-                        } finally {
-                            navController.popBackStack()
-                        }
-                    }
-                },
                 onNavigateBack = { navController.popBackStack() }
             )
         }

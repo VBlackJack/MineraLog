@@ -11,6 +11,7 @@ import net.meshcore.mineralog.data.mapper.toEntity
 import net.meshcore.mineralog.data.repository.CsvImportMode
 import net.meshcore.mineralog.data.repository.ImportResult
 import net.meshcore.mineralog.domain.model.Mineral
+import net.meshcore.mineralog.data.local.entity.MineralEntity
 import java.io.IOException
 import java.util.Locale
 
@@ -204,6 +205,8 @@ class CsvBackupService(
                 }
             }
 
+            val duplicateChecker = DuplicateChecker(database)
+
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 val parser = net.meshcore.mineralog.data.util.CsvParser()
                 val stagedMinerals = mutableMapOf<String, Mineral>()
@@ -238,7 +241,7 @@ class CsvBackupService(
                         val existingEntity = when {
                             mode == CsvImportMode.REPLACE -> null
                             stagedExisting != null -> null
-                            else -> database.mineralBasicDao().getByNormalizedName(normalizedName)
+                            else -> duplicateChecker.getExistingEntity(normalizedName)
                         }
 
                         when (mode) {
@@ -339,4 +342,17 @@ class CsvBackupService(
     }
 
     private fun normalizeName(name: String): String = name.trim().lowercase(Locale.ROOT)
+}
+
+private class DuplicateChecker(
+    private val database: MineraLogDatabase
+) {
+    private val cache = mutableMapOf<String, MineralEntity?>()
+
+    suspend fun getExistingEntity(normalizedName: String): MineralEntity? {
+        cache[normalizedName]?.let { return it }
+        val entity = database.mineralBasicDao().getByNormalizedName(normalizedName)
+        cache[normalizedName] = entity
+        return entity
+    }
 }

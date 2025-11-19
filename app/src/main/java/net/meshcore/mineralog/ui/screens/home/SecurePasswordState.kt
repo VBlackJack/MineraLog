@@ -37,7 +37,7 @@ class SecurePasswordState internal constructor() {
         return try {
             block(copy)
         } finally {
-            copy.fill('\u0000')
+            copy.fill(ZERO_CHAR)
         }
     }
 
@@ -45,7 +45,7 @@ class SecurePasswordState internal constructor() {
 
     fun clear() {
         if (backingChars.isNotEmpty()) {
-            backingChars.fill('\u0000')
+            backingChars.fill(ZERO_CHAR)
         }
         backingChars = CharArray(0)
     }
@@ -53,6 +53,10 @@ class SecurePasswordState internal constructor() {
     private fun replaceWith(newValue: CharArray) {
         clear()
         backingChars = newValue
+    }
+
+    private companion object {
+        private const val ZERO_CHAR: Char = '\u0000'
     }
 }
 
