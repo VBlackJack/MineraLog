@@ -82,7 +82,7 @@ ALTER TABLE reference_minerals ADD COLUMN sensitivity TEXT;
 
 ### 🎯 Next Steps
 
-- Populate reference library with 300-500 minerals using Claude Code web
+- Populate reference library with 300-500 minerals
 - Implement reference mineral selection in specimen creation
 - Add auto-fill functionality based on selected reference
 - Enhanced search and filtering in library

@@ -17,7 +17,7 @@ Guide complet pour déboguer et corriger les échecs CI dans le pipeline Android
 ### Workflow: `.github/workflows/ci.yml`
 
 **Déclencheurs:**
-- Push sur `main`, `develop`, `claude/**`
+- Push sur `main`, `develop`
 - Pull requests vers `main`, `develop`
 
 **Jobs (5):**
@@ -410,4 +410,4 @@ java -version        # Version JDK
 ---
 
 **Dernière mise à jour:** 2025-11-14
-**Auteur:** Claude Code CI/CD Session
+**Auteur:** MineraLog Team

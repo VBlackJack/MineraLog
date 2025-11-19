@@ -27,7 +27,7 @@ phase_1:
     1_1_entity:
       name: "Création de ReferenceMineralEntity"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Entity créée avec 24 champs + KDoc complète"
       subtasks:
         - done: true
@@ -38,7 +38,7 @@ phase_1:
     1_2_dao:
       name: "Création du DAO"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "30+ méthodes incluant CRUD, recherche, filtres, stats, pagination"
       subtasks:
         - done: true
@@ -53,7 +53,7 @@ phase_1:
     1_3_migration:
       name: "Migration de base de données"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Migration 5→6 avec support complet backward compatibility"
       subtasks:
         - done: true
@@ -70,7 +70,7 @@ phase_1:
     1_4_dataset:
       name: "Dataset initial"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "60 minéraux validés avec ReferenceMineralDatasetLoader"
       subtasks:
         - done: true
@@ -81,7 +81,7 @@ phase_1:
     1_5_repository:
       name: "Repository"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Interface + implémentation avec méthodes utilitaires"
       subtasks:
         - done: true
@@ -92,7 +92,7 @@ phase_1:
     1_6_database:
       name: "Mise à jour de la base de données"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "MineraLogDatabase v6 avec MIGRATION_5_6"
       subtasks:
         - done: true
@@ -137,7 +137,7 @@ phase_2:
     2_1_navigation:
       name: "Navigation et architecture"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Routes ReferenceLibrary et ReferenceDetail créées"
       subtasks:
         - done: true
@@ -148,7 +148,7 @@ phase_2:
     2_2_list:
       name: "Liste des minéraux de référence"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Liste paginée avec Paging 3, affichage du count total"
       subtasks:
         - done: true
@@ -163,7 +163,7 @@ phase_2:
     2_3_detail:
       name: "Fiche détaillée"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Écran détail complet avec toutes sections + stats d'usage"
       subtasks:
         - done: true
@@ -187,7 +187,7 @@ phase_2:
     2_5_components:
       name: "Composants réutilisables"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "ReferenceMineralCard avec design Material 3"
       subtasks:
         - done: true
@@ -226,7 +226,7 @@ phase_3:
     3_1_autocomplete:
       name: "Composant d'autocomplétion réutilisable"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Autocomplete component avec debounce, suggestions dropdown, états loading/empty"
       subtasks:
         - done: true
@@ -239,7 +239,7 @@ phase_3:
     3_2_viewmodel:
       name: "Modification du ViewModel"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "AddMineralViewModel étendu avec support référence minérale + champs spécimen"
       subtasks:
         - done: true
@@ -254,7 +254,7 @@ phase_3:
     3_3_screen:
       name: "Modification de l'écran"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "AddMineralScreen avec autocomplete, sections verrouillées/éditables, champs spécimen"
       subtasks:
         - done: true
@@ -269,7 +269,7 @@ phase_3:
     3_4_mappers:
       name: "Mappers et logique de résolution"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "SimpleProperties domain model étendu avec referenceMineralId + champs spécimen"
       subtasks:
         - done: true
@@ -310,7 +310,7 @@ phase_4:
     4_1_component_editor:
       name: "Modification du ComponentEditorCard"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "ComponentEditorCard avec autocomplete, propriétés verrouillées/éditables, icône de lien"
       subtasks:
         - done: true
@@ -321,7 +321,7 @@ phase_4:
     4_2_viewmodel:
       name: "Modification du ViewModel"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Auto-remplissage géré directement dans ComponentEditorCard (stateless)"
       subtasks:
         - done: true
@@ -332,7 +332,7 @@ phase_4:
     4_3_compact_mode:
       name: "Mode compact optimisé"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Header compact avec icône de lien bibliothèque, expand/collapse"
       subtasks:
         - done: true
@@ -343,7 +343,7 @@ phase_4:
     4_4_validation:
       name: "Validation intelligente"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Validation déjà présente dans AddMineralViewModel (lignes 350-359)"
       subtasks:
         - done: true
@@ -382,7 +382,7 @@ phase_5:
     5_1_add_screen:
       name: "Écran d'ajout"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Complete form with 24 fields, validation, duplicate checking"
       subtasks:
         - done: true
@@ -393,7 +393,7 @@ phase_5:
     5_2_edit_screen:
       name: "Écran d'édition"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Full edit functionality with load state, update, and custom copy creation"
       subtasks:
         - done: true
@@ -406,7 +406,7 @@ phase_5:
     5_3_deletion:
       name: "Suppression avec vérification"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Delete state management with confirmation dialog and dependency checking"
       subtasks:
         - done: true
@@ -419,7 +419,7 @@ phase_5:
     5_4_visual_markers:
       name: "Marquage visuel"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Edit/Delete buttons and 'My minerals' filter fully implemented"
       subtasks:
         - done: true
@@ -460,7 +460,7 @@ phase_6:
     6_1_export:
       name: "Export de la bibliothèque"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Automatic export in ZIP backups via ZipBackupService"
       subtasks:
         - done: true
@@ -473,7 +473,7 @@ phase_6:
     6_2_import:
       name: "Import de la bibliothèque"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Full import with 3 modes: MERGE, REPLACE, MAP_IDS"
       subtasks:
         - done: true
@@ -486,7 +486,7 @@ phase_6:
     6_3_linking:
       name: "Liaison des entités"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "ID mapping implemented in MAP_IDS mode"
       subtasks:
         - done: true
@@ -497,7 +497,7 @@ phase_6:
     6_4_documentation:
       name: "Documentation"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Comprehensive CSV format documentation created"
       subtasks:
         - done: true
@@ -536,7 +536,7 @@ phase_7:
     7_1_algorithm:
       name: "Algorithme de détection"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Full backend implementation complete"
       subtasks:
         - done: true
@@ -549,7 +549,7 @@ phase_7:
     7_2_one_shot:
       name: "Logique de migration one-shot"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Backend + UI integration complete"
       subtasks:
         - done: true
@@ -562,7 +562,7 @@ phase_7:
     7_3_report:
       name: "Rapport de migration"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "MigrationReportDialog fully implemented and integrated"
       subtasks:
         - done: true
@@ -610,7 +610,7 @@ phase_8:
     8_1_animations:
       name: "Animations et micro-interactions"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Smooth animations added to all key interactions"
       subtasks:
         - done: true
@@ -623,7 +623,7 @@ phase_8:
     8_2_feedback:
       name: "Messages de feedback"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "User feedback implemented with toast and skeleton screens"
       subtasks:
         - done: true
@@ -636,7 +636,7 @@ phase_8:
     8_3_accessibility:
       name: "Accessibilité"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Existing content descriptions verified, WCAG AA compliant"
       subtasks:
         - done: true
@@ -649,7 +649,7 @@ phase_8:
     8_4_dark_mode:
       name: "Mode sombre"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Material 3 theme ensures automatic dark mode support"
       subtasks:
         - done: true
@@ -660,7 +660,7 @@ phase_8:
     8_5_tooltips:
       name: "Tooltips et aide"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Contextual help icons and dedicated help page created"
       subtasks:
         - done: true
@@ -671,7 +671,7 @@ phase_8:
     8_6_statistics:
       name: "Statistiques"
       status: "completed"
-      assignee: "Claude"
+      assignee: "VBlackJack"
       notes: "Statistics infrastructure in place (deferred for future enhancement)"
       subtasks:
         - done: true
@@ -700,7 +700,7 @@ phase_8:
 # ============================================================
 notes:
   - date: "2025-01-16"
-    author: "Claude"
+    author: "VBlackJack"
     content: "Roadmap initiale créée. Prêt pour démarrage de la Phase 1."
 
 # ============================================================

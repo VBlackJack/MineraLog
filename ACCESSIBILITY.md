@@ -560,5 +560,5 @@ MineraLog is **WCAG 2.1 AA Compliant**. Add this badge to README.md:
 ---
 
 *Last updated: 2025-11-13*
-*Contributors: Claude, MineraLog Team*
+*Contributors: MineraLog Team*
 *Version: v1.6.1*

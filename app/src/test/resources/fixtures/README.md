@@ -203,4 +203,4 @@ When updating fixtures:
 ---
 
 **Last updated:** 2025-11-14
-**Maintainer:** Claude Code (M1 Sprint)
+**Maintainer:** MineraLog Team
