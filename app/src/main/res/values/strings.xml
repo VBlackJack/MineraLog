@@ -1,778 +1,169 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App -->
-    <string name="app_name">MineraLog</string>
-    <string name="app_version">MineraLog v%s</string>
-
-    <!-- Navigation -->
-    <string name="nav_home">Home</string>
-    <string name="nav_add">Add</string>
-    <string name="nav_detail">Details</string>
-    <string name="nav_settings">Settings</string>
-    <string name="nav_statistics">Statistics</string>
-    <string name="nav_compare">Compare</string>
-    <string name="nav_bulk_edit">Bulk Edit</string>
-    <string name="nav_import_export">Import/Export</string>
-    <string name="nav_map">Map</string>
-    <string name="nav_gallery">Gallery</string>
-
-    <!-- Common Actions -->
-    <string name="action_save">SAVE</string>
-    <string name="action_cancel">Cancel</string>
-    <string name="action_delete">Delete</string>
-    <string name="action_edit">Edit</string>
-    <string name="action_share">Share</string>
-    <string name="action_add">Add</string>
-    <string name="action_search">Search</string>
-    <string name="action_filter">Filter</string>
-    <string name="action_sort">Sort</string>
-    <string name="action_export">Export</string>
-    <string name="action_import">Import</string>
-    <string name="action_backup">Backup</string>
-    <string name="action_restore">Restore</string>
-    <string name="action_select_all">Select All</string>
-    <string name="action_deselect_all">Deselect All</string>
-    <string name="action_apply">Apply</string>
-    <string name="action_close">Close</string>
-    <string name="action_confirm">Confirm</string>
-
-    <!-- Content Descriptions -->
-    <string name="cd_settings">Settings</string>
-    <string name="cd_add_mineral">Add mineral</string>
-    <string name="cd_back">Back</string>
-    <string name="cd_search">Search</string>
-    <string name="cd_filter">Filter</string>
-    <string name="cd_delete">Delete</string>
-    <string name="cd_edit">Edit</string>
-    <string name="cd_generate_qr_code">Generate QR code</string>
-    <string name="cd_share">Share</string>
-    <string name="qr_label_generated_success">QR code label PDF generated successfully</string>
-    <string name="cd_more_options">More options</string>
-    <string name="cd_photo">Photo</string>
-    <string name="cd_take_photo">Take photo</string>
-    <string name="cd_select_photo">Select photo</string>
-    <string name="cd_delete_photo">Delete photo</string>
-    <string name="cd_mineral_image">Mineral image</string>
-
-    <!-- Home Screen -->
-    <string name="home_title">MineraLog</string>
-    <string name="home_search_placeholder">Search minerals…</string>
-    <string name="home_empty_state">No minerals yet. Add your first one!</string>
-    <string name="home_empty_search">No minerals found</string>
-    <string name="home_empty_state_title">Your Collection is Empty</string>
-    <string name="home_empty_state_message">Start building your mineral collection by adding your first specimen</string>
-    <string name="home_empty_state_action">Tap the + button below to get started</string>
-    <string name="home_no_results_title">No Results Found</string>
-    <string name="home_no_results_message">No minerals match \"%s\"</string>
-    <string name="home_no_results_with_filters">with the current filters</string>
-    <string name="home_error_loading">Error loading minerals: %s</string>
-    <string name="home_error_loading_more">Error loading more: %s</string>
-    <string name="home_operation_in_progress">%s in progress...</string>
-    <string name="home_generating_labels">Generating labels...</string>
-
-    <!-- Empty States (P1-9) -->
-    <string name="empty_collection_title">Your collection is empty</string>
-    <string name="empty_collection_subtitle">Start by adding your first mineral specimen</string>
-    <string name="empty_search_title">No results found</string>
-    <string name="empty_search_subtitle">Try adjusting your search or filters</string>
-    <string name="add_mineral">Add Mineral</string>
-    <plurals name="home_mineral_count">
-        <item quantity="one">%d mineral</item>
-        <item quantity="other">%d minerals</item>
-    </plurals>
-
-    <!-- Add/Edit Mineral Screen -->
-    <string name="add_mineral_title">Add Mineral</string>
-    <string name="edit_mineral_title">Edit Mineral</string>
-    <string name="add_mineral_draft_saved">Draft saved</string>
-    <string name="add_mineral_required_field">* Required field</string>
-    <string name="add_mineral_photos_title">Photos</string>
-    <string name="add_mineral_photos_hint">Add photos from gallery or camera. Support for Normal, UV, and Macro photos.</string>
-    <string name="field_name">Name *</string>
-    <string name="field_name_hint">Enter mineral name</string>
-    <string name="field_group">Group</string>
-    <string name="field_group_hint">e.g., Silicates, Oxides</string>
-    <string name="field_formula">Chemical Formula</string>
-    <string name="field_formula_hint">e.g., SiO₂</string>
-    <string name="field_color">Color</string>
-    <string name="field_streak">Streak</string>
-    <string name="field_luster">Luster</string>
-    <string name="field_hardness">Hardness (Mohs)</string>
-    <string name="field_crystal_system">Crystal System</string>
-    <string name="field_specific_gravity">Specific Gravity</string>
-    <string name="field_cleavage">Cleavage</string>
-    <string name="field_fracture">Fracture</string>
-    <string name="field_tenacity">Tenacity</string>
-    <string name="field_diaphaneity">Diaphaneity</string>
-    <string name="field_habitus">Habitus</string>
-    <string name="field_fluorescence">Fluorescence</string>
-    <string name="field_radioactivity">Radioactivity</string>
-    <string name="field_magnetism">Magnetism</string>
-    <string name="field_dimensions">Dimensions (mm)</string>
-    <string name="field_weight">Weight (g)</string>
-    <string name="field_value">Estimated Value</string>
-    <string name="field_value_currency">Currency</string>
-    <string name="field_notes">Notes</string>
-    <string name="field_notes_hint">Additional observations, collection story…</string>
-    <string name="field_tags">Tags</string>
-    <string name="field_tags_hint">separate, with, commas</string>
-
-    <!-- Mineral Detail Screen -->
-    <string name="detail_loading">Loading…</string>
-    <string name="detail_section_basic">Basic Information</string>
-    <string name="detail_section_physical">Physical Properties</string>
-    <string name="detail_section_special">Special Properties</string>
-    <string name="detail_section_measurements">Measurements</string>
-    <string name="detail_section_provenance">Provenance</string>
-    <string name="detail_section_storage">Storage Location</string>
-    <string name="detail_section_photos">Photos</string>
-    <string name="detail_section_notes">Notes</string>
-    <string name="detail_section_metadata">Metadata</string>
-    <string name="detail_label_name">Name</string>
-    <string name="detail_label_group">Group</string>
-    <string name="detail_label_formula">Formula</string>
-    <string name="detail_label_color">Color</string>
-    <string name="detail_label_streak">Streak</string>
-    <string name="detail_label_luster">Luster</string>
-    <string name="detail_label_hardness">Hardness</string>
-    <string name="detail_label_crystal_system">Crystal System</string>
-    <string name="detail_label_specific_gravity">Specific Gravity</string>
-    <string name="detail_label_cleavage">Cleavage</string>
-    <string name="detail_label_fracture">Fracture</string>
-    <string name="detail_label_dimensions">Dimensions</string>
-    <string name="detail_label_weight">Weight</string>
-    <string name="detail_label_value">Value</string>
-    <string name="detail_label_created">Created</string>
-    <string name="detail_label_updated">Updated</string>
-    <string name="detail_label_uuid">UUID</string>
-    <string name="detail_no_provenance">No provenance information</string>
-    <string name="detail_no_storage">No storage location</string>
-    <string name="detail_no_photos">No photos</string>
-    <string name="detail_no_notes">No notes</string>
-
-    <!-- Provenance -->
-    <string name="provenance_title">Provenance</string>
-    <string name="provenance_add">Add Provenance</string>
-    <string name="provenance_locality">Locality</string>
-    <string name="provenance_country">Country</string>
-    <string name="provenance_acquisition_date">Acquisition Date</string>
-    <string name="provenance_estimated_value">Estimated Value</string>
-    <string name="provenance_source">Source</string>
-    <string name="provenance_source_hint">Dealer, field collecting, gift…</string>
-    <string name="provenance_coordinates">Coordinates</string>
-    <string name="provenance_latitude">Latitude</string>
-    <string name="provenance_longitude">Longitude</string>
-
-    <!-- Storage -->
-    <string name="storage_title">Storage</string>
-    <string name="storage_add">Add Storage Location</string>
-    <string name="storage_location">Location</string>
-    <string name="storage_location_hint">Room, shelf…</string>
-    <string name="storage_box">Box</string>
-    <string name="storage_drawer">Drawer</string>
-    <string name="storage_slot">Slot/Position</string>
-    <string name="storage_qr_code">QR Code</string>
-    <string name="storage_nfc_tag">NFC Tag</string>
-
-    <!-- Settings Screen -->
-    <string name="settings_title">Settings</string>
-    <string name="settings_section_general">General</string>
-    <string name="settings_section_data">Data &amp; Privacy</string>
-    <string name="settings_section_display">Display</string>
-    <string name="settings_section_backup">Backup &amp; Export</string>
-    <string name="settings_section_about">About</string>
-    <string name="settings_language">Language</string>
-    <string name="settings_theme">Theme</string>
-    <string name="settings_theme_light">Light</string>
-    <string name="settings_theme_dark">Dark</string>
-    <string name="settings_theme_system">System</string>
-    <string name="settings_copy_photos">Copy photos to internal storage</string>
-    <string name="settings_copy_photos_desc">Recommended for data safety</string>
-    <string name="settings_encrypt_backups">Encrypt backups</string>
-    <string name="settings_encrypt_backups_desc">Protect exports with password</string>
-    <string name="settings_encrypt_media">Encrypt media files</string>
-    <string name="settings_encrypt_media_desc">Higher security, larger file size</string>
-    <string name="settings_auto_backup">Automatic backup</string>
-    <string name="settings_auto_backup_desc">Weekly backup to storage</string>
-    <string name="settings_about">About</string>
-    <string name="settings_diagnostics">Diagnostics</string>
-    <string name="settings_licenses">Open Source Licenses</string>
-    <string name="settings_version">Version</string>
-
-    <!-- Statistics Screen -->
-    <string name="statistics_title">Statistics</string>
-    <string name="statistics_overview">Overview</string>
-    <string name="chart_no_data">No data to display</string>
-    <string name="chart_and_more">... and %d more</string>
-    <string name="statistics_time_based">Recent Activity</string>
-    <string name="statistics_highlights">Highlights</string>
-    <string name="statistics_by_group">Distribution by Group</string>
-    <string name="statistics_by_country">Distribution by Country</string>
-    <string name="statistics_by_crystal_system">Distribution by Crystal System</string>
-    <string name="statistics_by_hardness">Distribution by Hardness</string>
-    <string name="statistics_by_status">Distribution by Status</string>
-    <string name="statistics_collection_evolution">Collection Evolution</string>
-    <string name="statistics_empty_title">No Minerals Yet</string>
-    <string name="statistics_empty_message">Add your first mineral to see statistics about your collection</string>
-    <string name="stats_title">Statistics</string>
-    <string name="stats_total_minerals">Total Minerals</string>
-    <string name="stats_by_group">By Mineral Group</string>
-    <string name="stats_by_country">By Country</string>
-    <string name="stats_by_hardness">By Hardness (Mohs)</string>
-    <string name="stats_total_value">Total Estimated Value</string>
-    <string name="stats_average_value">Average Value</string>
-    <string name="stats_most_common">Most Common</string>
-    <string name="stats_empty">No data yet</string>
-
-    <!-- Comparator Screen -->
-    <string name="compare_title">Compare Minerals</string>
-    <string name="compare_property">Property</string>
-    <string name="compare_select">Select minerals to compare</string>
-    <string name="compare_max_reached">Maximum 3 minerals</string>
-    <string name="compare_min_required">Select at least 2 minerals</string>
-    <string name="compare_clear">Clear selection</string>
-    <string name="compare_differences">Differences highlighted</string>
-
-    <!-- Bulk Edit Screen -->
-    <string name="bulk_title">Bulk Edit</string>
-    <string name="bulk_selected">%d selected</string>
-    <string name="bulk_action_move">Move to Storage</string>
-    <string name="bulk_action_tag">Add Tags</string>
-    <string name="bulk_action_export">Export</string>
-    <string name="bulk_confirm_delete">Delete %d minerals?</string>
-    <string name="bulk_confirm_delete_message">This action cannot be undone.</string>
-
-    <!-- Import/Export -->
-    <string name="import_title">Import</string>
-    <string name="export_title">Export</string>
-    <string name="import_result_title">Import Complete</string>
-    <string name="import_result_imported">✅ Imported:</string>
-    <string name="import_result_skipped">⚠️ Skipped:</string>
-    <string name="import_result_errors">❌ Errors:</string>
-    <string name="import_result_error_details">Error Details</string>
-    <string name="import_csv_analyzing">Analyzing CSV file…</string>
-    <string name="import_csv_skip_column_option">(Skip column)</string>
-    <string name="column_mapping_title">Map CSV Columns</string>
-    <string name="column_mapping_preview">Preview</string>
-    <string name="column_mapping_required">Required: You must map a column to \'Name\'</string>
-    <string name="export_csv_columns_selected">%1$d of %2$d columns selected</string>
-    <string name="export_csv_title">Export to CSV</string>
-    <string name="export_csv_subtitle">%d minerals selected</string>
-    <string name="export_csv_select_columns">Select columns to export</string>
-    <string name="csv_export_warning_title">CSV Export Limitations</string>
-    <string name="csv_export_warning_message">CSV exports are for data analysis only and cannot be re-imported.\n\nFor complete backups with photos and full data restoration, use ZIP export instead.\n\nLearn more about import/export options in the documentation.</string>
-    <string name="csv_export_warning_checkbox">Don\'t show this again</string>
-    <string name="csv_export_warning_understand">I Understand</string>
-    <string name="import_csv_title">Import from CSV</string>
-    <string name="import_csv_subtitle" formatted="false">%d rows, %d columns</string>
-    <string name="import_csv_select_file">Select CSV file</string>
-    <string name="import_csv_parsing">Parsing CSV file…</string>
-    <string name="import_csv_error">Error parsing CSV</string>
-    <string name="import_csv_mode_label">Import mode</string>
-    <string name="import_csv_mode_merge">Merge (update existing, add new)</string>
-    <string name="import_csv_mode_replace">Replace all (delete existing)</string>
-    <string name="import_csv_mode_skip">Skip duplicates</string>
-    <string name="import_csv_mode_title">Import Mode</string>
-    <string name="import_mode_merge">Merge</string>
-    <string name="import_mode_merge_desc">Update existing minerals by name, add new ones</string>
-    <string name="import_mode_replace">Replace All</string>
-    <string name="import_mode_replace_desc">Delete all minerals and import from CSV</string>
-    <string name="import_mode_skip">Skip Duplicates</string>
-    <string name="import_mode_skip_desc">Skip minerals with duplicate names</string>
-    <string name="import_csv_preview_title">CSV Preview</string>
-    <string name="import_csv_preview">Preview (first 5 rows)</string>
-    <string name="import_csv_preview_rows">First %d rows</string>
-    <string name="import_csv_detected">%d columns detected</string>
-    <string name="import_csv_unmapped">%d unmapped</string>
-    <string name="import_csv_encoding">Encoding: %s</string>
-    <string name="import_csv_delimiter">Delimiter: %s</string>
-    <string name="import_csv_auto_mapping">Use auto-mapping</string>
-    <string name="import_csv_column_mapping">Column Mapping</string>
-    <string name="import_csv_mapped_columns" formatted="false">%d of %d columns mapped</string>
-    <string name="import_csv_name_required">⚠️ Name column is required for import</string>
-    <string name="import_csv_skip_column">(Skip column)</string>
-    <string name="import_csv_start">Start Import</string>
-    <string name="import_csv_errors">%d errors</string>
-    <string name="action_import_csv">Import CSV</string>
-    <string name="import_select_file">Select ZIP file</string>
-    <string name="export_select_destination">Select destination</string>
-    <string name="export_format">Format</string>
-    <string name="export_format_zip">ZIP (with media)</string>
-    <string name="export_format_csv">CSV (data only)</string>
-    <string name="export_format_json">JSON (data only)</string>
-    <string name="export_include_photos">Include photos</string>
-    <string name="export_encrypt">Encrypt export</string>
-    <string name="export_password">Password</string>
-    <string name="export_password_confirm">Confirm password</string>
-    <string name="export_progress">Exporting… %d%%</string>
-    <string name="import_progress">Importing… %d%%</string>
-    <string name="export_success">Exported %d minerals</string>
-    <string name="export_success_feedback">Exported %d minerals successfully</string>
-    <string name="export_error_feedback">Export failed: %s</string>
-    <string name="import_success">Imported %d minerals</string>
-    <string name="export_error">Export failed</string>
-    <string name="import_error">Import failed</string>
-    <string name="import_error_invalid_format">Invalid file format</string>
-    <string name="import_error_version_mismatch">Incompatible schema version</string>
-    <string name="import_error_decryption_failed">Decryption failed. Check password.</string>
-
-    <!-- QR Labels -->
-    <string name="qr_title">QR Labels</string>
-    <string name="qr_generate">Generate Label</string>
-    <string name="qr_template">Template</string>
-    <string name="qr_template_basic">Basic (Name + QR)</string>
-    <string name="qr_template_detailed">Detailed (Properties)</string>
-    <string name="qr_template_compact">Compact (Small)</string>
-    <string name="qr_size">Label Size</string>
-    <string name="qr_export_pdf">Export as PDF</string>
-    <string name="qr_export_png">Export as PNG</string>
-    <string name="qr_scan">Scan QR Code</string>
-
-    <!-- Map -->
-    <string name="map_title">Provenance Map</string>
-    <string name="map_cluster">%d minerals</string>
-    <string name="map_view_mode">View Mode</string>
-    <string name="map_view_markers">Markers</string>
-    <string name="map_view_heatmap">Heatmap</string>
-    <string name="map_zoom_to_fit">Zoom to fit</string>
-    <string name="map_no_locations">No minerals with coordinates</string>
-
-    <!-- Photo Gallery -->
-    <string name="gallery_title">Photo Gallery</string>
-    <string name="gallery_add">Add Photo</string>
-    <string name="photo_manager_no_photos_title">No photos yet</string>
-    <string name="photo_manager_no_photos_message">Add photos from gallery or camera</string>
-    <plurals name="photo_count">
-        <item quantity="one">%d photo</item>
-        <item quantity="other">%d photos</item>
-    </plurals>
-    <string name="gallery_type">Photo Type</string>
-    <string name="gallery_type_normal">Normal</string>
-    <string name="gallery_type_uv">UV Light</string>
-    <string name="gallery_type_macro">Macro</string>
-    <string name="gallery_type_context">Context</string>
-    <string name="gallery_caption">Caption</string>
-    <string name="gallery_delete_confirm">Delete this photo?</string>
-    <string name="gallery_empty">No photos yet</string>
-
-    <!-- Diagnostics -->
-    <string name="diag_title">Diagnostics</string>
-    <string name="diag_app_version">App Version</string>
-    <string name="diag_database_version">Database Version</string>
-    <string name="diag_storage_used">Storage Used</string>
-    <string name="diag_storage_available">Storage Available</string>
-    <string name="diag_mineral_count">Mineral Count</string>
-    <string name="diag_photo_count">Photo Count</string>
-    <string name="diag_last_backup">Last Backup</string>
-    <string name="diag_encryption_key">Encryption Key Status</string>
-    <string name="diag_api_keys">API Keys</string>
-    <string name="diag_maps_api">Maps API</string>
-    <string name="diag_status_ok">OK</string>
-    <string name="diag_status_missing">Missing</string>
-    <string name="diag_status_error">Error</string>
-
-    <!-- Status/Lifecycle -->
-    <string name="status_title">Status</string>
-    <string name="status_section_title">Status Information</string>
-    <string name="status_type">Status</string>
-    <string name="status_quality_rating">Quality Rating</string>
-    <string name="status_completeness">Data Completeness</string>
-    <string name="status_collection">In Collection</string>
-    <string name="status_display">On Display</string>
-    <string name="status_loaned">Loaned</string>
-    <string name="status_restore">Needs Restoration</string>
-    <string name="status_for_sale">For Sale</string>
-    <string name="status_loaned_to">Loaned to</string>
-    <string name="status_loaned_date">Loan Date</string>
-    <string name="status_return_date">Expected Return</string>
-    <string name="status_display_location">Display Location</string>
-
-    <!-- Errors -->
-    <string name="error_generic">An error occurred</string>
-    <string name="error_generic_title">Error</string>
-    <string name="error_network">Network error</string>
-    <string name="error_permission_denied">Permission denied</string>
-    <string name="error_file_not_found">File not found</string>
-    <string name="error_invalid_input">Invalid input</string>
-    <string name="error_required_field">This field is required</string>
-    <string name="error_database">Database error</string>
-    <string name="error_encryption">Encryption error</string>
-
-    <!-- Validation -->
-    <string name="validation_name_required">Name is required</string>
-    <string name="validation_name_too_long">Name is too long (max 200 characters)</string>
-    <string name="validation_invalid_number">Invalid number</string>
-    <string name="validation_invalid_coordinates">Invalid coordinates</string>
-    <string name="validation_passwords_dont_match">Passwords don\'t match</string>
-    <string name="validation_password_too_weak">Password is too weak (min 8 characters)</string>
-
-    <!-- Dialogs -->
-    <string name="dialog_delete_title">Delete Mineral?</string>
-    <string name="dialog_delete_message">This will permanently delete this mineral and all associated photos.</string>
-    <string name="dialog_unsaved_changes_title">Unsaved Changes</string>
-    <string name="dialog_unsaved_changes_message">You have unsaved changes. Discard them?</string>
-    <string name="dialog_discard">Discard</string>
-    <string name="dialog_keep_editing">Keep Editing</string>
-
-    <!-- Date/Time -->
-    <string name="date_today">Today</string>
-    <string name="date_yesterday">Yesterday</string>
-    <string name="date_format_short">MMM d, yyyy</string>
-    <string name="date_format_long">MMMM d, yyyy</string>
-    <string name="time_format">HH:mm</string>
-
-    <!-- Units -->
-    <string name="unit_mm">mm</string>
-    <string name="unit_cm">cm</string>
-    <string name="unit_grams">g</string>
-    <string name="unit_kg">kg</string>
-    <string name="unit_mohs">Mohs</string>
-
-    <!-- Accessibility -->
-    <string name="acc_mineral_card">Mineral card: %s</string>
-    <string name="acc_photo_thumbnail" formatted="false">Photo thumbnail %d of %d</string>
-    <string name="acc_loading">Loading content</string>
-    <string name="acc_empty_list">Empty list</string>
-
-    <!-- Filters (v1.3.0) -->
-    <string name="filter_title">Filter Minerals</string>
-    <string name="filter_active_count">filters active</string>
-    <string name="filter_presets">Saved Presets</string>
-    <string name="filter_by_group">Filter by Group</string>
-    <string name="filter_by_country">Filter by Country</string>
-    <string name="filter_by_crystal_system">Filter by Crystal System</string>
-    <string name="filter_by_hardness">Filter by Hardness</string>
-    <string name="filter_hardness_range" formatted="false">Hardness: %.1f - %.1f</string>
-    <string name="filter_by_status">Filter by Status</string>
-    <string name="filter_by_quality">Filter by Quality</string>
-    <string name="filter_quality_range" formatted="false">Quality: %d - %d stars</string>
-    <string name="filter_by_photos">Filter by Photos</string>
-    <string name="filter_has_photos">Has photos</string>
-    <string name="filter_no_photos">No photos</string>
-    <string name="filter_by_fluorescence">Filter by Fluorescence</string>
-    <string name="filter_fluorescent">Fluorescent</string>
-    <string name="filter_not_fluorescent">Not fluorescent</string>
-    <string name="filter_clear">Clear</string>
-    <string name="filter_save_preset">Save Preset</string>
-    <string name="filter_apply">Apply</string>
-    <string name="filter_preset_name">Preset Name</string>
-    <string name="save">Save</string>
-    <string name="cancel">Cancel</string>
-
-    <!-- Bulk Actions (v1.3.0) -->
-    <string name="bulk_actions_title">Bulk Actions</string>
-    <string name="bulk_selected_count">%d minerals selected</string>
-    <string name="bulk_action_compare">Compare Side-by-Side</string>
-    <string name="bulk_action_compare_desc">View property comparison table</string>
-    <string name="bulk_action_delete">Delete Selected</string>
-    <string name="bulk_action_export_csv">Export to CSV</string>
-    <string name="bulk_action_export_csv_desc">Export selected minerals with customizable columns</string>
-    <string name="bulk_action_qr_labels">Generate QR Labels</string>
-    <string name="bulk_action_qr_labels_desc">Create printable PDF with QR codes</string>
-    <string name="bulk_delete_confirm_title">Delete Minerals?</string>
-    <string name="bulk_delete_confirm_message">This will permanently delete %d minerals and all associated photos.</string>
-    <string name="delete">Delete</string>
-
-    <!-- Camera Capture Screen -->
-    <string name="camera_title">Take Photo</string>
-    <string name="camera_permission_required">Camera permission is required to take photos</string>
-    <string name="camera_grant_permission">Grant Permission</string>
-    <string name="camera_select_photo_type">Select photo type</string>
-    <string name="camera_photo_type_normal">Normal</string>
-    <string name="camera_photo_type_normal_desc">Standard photo</string>
-    <string name="camera_photo_type_uv_sw">UV Shortwave</string>
-    <string name="camera_photo_type_uv_sw_desc">Shortwave UV fluorescence</string>
-    <string name="camera_photo_type_uv_lw">UV Longwave</string>
-    <string name="camera_photo_type_uv_lw_desc">Longwave UV fluorescence</string>
-    <string name="camera_photo_type_macro">Macro</string>
-    <string name="camera_photo_type_macro_desc">Close-up macro shot</string>
-    <string name="camera_photo_type_selected">Selected</string>
-    <string name="camera_enable_flash">Enable flash</string>
-    <string name="camera_disable_flash">Disable flash</string>
-    <string name="camera_preview_ready">Camera preview. Ready to capture %s photo</string>
-    <string name="camera_capturing">Capturing photo, please wait</string>
-    <string name="camera_capture_photo">Capture photo</string>
-    <string name="camera_photo_type_changed">Photo type changed to %s</string>
-    <string name="camera_capturing_status">Capturing photo...</string>
-    <string name="camera_capture_success">Photo captured successfully</string>
-    <string name="camera_capture_failed">Photo capture failed. Please try again</string>
-
-    <!-- P1-4: Enhanced camera error messages -->
-    <string name="camera_init_failed">Failed to initialize camera</string>
-    <string name="camera_binding_failed">Camera binding failed. Please restart the app</string>
-    <string name="camera_invalid_config">Invalid camera configuration</string>
-    <string name="camera_unknown_error">Camera error: %s</string>
-    <string name="camera_not_initialized">Camera not ready. Please wait</string>
-    <string name="camera_storage_error">Storage error. Cannot save photos</string>
-    <string name="camera_file_creation_error">Failed to create photo file</string>
-    <string name="camera_closed_error">Camera closed unexpectedly</string>
-    <string name="camera_capture_failed_error">Capture failed. Please try again</string>
-    <string name="camera_file_io_error">File I/O error. Check storage space</string>
-    <string name="camera_invalid_camera_error">Invalid camera. Please restart</string>
-    <string name="retry">Retry</string>
-
-    <!-- Photo Gallery -->
-    <string name="gallery_title_with_count">Photos (%d)</string>
-    <string name="gallery_no_photos">No photos yet</string>
-    <string name="gallery_take_first_photo">Take your first photo using the camera button above</string>
-    <string name="gallery_button_take_photo">Take Photo</string>
-    <string name="gallery_delete_dialog_title">Delete Photo</string>
-    <string name="gallery_delete_dialog_message">Are you sure you want to delete this photo? This action cannot be undone.</string>
-
-    <!-- Edit/Add Mineral Common -->
-    <string name="dialog_discard_title">Discard changes?</string>
-    <string name="dialog_discard_message">You have unsaved changes. Are you sure you want to discard them?</string>
-    <string name="button_discard">Discard</string>
-    <string name="field_required_legend">* Required field</string>
-    <string name="error_name_required">Name is required</string>
-    <string name="error_name_required_detail">Name is required. This field cannot be empty.</string>
-    <string name="section_technical_properties">Technical Properties</string>
-    <string name="section_technical_properties_hint">Select from predefined values or enter custom. Tap ⓘ for explanations.</string>
-    <string name="section_tags_organization">Tags &amp; Organization</string>
-    <string name="section_tags_hint">Add tags separated by commas. Autocomplete suggestions will appear as you type.</string>
-    <string name="field_tags_placeholder">e.g., collection, rare, beautiful</string>
-    <string name="field_tags_supporting">Separate multiple tags with commas</string>
-    <string name="field_tags_description">Tags field. Enter comma-separated tags. Autocomplete suggestions available.</string>
-    <string name="tag_suggestions_available">%d tag suggestions available</string>
-    <string name="tag_select">Select tag: %s</string>
-    <string name="section_photos">Photos</string>
-    <string name="section_photos_hint">Add photos from gallery or camera. Support for Normal, UV, and Macro photos.</string>
-    <string name="field_diaphaneity_label">Diaphaneity</string>
-    <string name="field_diaphaneity_placeholder">Select transparency level</string>
-    <string name="field_cleavage_label">Cleavage</string>
-    <string name="field_cleavage_placeholder">Select cleavage quality</string>
-    <string name="field_fracture_label">Fracture</string>
-    <string name="field_fracture_placeholder">Select fracture type</string>
-    <string name="field_luster_label">Luster</string>
-    <string name="field_luster_placeholder">Select luster type</string>
-    <string name="field_streak_label">Streak</string>
-    <string name="field_streak_placeholder">Select streak color</string>
-    <string name="field_habit_label">Habit</string>
-    <string name="field_habit_placeholder">Select crystal habit</string>
-    <string name="field_crystal_system_label">Crystal System</string>
-    <string name="field_crystal_system_placeholder">Select crystal system</string>
-    <string name="draft_saved">Draft saved</string>
-
-    <!-- Mineral Detail Screen -->
-    <string name="detail_loading_message">Loading mineral details...</string>
-    <string name="detail_photos_count">Photos (%d)</string>
-    <string name="detail_menu_properties">Properties</string>
-    <string name="detail_menu_edit_external">Edit with external app</string>
-    <string name="detail_menu_delete">Delete</string>
-    <string name="detail_photo_properties_title">Photo Properties</string>
-    <string name="detail_photo_property_type">Type</string>
-    <string name="detail_photo_property_filename">File name</string>
-    <string name="detail_photo_property_size">Size</string>
-    <string name="detail_photo_property_caption">Caption</string>
-    <string name="detail_delete_photo_title">Delete Photo?</string>
-    <string name="detail_delete_photo_message">Are you sure you want to delete this photo? This action cannot be undone.</string>
-    <string name="detail_section_basic_info">Basic Information</string>
-    <string name="detail_section_physical_props">Physical Properties</string>
-    <string name="detail_section_special_props">Special Properties</string>
-    <string name="detail_section_measurements_title">Measurements</string>
-    <string name="detail_section_provenance_title">Provenance</string>
-    <string name="detail_section_storage_title">Storage Location</string>
-    <string name="detail_section_notes_title">Notes</string>
-    <string name="detail_property_group">Group</string>
-    <string name="detail_property_formula">Formula</string>
-    <string name="detail_property_crystal_system">Crystal System</string>
-    <string name="detail_property_mohs_hardness">Mohs Hardness</string>
-    <string name="detail_property_luster">Luster</string>
-    <string name="detail_property_streak">Streak</string>
-    <string name="detail_property_cleavage">Cleavage</string>
-    <string name="detail_property_fracture">Fracture</string>
-    <string name="detail_property_diaphaneity">Diaphaneity</string>
-    <string name="detail_property_habit">Habit</string>
-    <string name="detail_property_specific_gravity">Specific Gravity</string>
-    <string name="detail_property_fluorescence">Fluorescence</string>
-    <string name="detail_property_magnetic">Magnetic</string>
-    <string name="detail_property_magnetic_yes">Yes</string>
-    <string name="detail_property_radioactive">Radioactive</string>
-    <string name="detail_property_radioactive_yes">Yes</string>
-    <string name="detail_property_dimensions">Dimensions</string>
-    <string name="detail_property_dimensions_mm">%s mm</string>
-    <string name="detail_property_weight">Weight</string>
-    <string name="detail_property_weight_g">%s g</string>
-    <string name="detail_property_country">Country</string>
-    <string name="detail_property_locality">Locality</string>
-    <string name="detail_property_site">Site</string>
-    <string name="detail_property_source">Source</string>
-    <string name="detail_property_acquired">Acquired</string>
-    <string name="detail_property_place">Place</string>
-    <string name="detail_property_container">Container</string>
-    <string name="detail_property_box">Box</string>
-    <string name="detail_property_slot">Slot</string>
-    <string name="toast_no_photo_editor">No photo editor found</string>
-
-    <!-- Settings Screen -->
-    <string name="settings_export_subtitle">Export all data with encryption</string>
-    <string name="settings_import_subtitle">Restore from encrypted backup (ZIP)</string>
-    <string name="settings_import_csv_title">Import CSV</string>
-    <string name="settings_import_csv_subtitle">Import minerals from CSV spreadsheet</string>
-    <string name="settings_copy_photos_title">Copy photos to internal storage</string>
-    <string name="settings_copy_photos_subtitle">Recommended for data safety</string>
-    <string name="settings_encrypt_default_title">Encrypt backups by default</string>
-    <string name="settings_encrypt_default_subtitle">Protect all exported backups with encryption</string>
-    <string name="settings_about_title">About</string>
-    <string name="settings_about_version">MineraLog v3.0.0-alpha</string>
-    <string name="settings_about_dialog_title">MineraLog</string>
-    <string name="settings_about_version_number">Version 3.0.0-alpha</string>
-    <string name="settings_about_description">A comprehensive mineral collection manager with advanced features:</string>
-    <string name="settings_about_feature_wcag">• 100% WCAG 2.1 AA Compliant</string>
-    <string name="settings_about_feature_backup">• Encrypted backup &amp; restore</string>
-    <string name="settings_about_feature_csv">• CSV import/export</string>
-    <string name="settings_about_feature_qr">• QR label generation</string>
-    <string name="settings_about_feature_filter">• Advanced filtering &amp; search</string>
-    <string name="settings_about_feature_sort">• Comprehensive sorting (7 options)</string>
-    <string name="settings_about_feature_stats">• Statistics &amp; visualizations</string>
-    <string name="settings_about_author">Author: Julien Bombled</string>
-    <string name="settings_about_copyright">© 2025 MineraLog Contributors</string>
-    <string name="settings_about_license">Licensed under Apache License 2.0</string>
-    <string name="settings_about_built_with">Built with Jetpack Compose &amp; Material 3</string>
-    <string name="settings_encrypt_warning_title">Enable Encryption by Default?</string>
-    <string name="settings_encrypt_warning_message">When enabled, all exported backups will be encrypted with a password.</string>
-    <string name="settings_encrypt_warning_important">⚠️ Important: Password recovery is impossible. Store your passwords securely!</string>
-    <string name="settings_encrypt_warning_enable">Enable</string>
-
-    <!-- QR Scanner Screen -->
-    <string name="qr_scanner_title">Scan QR Code</string>
-    <string name="qr_scanner_permission_required">Camera permission is required to scan QR codes</string>
-    <string name="qr_scanner_grant_permission">Grant Permission</string>
-    <string name="qr_scanner_align_instruction">Align QR code within frame</string>
-    <string name="qr_scanner_detected">QR Code Detected</string>
-
-    <!-- P1-4: QR Scanner error messages -->
-    <string name="qr_scanner_invalid_code">Invalid QR code data</string>
-    <string name="qr_scanner_invalid_format">Invalid QR code format: %s. Expected mineral deep link</string>
-
-    <!-- Sort -->
-    <string name="sort_title">Sort By</string>
-    <string name="sort_description">Choose how to order your collection</string>
-
-    <!-- Tags -->
-    <string name="tags_title">Tags</string>
-    <string name="tags_empty">No tags yet. Add tags below.</string>
-    <string name="tags_hint">Separate multiple tags with commas or add them one at a time</string>
-
-    <!-- Photo Viewer -->
-    <string name="photo_viewer_count">%1$d / %2$d</string>
-    <string name="photo_viewer_zoom">%d%%</string>
-    <string name="photo_viewer_no_photos">No photos to display</string>
-
-    <!-- Password Dialogs -->
-    <string name="password_dialog_encrypted_title">Encrypted Backup</string>
-    <string name="password_dialog_encrypted_message">This backup is encrypted. Enter the password to decrypt and restore.</string>
-    <string name="password_dialog_encrypt_description">Protect your backup with encryption using Argon2id + AES-256-GCM.</string>
-    <string name="password_dialog_strength">Strength:</string>
-    <string name="password_dialog_warning">Your backup will be encrypted and can only be restored with this password.</string>
-
-    <!-- Bulk Actions -->
-    <string name="bulk_actions_selected_item">• %s</string>
-    <string name="bulk_actions_more_items">• and %d more...</string>
-
-    <!-- Home Screen -->
-    <string name="home_selection_count">%d selected</string>
-    <string name="home_exit_selection">Exit selection</string>
-    <string name="home_select_all">Select all</string>
-    <string name="home_actions">Actions</string>
-    <string name="home_scan_qr">Scan QR code</string>
-    <string name="home_bulk_edit">Bulk edit</string>
-    <string name="home_statistics">Statistics</string>
-    <string name="home_search_placeholder_text">Search minerals...</string>
-    <string name="home_clear_search">Clear search</string>
-    <string name="home_clear_search_button">Clear Search</string>
-    <string name="home_clear_filters_button">Clear Filters</string>
-
-    <!-- Password Dialogs -->
-    <string name="password_min_length">Password must be at least 8 characters</string>
-    <string name="password_mismatch">Passwords do not match</string>
-    <string name="password_encrypt_export">Encrypt &amp; Export</string>
-    <string name="password_decrypt_import">Decrypt &amp; Import</string>
-    <string name="password_label">Password</string>
-
-    <!-- Filter -->
-    <string name="filter_active_badge">%d %s</string>
-
-    <!-- Statistics -->
-    <string name="statistics_retry">Retry</string>
-
-    <!-- Dropdown field values for technical properties -->
-    <string-array name="crystal_systems">
-        <item>Cubic</item>
-        <item>Hexagonal</item>
-        <item>Tetragonal</item>
-        <item>Orthorhombic</item>
-        <item>Monoclinic</item>
-        <item>Triclinic</item>
-        <item>Trigonal</item>
-        <item>Other</item>
-    </string-array>
-
-    <string-array name="luster_types">
-        <item>Metallic</item>
-        <item>Vitreous (Glassy)</item>
-        <item>Pearly</item>
-        <item>Silky</item>
-        <item>Resinous</item>
-        <item>Adamantine</item>
-        <item>Greasy</item>
-        <item>Dull/Earthy</item>
-        <item>Other</item>
-    </string-array>
-
-    <string-array name="diaphaneity_types">
-        <item>Transparent</item>
-        <item>Translucent</item>
-        <item>Opaque</item>
-        <item>Other</item>
-    </string-array>
-
-    <string-array name="cleavage_types">
-        <item>Perfect</item>
-        <item>Good</item>
-        <item>Distinct</item>
-        <item>Poor</item>
-        <item>None</item>
-        <item>Other</item>
-    </string-array>
-
-    <string-array name="fracture_types">
-        <item>Conchoidal</item>
-        <item>Uneven</item>
-        <item>Splintery</item>
-        <item>Hackly</item>
-        <item>Fibrous</item>
-        <item>Brittle</item>
-        <item>Other</item>
-    </string-array>
-
-    <string-array name="habit_types">
-        <item>Prismatic</item>
-        <item>Tabular</item>
-        <item>Massive</item>
-        <item>Granular</item>
-        <item>Fibrous</item>
-        <item>Acicular (Needle-like)</item>
-        <item>Bladed</item>
-        <item>Dendritic</item>
-        <item>Botryoidal</item>
-        <item>Stalactitic</item>
-        <item>Cubic</item>
-        <item>Octahedral</item>
-        <item>Dodecahedral</item>
-        <item>Other</item>
-    </string-array>
-
-    <string-array name="streak_colors">
-        <item>White</item>
-        <item>Black</item>
-        <item>Gray</item>
-        <item>Red</item>
-        <item>Brown</item>
-        <item>Yellow</item>
-        <item>Green</item>
-        <item>Blue</item>
-        <item>Colorless</item>
-        <item>Other</item>
-    </string-array>
+    <string name="app_name">ArguMentor</string>
+    <string name="voice_input_toggle">Toggle voice input</string>
+    <string name="search_topics">Search topics</string>
+    <string name="quick_topic_title">Quick topic</string>
+    <string name="topic_title_label">Title</string>
+    <string name="topic_summary_label">Summary</string>
+    <string name="create_topic_action">Create</string>
+    <string name="open_editor_action">Manual editor</string>
+    <string name="backup_center">Backup &amp; Export</string>
+    <string name="fallacy_catalog">Fallacy catalog</string>
+    <string name="claim_count_label">%1$d claims</string>
+    <string name="support_vs_challenge">%1$d support · %2$d challenge</string>
+    <string name="mode_debate">Debate</string>
+    <string name="stats_title">Stats</string>
+    <string name="add_claim_title">Add claim</string>
+    <string name="claim_hint">Claim text</string>
+    <string name="add_claim_action">Add claim</string>
+    <string name="save_topic">Save topic</string>
+    <string name="add_evidence_hint">Evidence</string>
+    <string name="add_evidence_action">Add evidence</string>
+    <string name="add_rebuttal_hint">Rebuttal</string>
+    <string name="add_rebuttal_action">Add rebuttal</string>
+    <string name="add_question_hint">Question</string>
+    <string name="add_answer_hint">Expected answer</string>
+    <string name="add_question_action">Add question</string>
+    <string name="claim_meta">%1$s · %2$s</string>
+    <string name="evidence_item">Evidence (%1$s): %2$s</string>
+    <string name="question_item">Question: %1$s → %2$s</string>
+    <string name="rebuttal_item">Rebuttal (%1$s): %2$s</string>
+    <string name="rebuttal_title">Counter arguments</string>
+    <string name="question_prompt_title">Guiding questions</string>
+    <string name="no_flashcards">No flashcards yet</string>
+    <string name="back_action">Back</string>
+    <string name="flip_card">Flip</string>
+    <string name="next_card">Next</string>
+    <string name="stance_distribution">Stance distribution</string>
+    <string name="strength_distribution">Strength distribution</string>
+    <string name="export_json_action">Export JSON</string>
+    <string name="import_json_label">Paste JSON backup</string>
+    <string name="import_json_action">Import JSON</string>
+    <string name="topic_id_label">Topic ID</string>
+    <string name="export_pdf_action">Export PDF</string>
+    <string name="export_markdown_action">Export Markdown</string>
+    <string name="markdown_preview_label">Markdown preview</string>
+    <string name="fallacy_example">Example: %1$s</string>
+    <string name="import_success">Import complete</string>
+    <string name="markdown_ready">Markdown ready</string>
+    <string name="distribution_slice_label">%1$s (%2$d)</string>
+    <string name="pdf_claim_line">• %1$s: %2$s</string>
+    <string name="pdf_evidence_line">   - %1$s</string>
+    <string name="pdf_rebuttal_line">   ↺ %1$s</string>
+    <string name="pdf_question_line">   ? %1$s</string>
+    <string name="markdown_topic_title"># %1$s</string>
+    <string name="markdown_claim_heading">## %1$s: %2$s</string>
+    <string name="stance_pro">Support</string>
+    <string name="stance_con">Oppose</string>
+    <string name="stance_neutral">Neutral</string>
+    <string name="claim_position_support">Support</string>
+    <string name="claim_position_challenge">Challenge</string>
+    <string name="strength_weak">Weak</string>
+    <string name="strength_moderate">Moderate</string>
+    <string name="strength_strong">Strong</string>
+    <string name="evidence_type_citation">Citation</string>
+    <string name="evidence_type_statistic">Statistic</string>
+    <string name="evidence_type_experiment">Experiment</string>
+    <string name="evidence_type_anecdote">Anecdote</string>
+    <string name="evidence_type_analogy">Analogy</string>
+    <string name="evidence_type_expert_opinion">Expert opinion</string>
+    <string name="evidence_quality_low">Low</string>
+    <string name="evidence_quality_medium">Medium</string>
+    <string name="evidence_quality_high">High</string>
+    <string name="rebuttal_style_clarification">Clarification</string>
+    <string name="rebuttal_style_counter_example">Counter-example</string>
+    <string name="rebuttal_style_alternative_cause">Alternative cause</string>
+    <string name="fallacy_ad_hominem_name">Ad hominem</string>
+    <string name="fallacy_ad_hominem_description">Attacking the person rather than the idea.</string>
+    <string name="fallacy_ad_hominem_example">You are wrong because you never studied economics.</string>
+    <string name="fallacy_appeal_authority_name">Appeal to authority</string>
+    <string name="fallacy_appeal_authority_description">Using authority as proof without evidence.</string>
+    <string name="fallacy_appeal_authority_example">A celebrity said it, so it must be true.</string>
+    <string name="fallacy_appeal_popularity_name">Appeal to popularity</string>
+    <string name="fallacy_appeal_popularity_description">Claiming something is true because many believe it.</string>
+    <string name="fallacy_appeal_popularity_example">Everyone is investing, so it is safe.</string>
+    <string name="fallacy_appeal_emotion_name">Appeal to emotion</string>
+    <string name="fallacy_appeal_emotion_description">Manipulating emotions instead of facts.</string>
+    <string name="fallacy_appeal_emotion_example">Think of the children, so approve this law.</string>
+    <string name="fallacy_straw_man_name">Straw man</string>
+    <string name="fallacy_straw_man_description">Distorting an argument to make it easier to attack.</string>
+    <string name="fallacy_straw_man_example">You want cleaner energy, so you plan to shut down all factories.</string>
+    <string name="fallacy_slippery_slope_name">Slippery slope</string>
+    <string name="fallacy_slippery_slope_description">Assuming one action will lead to a chain of extreme events.</string>
+    <string name="fallacy_slippery_slope_example">If we allow bikes downtown, cars will be banned next.</string>
+    <string name="fallacy_false_dilemma_name">False dilemma</string>
+    <string name="fallacy_false_dilemma_description">Presenting only two options when more exist.</string>
+    <string name="fallacy_false_dilemma_example">You are with us or against us.</string>
+    <string name="fallacy_circular_reasoning_name">Circular reasoning</string>
+    <string name="fallacy_circular_reasoning_description">The conclusion is restated as the premise.</string>
+    <string name="fallacy_circular_reasoning_example">He is trustworthy because he never lies.</string>
+    <string name="fallacy_hasty_generalization_name">Hasty generalization</string>
+    <string name="fallacy_hasty_generalization_description">Drawing a conclusion from too little data.</string>
+    <string name="fallacy_hasty_generalization_example">Two teens were loud, so all teens are noisy.</string>
+    <string name="fallacy_red_herring_name">Red herring</string>
+    <string name="fallacy_red_herring_description">Introducing unrelated information to distract.</string>
+    <string name="fallacy_red_herring_example">Why worry about pollution when unemployment exists?</string>
+    <string name="fallacy_post_hoc_name">Post hoc</string>
+    <string name="fallacy_post_hoc_description">Assuming causation because one event followed another.</string>
+    <string name="fallacy_post_hoc_example">I wore a bracelet and then passed the exam; the bracelet caused it.</string>
+    <string name="fallacy_false_cause_name">False cause</string>
+    <string name="fallacy_false_cause_description">Attributing cause without proof.</string>
+    <string name="fallacy_false_cause_example">Crime rose after the new mayor, so the mayor caused crime.</string>
+    <string name="fallacy_appeal_ignorance_name">Appeal to ignorance</string>
+    <string name="fallacy_appeal_ignorance_description">Claiming something is true because it was not disproven.</string>
+    <string name="fallacy_appeal_ignorance_example">No one proved aliens do not exist, so they do.</string>
+    <string name="fallacy_cherry_picking_name">Cherry picking</string>
+    <string name="fallacy_cherry_picking_description">Selecting data that confirms a position.</string>
+    <string name="fallacy_cherry_picking_example">Citing only warm days to deny climate change.</string>
+    <string name="fallacy_equivocation_name">Equivocation</string>
+    <string name="fallacy_equivocation_description">Using ambiguous language to mislead.</string>
+    <string name="fallacy_equivocation_example">Laws imply legal, so breaking the law is impossible.</string>
+    <string name="fallacy_false_analogy_name">False analogy</string>
+    <string name="fallacy_false_analogy_description">Comparing things that are not truly similar.</string>
+    <string name="fallacy_false_analogy_example">Employees are nails; both must be hit to work.</string>
+    <string name="fallacy_no_true_scotsman_name">No true Scotsman</string>
+    <string name="fallacy_no_true_scotsman_description">Redefining a group to dismiss counterexamples.</string>
+    <string name="fallacy_no_true_scotsman_example">No real gamer dislikes this title.</string>
+    <string name="fallacy_gamblers_name">Gambler's fallacy</string>
+    <string name="fallacy_gamblers_description">Believing past events change probabilities.</string>
+    <string name="fallacy_gamblers_example">The coin landed heads five times, so tails is due.</string>
+    <string name="fallacy_tu_quoque_name">Tu quoque</string>
+    <string name="fallacy_tu_quoque_description">Dismissing criticism by pointing out hypocrisy.</string>
+    <string name="fallacy_tu_quoque_example">You can't advise on health; you once ate fast food.</string>
+    <string name="fallacy_appeal_tradition_name">Appeal to tradition</string>
+    <string name="fallacy_appeal_tradition_description">Claiming something is correct because it has always been done.</string>
+    <string name="fallacy_appeal_tradition_example">We must keep paper forms because that's tradition.</string>
+    <string name="fallacy_appeal_nature_name">Appeal to nature</string>
+    <string name="fallacy_appeal_nature_description">Assuming natural things are better.</string>
+    <string name="fallacy_appeal_nature_example">Natural remedies are always safer.</string>
+    <string name="fallacy_middle_ground_name">Middle ground</string>
+    <string name="fallacy_middle_ground_description">Assuming the compromise between two extremes is true.</string>
+    <string name="fallacy_middle_ground_example">Halfway between truth and lie must be correct.</string>
+    <string name="fallacy_loaded_question_name">Loaded question</string>
+    <string name="fallacy_loaded_question_description">Asking a question with a presupposition.</string>
+    <string name="fallacy_loaded_question_example">When did you stop wasting resources?</string>
+    <string name="fallacy_composition_name">Composition</string>
+    <string name="fallacy_composition_description">Assuming what is true of parts is true of the whole.</string>
+    <string name="fallacy_composition_example">Every component is light, so the machine is light.</string>
+    <string name="fallacy_division_name">Division</string>
+    <string name="fallacy_division_description">Assuming what is true of the whole applies to parts.</string>
+    <string name="fallacy_division_example">The company is rich, so each employee is rich.</string>
+    <string name="fallacy_appeal_fear_name">Appeal to fear</string>
+    <string name="fallacy_appeal_fear_description">Using fear instead of evidence.</string>
+    <string name="fallacy_appeal_fear_example">If you do not support the policy, chaos will ensue.</string>
+    <string name="fallacy_appeal_pity_name">Appeal to pity</string>
+    <string name="fallacy_appeal_pity_description">Arguing by exploiting pity.</string>
+    <string name="fallacy_appeal_pity_example">Approve the request because I worked hard on it.</string>
+    <string name="fallacy_sunk_cost_name">Sunk cost</string>
+    <string name="fallacy_sunk_cost_description">Continuing because resources were invested.</string>
+    <string name="fallacy_sunk_cost_example">Keep funding the project; we've spent too much.</string>
+    <string name="fallacy_false_balance_name">False balance</string>
+    <string name="fallacy_false_balance_description">Giving equal weight to unequal claims.</string>
+    <string name="fallacy_false_balance_example">Scientists vs. a blogger: both sides deserve airtime.</string>
+    <string name="fallacy_personal_incredulity_name">Personal incredulity</string>
+    <string name="fallacy_personal_incredulity_description">Dismissing something because it is hard to imagine.</string>
+    <string name="fallacy_personal_incredulity_example">I can't understand quantum physics, so it must be wrong.</string>
+    <string name="fallacy_appeal_novelty_name">Appeal to novelty</string>
+    <string name="fallacy_appeal_novelty_description">Believing something is better because it is new.</string>
+    <string name="fallacy_appeal_novelty_example">This method is modern, therefore superior.</string>
 </resources>
