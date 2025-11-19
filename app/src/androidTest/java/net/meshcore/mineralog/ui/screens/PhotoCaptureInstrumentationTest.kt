@@ -28,14 +28,12 @@ class PhotoCaptureInstrumentationTest {
     @Test
     fun cameraCaptureScreen_rendersWithPermission() {
         // Given - permission granted via rule
-        var captureClicked = false
         var backClicked = false
 
         // When
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-1",
-                onPhotoCaptured = { captureClicked = true },
                 onNavigateBack = { backClicked = true }
             )
         }
@@ -54,7 +52,6 @@ class PhotoCaptureInstrumentationTest {
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-1",
-                onPhotoCaptured = { },
                 onNavigateBack = { backClicked = true }
             )
         }
@@ -72,7 +69,6 @@ class PhotoCaptureInstrumentationTest {
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-1",
-                onPhotoCaptured = { },
                 onNavigateBack = { }
             )
         }
@@ -90,7 +86,6 @@ class PhotoCaptureInstrumentationTest {
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-1",
-                onPhotoCaptured = { },
                 onNavigateBack = { }
             )
         }
@@ -105,7 +100,6 @@ class PhotoCaptureInstrumentationTest {
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-1",
-                onPhotoCaptured = { },
                 onNavigateBack = { }
             )
         }
@@ -122,7 +116,6 @@ class PhotoCaptureInstrumentationTest {
         composeTestRule.setContent {
             CameraCaptureScreen(
                 mineralId = "test-mineral-1",
-                onPhotoCaptured = { },
                 onNavigateBack = { }
             )
         }

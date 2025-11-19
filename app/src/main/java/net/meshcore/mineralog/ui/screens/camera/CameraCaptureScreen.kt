@@ -39,7 +39,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import net.meshcore.mineralog.R
+import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.data.local.entity.PhotoType
 import java.io.File
 import java.text.SimpleDateFormat
@@ -67,9 +69,13 @@ sealed class CameraState {
 @Composable
 fun CameraCaptureScreen(
     mineralId: String,
-    onPhotoCaptured: (Uri, PhotoType) -> Unit,
     onNavigateBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: CameraViewModel = viewModel(
+        factory = CameraViewModel.provideFactory(
+            LocalContext.current.applicationContext as MineraLogApplication
+        )
+    )
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -93,6 +99,7 @@ fun CameraCaptureScreen(
     var cameraState by remember { mutableStateOf<CameraState>(CameraState.Idle) }
     var cameraInitError by remember { mutableStateOf<String?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val saveState by viewModel.saveState.collectAsState()
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -115,7 +122,7 @@ fun CameraCaptureScreen(
     LaunchedEffect(cameraState) {
         when (val state = cameraState) {
             is CameraState.Success -> {
-                onPhotoCaptured(state.photoUri, selectedPhotoType)
+                viewModel.saveCapturedPhoto(mineralId, state.photoUri, selectedPhotoType)
                 cameraState = CameraState.Idle
             }
             is CameraState.Error -> {
@@ -125,6 +132,21 @@ fun CameraCaptureScreen(
                 )
             }
             else -> {}
+        }
+    }
+
+    LaunchedEffect(saveState) {
+        when (val state = saveState) {
+            is PhotoSaveState.Success -> {
+                captureStatusMessage = context.getString(R.string.camera_capture_success)
+                viewModel.consumeSaveState()
+                onNavigateBack()
+            }
+            is PhotoSaveState.Error -> {
+                snackbarHostState.showSnackbar(state.message)
+                viewModel.consumeSaveState()
+            }
+            else -> Unit
         }
     }
 
