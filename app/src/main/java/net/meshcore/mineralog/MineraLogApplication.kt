@@ -29,7 +29,8 @@ class MineraLogApplication : Application(), Configuration.Provider {
             mineralDao = database.mineralDaoComposite(),
             provenanceDao = database.provenanceDao(),
             storageDao = database.storageDao(),
-            photoDao = database.photoDao()
+            photoDao = database.photoDao(),
+            mineralComponentDao = database.mineralComponentDao()
         )
     }
 

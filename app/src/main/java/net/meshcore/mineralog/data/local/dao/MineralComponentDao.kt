@@ -67,6 +67,12 @@ interface MineralComponentDao {
     suspend fun getByAggregateId(aggregateId: String): List<MineralComponentEntity>
 
     /**
+     * Batch load all components for the provided aggregate IDs.
+     */
+    @Query("SELECT * FROM mineral_components WHERE aggregateId IN (:aggregateIds) ORDER BY aggregateId, displayOrder ASC")
+    suspend fun getByAggregateIds(aggregateIds: List<String>): List<MineralComponentEntity>
+
+    /**
      * Get all components for a specific aggregate mineral (reactive Flow).
      * Components are returned in display order.
      * Useful for observing component changes in the UI.
@@ -86,6 +92,9 @@ interface MineralComponentDao {
      */
     @Query("DELETE FROM mineral_components WHERE aggregateId = :aggregateId")
     suspend fun deleteByAggregateId(aggregateId: String)
+
+    @Query("DELETE FROM mineral_components WHERE aggregateId IN (:aggregateIds)")
+    suspend fun deleteByAggregateIds(aggregateIds: List<String>)
 
     /**
      * Delete a specific component by its ID.

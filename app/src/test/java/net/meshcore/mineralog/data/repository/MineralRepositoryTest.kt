@@ -7,9 +7,11 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import net.meshcore.mineralog.data.local.MineraLogDatabase
-import net.meshcore.mineralog.data.local.dao.MineralDao
+import net.meshcore.mineralog.data.local.dao.MineralComponentDao
+import net.meshcore.mineralog.data.local.dao.MineralDaoComposite
 import net.meshcore.mineralog.data.local.dao.PhotoDao
 import net.meshcore.mineralog.data.local.dao.ProvenanceDao
 import net.meshcore.mineralog.data.local.dao.StorageDao
@@ -30,10 +32,11 @@ import java.time.Instant
 class MineralRepositoryTest {
 
     private lateinit var database: MineraLogDatabase
-    private lateinit var mineralDao: MineralDao
+    private lateinit var mineralDao: MineralDaoComposite
     private lateinit var provenanceDao: ProvenanceDao
     private lateinit var storageDao: StorageDao
     private lateinit var photoDao: PhotoDao
+    private lateinit var mineralComponentDao: MineralComponentDao
     private lateinit var repository: MineralRepository
 
     @BeforeEach
@@ -43,6 +46,7 @@ class MineralRepositoryTest {
         provenanceDao = mockk(relaxed = true)
         storageDao = mockk(relaxed = true)
         photoDao = mockk(relaxed = true)
+        mineralComponentDao = mockk(relaxed = true)
 
         // Mock withTransaction to execute the block immediately
         val transactionLambda = slot<suspend () -> Any?>()
@@ -50,7 +54,15 @@ class MineralRepositoryTest {
             transactionLambda.captured.invoke()
         }
 
-        repository = MineralRepositoryImpl(database, mineralDao, provenanceDao, storageDao, photoDao)
+        repository = MineralRepositoryImpl(
+            database,
+            mineralDao,
+            provenanceDao,
+            storageDao,
+            photoDao,
+            mineralComponentDao,
+            ioDispatcher = UnconfinedTestDispatcher()
+        )
     }
 
     @Test
@@ -69,7 +81,7 @@ class MineralRepositoryTest {
         val photo = Photo(
             id = "photo-1",
             mineralId = "mineral-1",
-            filename = "test.jpg",
+            fileName = "test.jpg",
             type = PhotoType.NORMAL
         )
         val mineral = Mineral(
@@ -89,7 +101,9 @@ class MineralRepositoryTest {
         coVerify { mineralDao.insert(any()) }
         coVerify { provenanceDao.insert(any()) }
         coVerify { storageDao.insert(any()) }
-        coVerify { photoDao.insert(any()) }
+        coVerify { photoDao.deleteByMineralId("mineral-1") }
+        coVerify { photoDao.insertAll(match { it.size == 1 }) }
+        coVerify { mineralComponentDao.deleteByAggregateId("mineral-1") }
     }
 
     @Test
@@ -120,6 +134,7 @@ class MineralRepositoryTest {
         coVerify { provenanceDao.deleteByMineralId("mineral-1") }
         coVerify { storageDao.deleteByMineralId("mineral-1") }
         coVerify { photoDao.deleteByMineralId("mineral-1") }
+        coVerify { mineralComponentDao.deleteByAggregateId("mineral-1") }
         coVerify { mineralDao.deleteById("mineral-1") }
     }
 
@@ -135,6 +150,7 @@ class MineralRepositoryTest {
         coVerify { provenanceDao.deleteByMineralIds(ids) }
         coVerify { storageDao.deleteByMineralIds(ids) }
         coVerify { photoDao.deleteByMineralIds(ids) }
+        coVerify { mineralComponentDao.deleteByAggregateIds(ids) }
         coVerify { mineralDao.deleteByIds(ids) }
     }
 
@@ -272,7 +288,7 @@ class MineralRepositoryTest {
         val photo = Photo(
             id = "photo-1",
             mineralId = "mineral-1",
-            filename = "test.jpg",
+            fileName = "test.jpg",
             type = PhotoType.UV_SW
         )
 
@@ -356,6 +372,7 @@ class MineralRepositoryTest {
         coVerify { provenanceDao.deleteAll() }
         coVerify { storageDao.deleteAll() }
         coVerify { photoDao.deleteAll() }
+        coVerify { mineralComponentDao.deleteAll() }
     }
 
     @Test

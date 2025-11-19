@@ -1,21 +1,35 @@
 package net.meshcore.mineralog.data.repository
 
 import android.content.Context
+import androidx.datastore.preferences.core.MutablePreferences
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.IOException
+import java.util.Locale
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
 interface SettingsRepository {
     fun getLanguage(): Flow<String>
     suspend fun setLanguage(language: String)
-    fun getThemeMode(): Flow<String>
-    suspend fun setThemeMode(mode: String)
+    fun getTheme(): Flow<String>
+    suspend fun setTheme(theme: String)
+    fun isBiometricEnabled(): Flow<Boolean>
+    suspend fun setBiometricEnabled(enabled: Boolean)
     fun getCopyPhotosToInternalStorage(): Flow<Boolean>
     suspend fun setCopyPhotosToInternalStorage(copy: Boolean)
     fun getCsvExportWarningShown(): Flow<Boolean>
@@ -23,7 +37,6 @@ interface SettingsRepository {
     fun getEncryptByDefault(): Flow<Boolean>
     suspend fun setEncryptByDefault(encrypt: Boolean)
 
-    // Draft auto-save functionality
     fun getDraftName(): Flow<String>
     suspend fun setDraftName(name: String)
     fun getDraftGroup(): Flow<String>
@@ -51,7 +64,11 @@ interface SettingsRepository {
     suspend fun clearDraft()
 }
 
-class SettingsRepositoryImpl(private val context: Context) : SettingsRepository {
+@Singleton
+class SettingsRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+) : SettingsRepository {
 
     private object Keys {
         val LANGUAGE = stringPreferencesKey("language")
@@ -59,8 +76,8 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
         val COPY_PHOTOS = booleanPreferencesKey("copy_photos_to_internal")
         val CSV_EXPORT_WARNING_SHOWN = booleanPreferencesKey("csv_export_warning_shown")
         val ENCRYPT_BY_DEFAULT = booleanPreferencesKey("encrypt_by_default")
+        val BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
 
-        // Draft keys
         val DRAFT_NAME = stringPreferencesKey("draft_name")
         val DRAFT_GROUP = stringPreferencesKey("draft_group")
         val DRAFT_FORMULA = stringPreferencesKey("draft_formula")
@@ -75,165 +92,146 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
         val DRAFT_TIMESTAMP = longPreferencesKey("draft_timestamp")
     }
 
-    override fun getLanguage(): Flow<String> {
-        return context.dataStore.data.map { preferences ->
-            preferences[Keys.LANGUAGE] ?: "en"
+    private val preferencesFlow: Flow<Preferences>
+        get() = context.dataStore.data.catch { throwable ->
+            if (throwable is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw throwable
+            }
+        }
+
+    private suspend fun editPreferences(block: (MutablePreferences) -> Unit) {
+        withContext(ioDispatcher) {
+            context.dataStore.edit(block)
         }
     }
 
-    override suspend fun setLanguage(language: String) {
-        context.dataStore.edit { preferences ->
-            preferences[Keys.LANGUAGE] = language
-        }
-    }
+    override fun getLanguage(): Flow<String> =
+        preferencesFlow.map { it[Keys.LANGUAGE] ?: DEFAULT_LANGUAGE }
 
-    override fun getThemeMode(): Flow<String> {
-        return context.dataStore.data.map { preferences ->
-            preferences[Keys.THEME_MODE] ?: "system"
-        }
-    }
+    override suspend fun setLanguage(language: String) =
+        editPreferences { it[Keys.LANGUAGE] = language }
 
-    override suspend fun setThemeMode(mode: String) {
-        context.dataStore.edit { preferences ->
-            preferences[Keys.THEME_MODE] = mode
-        }
-    }
+    override fun getTheme(): Flow<String> =
+        preferencesFlow.map { (it[Keys.THEME_MODE] ?: DEFAULT_THEME).uppercase(Locale.US) }
 
-    override fun getCopyPhotosToInternalStorage(): Flow<Boolean> {
-        return context.dataStore.data.map { preferences ->
-            preferences[Keys.COPY_PHOTOS] ?: true
-        }
-    }
+    override suspend fun setTheme(theme: String) =
+        editPreferences { it[Keys.THEME_MODE] = theme.uppercase(Locale.US) }
 
-    override suspend fun setCopyPhotosToInternalStorage(copy: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[Keys.COPY_PHOTOS] = copy
-        }
-    }
+    override fun isBiometricEnabled(): Flow<Boolean> =
+        preferencesFlow.map { it[Keys.BIOMETRIC_ENABLED] ?: false }
 
-    override fun getCsvExportWarningShown(): Flow<Boolean> {
-        return context.dataStore.data.map { preferences ->
-            preferences[Keys.CSV_EXPORT_WARNING_SHOWN] ?: false
-        }
-    }
+    override suspend fun setBiometricEnabled(enabled: Boolean) =
+        editPreferences { it[Keys.BIOMETRIC_ENABLED] = enabled }
 
-    override suspend fun setCsvExportWarningShown(shown: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[Keys.CSV_EXPORT_WARNING_SHOWN] = shown
-        }
-    }
+    override fun getCopyPhotosToInternalStorage(): Flow<Boolean> =
+        preferencesFlow.map { it[Keys.COPY_PHOTOS] ?: true }
 
-    override fun getEncryptByDefault(): Flow<Boolean> {
-        return context.dataStore.data.map { preferences ->
-            preferences[Keys.ENCRYPT_BY_DEFAULT] ?: false
-        }
-    }
+    override suspend fun setCopyPhotosToInternalStorage(copy: Boolean) =
+        editPreferences { it[Keys.COPY_PHOTOS] = copy }
 
-    override suspend fun setEncryptByDefault(encrypt: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[Keys.ENCRYPT_BY_DEFAULT] = encrypt
-        }
-    }
+    override fun getCsvExportWarningShown(): Flow<Boolean> =
+        preferencesFlow.map { it[Keys.CSV_EXPORT_WARNING_SHOWN] ?: false }
 
-    // Draft auto-save implementation
+    override suspend fun setCsvExportWarningShown(shown: Boolean) =
+        editPreferences { it[Keys.CSV_EXPORT_WARNING_SHOWN] = shown }
+
+    override fun getEncryptByDefault(): Flow<Boolean> =
+        preferencesFlow.map { it[Keys.ENCRYPT_BY_DEFAULT] ?: false }
+
+    override suspend fun setEncryptByDefault(encrypt: Boolean) =
+        editPreferences { it[Keys.ENCRYPT_BY_DEFAULT] = encrypt }
+
     override fun getDraftName(): Flow<String> =
-        context.dataStore.data.map { it[Keys.DRAFT_NAME] ?: "" }
+        preferencesFlow.map { it[Keys.DRAFT_NAME] ?: "" }
 
-    override suspend fun setDraftName(name: String) {
-        context.dataStore.edit { it[Keys.DRAFT_NAME] = name }
-    }
+    override suspend fun setDraftName(name: String) =
+        editPreferences { it[Keys.DRAFT_NAME] = name }
 
     override fun getDraftGroup(): Flow<String> =
-        context.dataStore.data.map { it[Keys.DRAFT_GROUP] ?: "" }
+        preferencesFlow.map { it[Keys.DRAFT_GROUP] ?: "" }
 
-    override suspend fun setDraftGroup(group: String) {
-        context.dataStore.edit { it[Keys.DRAFT_GROUP] = group }
-    }
+    override suspend fun setDraftGroup(group: String) =
+        editPreferences { it[Keys.DRAFT_GROUP] = group }
 
     override fun getDraftFormula(): Flow<String> =
-        context.dataStore.data.map { it[Keys.DRAFT_FORMULA] ?: "" }
+        preferencesFlow.map { it[Keys.DRAFT_FORMULA] ?: "" }
 
-    override suspend fun setDraftFormula(formula: String) {
-        context.dataStore.edit { it[Keys.DRAFT_FORMULA] = formula }
-    }
+    override suspend fun setDraftFormula(formula: String) =
+        editPreferences { it[Keys.DRAFT_FORMULA] = formula }
 
     override fun getDraftNotes(): Flow<String> =
-        context.dataStore.data.map { it[Keys.DRAFT_NOTES] ?: "" }
+        preferencesFlow.map { it[Keys.DRAFT_NOTES] ?: "" }
 
-    override suspend fun setDraftNotes(notes: String) {
-        context.dataStore.edit { it[Keys.DRAFT_NOTES] = notes }
-    }
+    override suspend fun setDraftNotes(notes: String) =
+        editPreferences { it[Keys.DRAFT_NOTES] = notes }
 
     override fun getDraftDiaphaneity(): Flow<String> =
-        context.dataStore.data.map { it[Keys.DRAFT_DIAPHANEITY] ?: "" }
+        preferencesFlow.map { it[Keys.DRAFT_DIAPHANEITY] ?: "" }
 
-    override suspend fun setDraftDiaphaneity(diaphaneity: String) {
-        context.dataStore.edit { it[Keys.DRAFT_DIAPHANEITY] = diaphaneity }
-    }
+    override suspend fun setDraftDiaphaneity(diaphaneity: String) =
+        editPreferences { it[Keys.DRAFT_DIAPHANEITY] = diaphaneity }
 
     override fun getDraftCleavage(): Flow<String> =
-        context.dataStore.data.map { it[Keys.DRAFT_CLEAVAGE] ?: "" }
+        preferencesFlow.map { it[Keys.DRAFT_CLEAVAGE] ?: "" }
 
-    override suspend fun setDraftCleavage(cleavage: String) {
-        context.dataStore.edit { it[Keys.DRAFT_CLEAVAGE] = cleavage }
-    }
+    override suspend fun setDraftCleavage(cleavage: String) =
+        editPreferences { it[Keys.DRAFT_CLEAVAGE] = cleavage }
 
     override fun getDraftFracture(): Flow<String> =
-        context.dataStore.data.map { it[Keys.DRAFT_FRACTURE] ?: "" }
+        preferencesFlow.map { it[Keys.DRAFT_FRACTURE] ?: "" }
 
-    override suspend fun setDraftFracture(fracture: String) {
-        context.dataStore.edit { it[Keys.DRAFT_FRACTURE] = fracture }
-    }
+    override suspend fun setDraftFracture(fracture: String) =
+        editPreferences { it[Keys.DRAFT_FRACTURE] = fracture }
 
     override fun getDraftLuster(): Flow<String> =
-        context.dataStore.data.map { it[Keys.DRAFT_LUSTER] ?: "" }
+        preferencesFlow.map { it[Keys.DRAFT_LUSTER] ?: "" }
 
-    override suspend fun setDraftLuster(luster: String) {
-        context.dataStore.edit { it[Keys.DRAFT_LUSTER] = luster }
-    }
+    override suspend fun setDraftLuster(luster: String) =
+        editPreferences { it[Keys.DRAFT_LUSTER] = luster }
 
     override fun getDraftStreak(): Flow<String> =
-        context.dataStore.data.map { it[Keys.DRAFT_STREAK] ?: "" }
+        preferencesFlow.map { it[Keys.DRAFT_STREAK] ?: "" }
 
-    override suspend fun setDraftStreak(streak: String) {
-        context.dataStore.edit { it[Keys.DRAFT_STREAK] = streak }
-    }
+    override suspend fun setDraftStreak(streak: String) =
+        editPreferences { it[Keys.DRAFT_STREAK] = streak }
 
     override fun getDraftHabit(): Flow<String> =
-        context.dataStore.data.map { it[Keys.DRAFT_HABIT] ?: "" }
+        preferencesFlow.map { it[Keys.DRAFT_HABIT] ?: "" }
 
-    override suspend fun setDraftHabit(habit: String) {
-        context.dataStore.edit { it[Keys.DRAFT_HABIT] = habit }
-    }
+    override suspend fun setDraftHabit(habit: String) =
+        editPreferences { it[Keys.DRAFT_HABIT] = habit }
 
     override fun getDraftCrystalSystem(): Flow<String> =
-        context.dataStore.data.map { it[Keys.DRAFT_CRYSTAL_SYSTEM] ?: "" }
+        preferencesFlow.map { it[Keys.DRAFT_CRYSTAL_SYSTEM] ?: "" }
 
-    override suspend fun setDraftCrystalSystem(crystalSystem: String) {
-        context.dataStore.edit { it[Keys.DRAFT_CRYSTAL_SYSTEM] = crystalSystem }
-    }
+    override suspend fun setDraftCrystalSystem(crystalSystem: String) =
+        editPreferences { it[Keys.DRAFT_CRYSTAL_SYSTEM] = crystalSystem }
 
     override fun getDraftTimestamp(): Flow<Long> =
-        context.dataStore.data.map { it[Keys.DRAFT_TIMESTAMP] ?: 0L }
+        preferencesFlow.map { it[Keys.DRAFT_TIMESTAMP] ?: 0L }
 
-    override suspend fun setDraftTimestamp(timestamp: Long) {
-        context.dataStore.edit { it[Keys.DRAFT_TIMESTAMP] = timestamp }
+    override suspend fun setDraftTimestamp(timestamp: Long) =
+        editPreferences { it[Keys.DRAFT_TIMESTAMP] = timestamp }
+
+    override suspend fun clearDraft() = editPreferences { preferences ->
+        preferences.remove(Keys.DRAFT_NAME)
+        preferences.remove(Keys.DRAFT_GROUP)
+        preferences.remove(Keys.DRAFT_FORMULA)
+        preferences.remove(Keys.DRAFT_NOTES)
+        preferences.remove(Keys.DRAFT_DIAPHANEITY)
+        preferences.remove(Keys.DRAFT_CLEAVAGE)
+        preferences.remove(Keys.DRAFT_FRACTURE)
+        preferences.remove(Keys.DRAFT_LUSTER)
+        preferences.remove(Keys.DRAFT_STREAK)
+        preferences.remove(Keys.DRAFT_HABIT)
+        preferences.remove(Keys.DRAFT_CRYSTAL_SYSTEM)
+        preferences.remove(Keys.DRAFT_TIMESTAMP)
     }
 
-    override suspend fun clearDraft() {
-        context.dataStore.edit { preferences ->
-            preferences.remove(Keys.DRAFT_NAME)
-            preferences.remove(Keys.DRAFT_GROUP)
-            preferences.remove(Keys.DRAFT_FORMULA)
-            preferences.remove(Keys.DRAFT_NOTES)
-            preferences.remove(Keys.DRAFT_DIAPHANEITY)
-            preferences.remove(Keys.DRAFT_CLEAVAGE)
-            preferences.remove(Keys.DRAFT_FRACTURE)
-            preferences.remove(Keys.DRAFT_LUSTER)
-            preferences.remove(Keys.DRAFT_STREAK)
-            preferences.remove(Keys.DRAFT_HABIT)
-            preferences.remove(Keys.DRAFT_CRYSTAL_SYSTEM)
-            preferences.remove(Keys.DRAFT_TIMESTAMP)
-        }
+    companion object {
+        private const val DEFAULT_LANGUAGE = "en"
+        private const val DEFAULT_THEME = "SYSTEM"
     }
 }
