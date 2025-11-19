@@ -5,23 +5,30 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
 import androidx.room.withTransaction
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import net.meshcore.mineralog.data.local.MineraLogDatabase
+import net.meshcore.mineralog.data.local.dao.MineralComponentDao
 import net.meshcore.mineralog.data.local.dao.MineralDaoComposite
 import net.meshcore.mineralog.data.local.dao.PhotoDao
 import net.meshcore.mineralog.data.local.dao.ProvenanceDao
 import net.meshcore.mineralog.data.local.dao.StorageDao
+import net.meshcore.mineralog.data.local.entity.MineralEntity
 import net.meshcore.mineralog.data.local.paging.MineralPagingSource
 import net.meshcore.mineralog.data.mapper.*
 import net.meshcore.mineralog.data.model.FilterCriteria
 import net.meshcore.mineralog.domain.model.Mineral
-import net.meshcore.mineralog.ui.screens.home.SortOption
 import net.meshcore.mineralog.domain.model.Photo
 import net.meshcore.mineralog.domain.model.Provenance
 import net.meshcore.mineralog.domain.model.Storage
 import net.meshcore.mineralog.domain.sorting.MineralSortStrategy
+import net.meshcore.mineralog.ui.screens.home.SortOption
 
 interface MineralRepository {
     suspend fun insert(mineral: Mineral): String
@@ -61,81 +68,132 @@ interface MineralRepository {
     fun getPhotosFlow(mineralId: String): Flow<List<Photo>>
 }
 
-class MineralRepositoryImpl(
+@Singleton
+class MineralRepositoryImpl @Inject constructor(
     internal val database: MineraLogDatabase,
     private val mineralDao: MineralDaoComposite,
     private val provenanceDao: ProvenanceDao,
     private val storageDao: StorageDao,
-    private val photoDao: PhotoDao
+    private val photoDao: PhotoDao,
+    private val mineralComponentDao: MineralComponentDao,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : MineralRepository {
 
-    override suspend fun insert(mineral: Mineral): String = database.withTransaction {
-        mineralDao.insert(mineral.toEntity())
-        mineral.provenance?.let { provenanceDao.insert(it.toEntity()) }
-        mineral.storage?.let { storageDao.insert(it.toEntity()) }
-        mineral.photos.forEach { photoDao.insert(it.toEntity()) }
-        mineral.id
+    private suspend fun <T> ioCall(block: suspend () -> T): T = withContext(ioDispatcher) { block() }
+
+    private suspend fun mapToDomain(entities: List<MineralEntity>): List<Mineral> {
+        if (entities.isEmpty()) return emptyList()
+
+        val mineralIds = entities.map { it.id }
+        val provenances = provenanceDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+        val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
+        val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
+        val aggregateIds = entities.filter { it.type == "AGGREGATE" }.map { it.id }
+        val components = if (aggregateIds.isNotEmpty()) {
+            mineralComponentDao.getByAggregateIds(aggregateIds).groupBy { it.aggregateId }
+        } else {
+            emptyMap()
+        }
+
+        return entities.map { entity ->
+            entity.toDomain(
+                provenance = provenances[entity.id],
+                storage = storages[entity.id],
+                photos = photos[entity.id] ?: emptyList(),
+                components = components[entity.id] ?: emptyList()
+            )
+        }
     }
 
-    override suspend fun update(mineral: Mineral): Unit = database.withTransaction {
-        mineralDao.update(mineral.toEntity())
-        mineral.provenance?.let { provenanceDao.insert(it.toEntity()) }
-        mineral.storage?.let { storageDao.insert(it.toEntity()) }
+    override suspend fun insert(mineral: Mineral): String = ioCall {
+        database.withTransaction {
+            mineralDao.insert(mineral.toEntity())
+            mineral.provenance?.let { provenanceDao.insert(it.toEntity()) }
+            mineral.storage?.let { storageDao.insert(it.toEntity()) }
+
+            photoDao.deleteByMineralId(mineral.id)
+            if (mineral.photos.isNotEmpty()) {
+                photoDao.insertAll(mineral.photos.map { it.toEntity() })
+            }
+
+            mineralComponentDao.deleteByAggregateId(mineral.id)
+            if (mineral.components.isNotEmpty()) {
+                val componentEntities = mineral.components.mapIndexed { index, component ->
+                    component.toEntity(mineral.id, index)
+                }
+                mineralComponentDao.insertAll(componentEntities)
+            }
+
+            mineral.id
+        }
     }
 
-    override suspend fun delete(id: String) = database.withTransaction {
-        // Delete related entities first to maintain referential integrity
-        provenanceDao.deleteByMineralId(id)
-        storageDao.deleteByMineralId(id)
-        photoDao.deleteByMineralId(id)
-        mineralDao.deleteById(id)
+    override suspend fun update(mineral: Mineral) = ioCall {
+        database.withTransaction {
+            mineralDao.update(mineral.toEntity())
+            mineral.provenance?.let { provenanceDao.insert(it.toEntity()) }
+            mineral.storage?.let { storageDao.insert(it.toEntity()) }
+
+            photoDao.deleteByMineralId(mineral.id)
+            if (mineral.photos.isNotEmpty()) {
+                photoDao.insertAll(mineral.photos.map { it.toEntity() })
+            }
+
+            mineralComponentDao.deleteByAggregateId(mineral.id)
+            if (mineral.components.isNotEmpty()) {
+                val componentEntities = mineral.components.mapIndexed { index, component ->
+                    component.toEntity(mineral.id, index)
+                }
+                mineralComponentDao.insertAll(componentEntities)
+            }
+        }
+    }
+
+    override suspend fun delete(id: String) = ioCall {
+        database.withTransaction {
+            provenanceDao.deleteByMineralId(id)
+            storageDao.deleteByMineralId(id)
+            photoDao.deleteByMineralId(id)
+            mineralComponentDao.deleteByAggregateId(id)
+            mineralDao.deleteById(id)
+        }
     }
 
     override suspend fun deleteByIds(ids: List<String>) {
         if (ids.isEmpty()) return
 
-        database.withTransaction {
-            // Batch delete related entities first to maintain referential integrity
-            provenanceDao.deleteByMineralIds(ids)
-            storageDao.deleteByMineralIds(ids)
-            photoDao.deleteByMineralIds(ids)
-            mineralDao.deleteByIds(ids)
+        ioCall {
+            database.withTransaction {
+                provenanceDao.deleteByMineralIds(ids)
+                storageDao.deleteByMineralIds(ids)
+                photoDao.deleteByMineralIds(ids)
+                mineralComponentDao.deleteByAggregateIds(ids)
+                mineralDao.deleteByIds(ids)
+            }
         }
     }
 
-    override suspend fun deleteAll() = database.withTransaction {
-        mineralDao.deleteAll()
-        provenanceDao.deleteAll()
-        storageDao.deleteAll()
-        photoDao.deleteAll()
+    override suspend fun deleteAll() = ioCall {
+        database.withTransaction {
+            mineralDao.deleteAll()
+            provenanceDao.deleteAll()
+            storageDao.deleteAll()
+            photoDao.deleteAll()
+            mineralComponentDao.deleteAll()
+        }
     }
 
-    override suspend fun getById(id: String): Mineral? {
-        val entity = mineralDao.getById(id) ?: return null
-        val provenance = provenanceDao.getByMineralId(id)
-        val storage = storageDao.getByMineralId(id)
-        val photos = photoDao.getByMineralId(id)
-        return entity.toDomain(provenance, storage, photos)
+    override suspend fun getById(id: String): Mineral? = ioCall {
+        val entity = mineralDao.getById(id) ?: return@ioCall null
+        mapToDomain(listOf(entity)).firstOrNull()
     }
 
     override suspend fun getByIds(ids: List<String>): List<Mineral> {
         if (ids.isEmpty()) return emptyList()
 
-        val entities = mineralDao.getByIds(ids)
-        if (entities.isEmpty()) return emptyList()
-
-        // Batch load all related entities to avoid N+1 problem
-        val mineralIds = entities.map { it.id }
-        val provenances = provenanceDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
-        val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
-        val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
-
-        return entities.map { entity ->
-            entity.toDomain(
-                provenances[entity.id],
-                storages[entity.id],
-                photos[entity.id] ?: emptyList()
-            )
+        return ioCall {
+            val entities = mineralDao.getByIds(ids)
+            mapToDomain(entities)
         }
     }
 
@@ -144,75 +202,30 @@ class MineralRepositoryImpl(
             mineralDao.getByIdFlow(id),
             provenanceDao.getByMineralIdFlow(id),
             storageDao.getByMineralIdFlow(id),
-            photoDao.getByMineralIdFlow(id)
-        ) { mineral, provenance, storage, photos ->
-            mineral?.toDomain(provenance, storage, photos)
+            photoDao.getByMineralIdFlow(id),
+            mineralComponentDao.getByAggregateIdFlow(id)
+        ) { mineral, provenance, storage, photos, components ->
+            mineral?.toDomain(provenance, storage, photos, components)
         }
     }
 
     override fun getAllFlow(sortOption: SortOption): Flow<List<Mineral>> {
         return mineralDao.getAllFlow().map { entities ->
-            if (entities.isEmpty()) return@map emptyList()
-
-            // Batch load all related entities to avoid N+1 problem
-            val mineralIds = entities.map { it.id }
-            val provenances = provenanceDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
-            val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
-            val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
-
-            val minerals = entities.map { entity ->
-                entity.toDomain(
-                    provenances[entity.id],
-                    storages[entity.id],
-                    photos[entity.id] ?: emptyList()
-                )
-            }
-
-            // Apply in-memory sorting using Strategy Pattern (Sprint 2: Architecture Refactoring)
+            val minerals = mapToDomain(entities)
             MineralSortStrategy.sort(minerals, sortOption)
         }
     }
 
-    override suspend fun getAll(): List<Mineral> {
+    override suspend fun getAll(): List<Mineral> = ioCall {
         val entities = mineralDao.getAll()
-        if (entities.isEmpty()) return emptyList()
-
-        // Batch load all related entities to avoid N+1 problem
-        val mineralIds = entities.map { it.id }
-        val provenances = provenanceDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
-        val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
-        val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
-
-        return entities.map { entity ->
-            entity.toDomain(
-                provenances[entity.id],
-                storages[entity.id],
-                photos[entity.id] ?: emptyList()
-            )
-        }
+        mapToDomain(entities)
     }
 
     override fun searchFlow(query: String, sortOption: SortOption): Flow<List<Mineral>> {
         // Pre-format query with wildcards to prevent SQL injection
         val formattedQuery = "%$query%"
         return mineralDao.searchFlow(formattedQuery).map { entities ->
-            if (entities.isEmpty()) return@map emptyList()
-
-            // Batch load all related entities to avoid N+1 problem
-            val mineralIds = entities.map { it.id }
-            val provenances = provenanceDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
-            val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
-            val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
-
-            val minerals = entities.map { entity ->
-                entity.toDomain(
-                    provenances[entity.id],
-                    storages[entity.id],
-                    photos[entity.id] ?: emptyList()
-                )
-            }
-
-            // Apply in-memory sorting using Strategy Pattern (Sprint 2: Architecture Refactoring)
+            val minerals = mapToDomain(entities)
             MineralSortStrategy.sort(minerals, sortOption)
         }
     }
@@ -235,52 +248,36 @@ class MineralRepositoryImpl(
             fluorescent = criteria.fluorescent,
             mineralTypes = criteria.mineralTypes.takeIf { it.isNotEmpty() }
         ).map { entities ->
-            if (entities.isEmpty()) return@map emptyList()
-
-            // Batch load all related entities to avoid N+1 problem
-            val mineralIds = entities.map { it.id }
-            val provenances = provenanceDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
-            val storages = storageDao.getByMineralIds(mineralIds).associateBy { it.mineralId }
-            val photos = photoDao.getByMineralIds(mineralIds).groupBy { it.mineralId }
-
-            val minerals = entities.map { entity ->
-                entity.toDomain(
-                    provenances[entity.id],
-                    storages[entity.id],
-                    photos[entity.id] ?: emptyList()
-                )
-            }
-
-            // Apply in-memory sorting using Strategy Pattern (Sprint 2: Architecture Refactoring)
+            val minerals = mapToDomain(entities)
             MineralSortStrategy.sort(minerals, sortOption)
         }
     }
 
-    override suspend fun getCount(): Int = mineralDao.getCount()
+    override suspend fun getCount(): Int = ioCall { mineralDao.getCount() }
 
     override fun getCountFlow(): Flow<Int> = mineralDao.getCountFlow()
 
-    override suspend fun insertProvenance(provenance: Provenance) {
+    override suspend fun insertProvenance(provenance: Provenance) = ioCall {
         provenanceDao.insert(provenance.toEntity())
     }
 
-    override suspend fun updateProvenance(provenance: Provenance) {
+    override suspend fun updateProvenance(provenance: Provenance) = ioCall {
         provenanceDao.update(provenance.toEntity())
     }
 
-    override suspend fun insertStorage(storage: Storage) {
+    override suspend fun insertStorage(storage: Storage) = ioCall {
         storageDao.insert(storage.toEntity())
     }
 
-    override suspend fun updateStorage(storage: Storage) {
+    override suspend fun updateStorage(storage: Storage) = ioCall {
         storageDao.update(storage.toEntity())
     }
 
-    override suspend fun insertPhoto(photo: Photo) {
+    override suspend fun insertPhoto(photo: Photo) = ioCall {
         photoDao.insert(photo.toEntity())
     }
 
-    override suspend fun deletePhoto(photoId: String) {
+    override suspend fun deletePhoto(photoId: String) = ioCall {
         photoDao.deleteById(photoId)
     }
 
@@ -306,6 +303,7 @@ class MineralRepositoryImpl(
                     provenanceDao = provenanceDao,
                     storageDao = storageDao,
                     photoDao = photoDao,
+                    mineralComponentDao = mineralComponentDao,
                     basePagingSource = when (sortOption) {
                         SortOption.NAME_ASC -> mineralDao.getAllPagedSortedByNameAsc()
                         SortOption.NAME_DESC -> mineralDao.getAllPagedSortedByNameDesc()
@@ -335,6 +333,7 @@ class MineralRepositoryImpl(
                     provenanceDao = provenanceDao,
                     storageDao = storageDao,
                     photoDao = photoDao,
+                    mineralComponentDao = mineralComponentDao,
                     basePagingSource = when (sortOption) {
                         SortOption.NAME_ASC -> mineralDao.searchPagedSortedByNameAsc(formattedQuery)
                         SortOption.NAME_DESC -> mineralDao.searchPagedSortedByNameDesc(formattedQuery)
@@ -373,6 +372,7 @@ class MineralRepositoryImpl(
                     provenanceDao = provenanceDao,
                     storageDao = storageDao,
                     photoDao = photoDao,
+                    mineralComponentDao = mineralComponentDao,
                     basePagingSource = when (sortOption) {
                         SortOption.NAME_ASC -> mineralDao.filterAdvancedPagedSortedByNameAsc(
                             groups, countries, crystalSystems, criteria.mohsMin, criteria.mohsMax,
@@ -409,14 +409,10 @@ class MineralRepositoryImpl(
     }
 
     // Quick Win #8: Get all unique tags for autocomplete (v1.7.0)
-    override suspend fun getAllUniqueTags(): List<String> {
+    override suspend fun getAllUniqueTags(): List<String> = ioCall {
         val allTagStrings = mineralDao.getAllTags()
-        // Tags are stored as comma-separated strings in the DB
-        // Parse them and return unique sorted list
-        return allTagStrings
-            .flatMap { tagString ->
-                tagString.split(",").map { it.trim() }
-            }
+        allTagStrings
+            .flatMap { tagString -> tagString.split(",").map { it.trim() } }
             .filter { it.isNotBlank() }
             .distinct()
             .sorted()

@@ -3,6 +3,7 @@ package net.meshcore.mineralog.data.local.paging
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import net.meshcore.mineralog.data.local.dao.MineralDao
+import net.meshcore.mineralog.data.local.dao.MineralComponentDao
 import net.meshcore.mineralog.data.local.dao.PhotoDao
 import net.meshcore.mineralog.data.local.dao.ProvenanceDao
 import net.meshcore.mineralog.data.local.dao.StorageDao
@@ -34,6 +35,7 @@ class MineralPagingSource(
     private val provenanceDao: ProvenanceDao,
     private val storageDao: StorageDao,
     private val photoDao: PhotoDao,
+    private val mineralComponentDao: MineralComponentDao,
     private val basePagingSource: PagingSource<Int, net.meshcore.mineralog.data.local.entity.MineralEntity>
 ) : PagingSource<Int, Mineral>() {
 
@@ -67,11 +69,20 @@ class MineralPagingSource(
                         .groupBy { it.mineralId }
 
                     // Map entities to domain models with pre-loaded related data
+                    val aggregateIds = entities.filter { it.type == "AGGREGATE" }.map { it.id }
+                    val components = if (aggregateIds.isNotEmpty()) {
+                        mineralComponentDao.getByAggregateIds(aggregateIds)
+                            .groupBy { it.aggregateId }
+                    } else {
+                        emptyMap()
+                    }
+
                     val minerals = entities.map { entity ->
                         entity.toDomain(
                             provenance = provenances[entity.id],
                             storage = storages[entity.id],
-                            photos = photos[entity.id] ?: emptyList()
+                            photos = photos[entity.id] ?: emptyList(),
+                            components = components[entity.id] ?: emptyList()
                         )
                     }
 
