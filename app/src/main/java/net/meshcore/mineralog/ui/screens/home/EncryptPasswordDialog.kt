@@ -39,15 +39,15 @@ fun EncryptPasswordDialog(
     onDismiss: () -> Unit,
     onConfirm: (CharArray) -> Unit
 ) {
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    val passwordState = rememberSecurePasswordState()
+    val confirmPasswordState = rememberSecurePasswordState()
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmVisible by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
 
-    val passwordStrength = calculatePasswordStrength(password)
-    val passwordsMatch = password == confirmPassword && password.isNotEmpty()
-    val isValid = password.length >= 8 && passwordsMatch
+    val passwordStrength = passwordState.withCharArray { calculatePasswordStrength(it) }
+    val passwordsMatch = passwordState.isNotEmpty && passwordState.contentEquals(confirmPasswordState)
+    val isValid = passwordState.length >= 8 && passwordsMatch
 
     // Auto-focus password field when dialog opens
     LaunchedEffect(Unit) {
@@ -57,9 +57,8 @@ fun EncryptPasswordDialog(
     // Clear password from memory when dialog is dismissed
     DisposableEffect(Unit) {
         onDispose {
-            // Clear password strings from memory (Compose uses String internally)
-            // This is best-effort; the password will be converted to CharArray
-            // and passed to the callback which can then clear it properly
+            passwordState.clear()
+            confirmPasswordState.clear()
         }
     }
 
@@ -93,8 +92,8 @@ fun EncryptPasswordDialog(
 
                 // Password field
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = passwordState.reveal(),
+                    onValueChange = { passwordState.updateFrom(it) },
                     label = { Text(stringResource(R.string.export_password)) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -117,16 +116,16 @@ fun EncryptPasswordDialog(
                             )
                         }
                     },
-                    isError = password.isNotEmpty() && password.length < 8,
+                    isError = passwordState.isNotEmpty && passwordState.length < 8,
                     supportingText = {
-                        if (password.isNotEmpty() && password.length < 8) {
+                        if (passwordState.isNotEmpty && passwordState.length < 8) {
                             Text("Password must be at least 8 characters")
                         }
                     }
                 )
 
                 // Password strength indicator
-                if (password.isNotEmpty()) {
+                if (passwordState.isNotEmpty) {
                     val strengthText = when (passwordStrength) {
                         PasswordStrength.WEAK -> "Weak"
                         PasswordStrength.MEDIUM -> "Medium"
@@ -192,8 +191,8 @@ fun EncryptPasswordDialog(
 
                 // Confirm password field
                 OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
+                    value = confirmPasswordState.reveal(),
+                    onValueChange = { confirmPasswordState.updateFrom(it) },
                     label = { Text(stringResource(R.string.export_password_confirm)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -214,9 +213,9 @@ fun EncryptPasswordDialog(
                             )
                         }
                     },
-                    isError = confirmPassword.isNotEmpty() && !passwordsMatch,
+                    isError = confirmPasswordState.isNotEmpty && !passwordsMatch,
                     supportingText = {
-                        if (confirmPassword.isNotEmpty() && !passwordsMatch) {
+                        if (confirmPasswordState.isNotEmpty && !passwordsMatch) {
                             Text("Passwords do not match")
                         }
                     }
@@ -254,9 +253,10 @@ fun EncryptPasswordDialog(
             Button(
                 onClick = {
                     // Convert to CharArray for secure password handling
-                    val passwordChars = password.toCharArray()
+                    val passwordChars = passwordState.export()
                     onConfirm(passwordChars)
-                    // Note: Caller is responsible for clearing the CharArray
+                    passwordState.clear()
+                    confirmPasswordState.clear()
                     onDismiss()
                 },
                 enabled = isValid
@@ -284,14 +284,14 @@ private enum class PasswordStrength {
 /**
  * Calculate password strength based on length and complexity.
  */
-private fun calculatePasswordStrength(password: String): PasswordStrength {
-    if (password.length < 8) return PasswordStrength.WEAK
+private fun calculatePasswordStrength(password: CharArray): PasswordStrength {
+    if (password.size < 8) return PasswordStrength.WEAK
 
     var score = 0
 
     // Length
-    if (password.length >= 12) score++
-    if (password.length >= 16) score++
+    if (password.size >= 12) score++
+    if (password.size >= 16) score++
 
     // Complexity
     if (password.any { it.isUpperCase() }) score++
