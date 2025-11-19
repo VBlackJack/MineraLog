@@ -194,161 +194,141 @@ class CsvBackupService(
             var imported = 0
             var skipped = 0
 
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                // Parse CSV
-                val parser = net.meshcore.mineralog.data.util.CsvParser()
-                val parseResult = parser.parse(inputStream)
+            if (mode == CsvImportMode.REPLACE) {
+                database.withTransaction {
+                    database.mineralBasicDao().deleteAll()
+                    database.provenanceDao().deleteAll()
+                    database.storageDao().deleteAll()
+                    database.photoDao().deleteAll()
+                    database.mineralComponentDao().deleteAll()
+                }
+            }
 
-                if (parseResult.errors.isNotEmpty()) {
-                    errors.addAll(parseResult.errors.map { "Line ${it.lineNumber}: ${it.message}" })
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val parser = net.meshcore.mineralog.data.util.CsvParser()
+                val stagedMinerals = mutableMapOf<String, Mineral>()
+                var resolvedMapping: Map<String, String>? = columnMapping
+
+                val streamingResult = parser.parseStream(
+                    inputStream = inputStream,
+                    onBegin = { headers, _, _ ->
+                        if (resolvedMapping == null) {
+                            resolvedMapping = net.meshcore.mineralog.data.util.CsvColumnMapper.mapHeaders(headers)
+                        }
+                    }
+                ) { _, row, lineNumber ->
+                    val mapping = resolvedMapping
+                        ?: throw IllegalStateException("Column mapping was not initialized before processing rows")
+
+                    try {
+                        val parsedMineral = csvMapper.parseMineralFromCsvRow(
+                            row = row,
+                            columnMapping = mapping,
+                            existingMineral = null
+                        )
+
+                        val normalizedName = normalizeName(parsedMineral.name)
+                        if (normalizedName.isEmpty()) {
+                            errors.add("Line $lineNumber: Name is required")
+                            skipped++
+                            return@parseStream
+                        }
+
+                        val stagedExisting = stagedMinerals[normalizedName]
+                        val existingEntity = when {
+                            mode == CsvImportMode.REPLACE -> null
+                            stagedExisting != null -> null
+                            else -> database.mineralBasicDao().getByNormalizedName(normalizedName)
+                        }
+
+                        when (mode) {
+                            CsvImportMode.SKIP_DUPLICATES -> {
+                                if (existingEntity != null || stagedExisting != null) {
+                                    skipped++
+                                    return@parseStream
+                                }
+                            }
+                            CsvImportMode.MERGE, CsvImportMode.REPLACE -> Unit
+                        }
+
+                        val existingDomain = if (mode == CsvImportMode.MERGE) {
+                            when {
+                                stagedExisting != null -> stagedExisting
+                                existingEntity != null -> {
+                                    val provenance = database.provenanceDao().getByMineralId(existingEntity.id)
+                                    val storage = database.storageDao().getByMineralId(existingEntity.id)
+                                    val photos = database.photoDao().getByMineralId(existingEntity.id)
+                                    val components = database.mineralComponentDao().getByAggregateId(existingEntity.id)
+                                    existingEntity.toDomain(
+                                        provenance,
+                                        storage,
+                                        photos,
+                                        components
+                                    )
+                                }
+                                else -> null
+                            }
+                        } else {
+                            null
+                        }
+
+                        val mineral = if (existingDomain != null) {
+                            csvMapper.parseMineralFromCsvRow(
+                                row = row,
+                                columnMapping = mapping,
+                                existingMineral = existingDomain
+                            )
+                        } else {
+                            parsedMineral
+                        }
+
+                        if (mineral.name.isBlank()) {
+                            errors.add("Line $lineNumber: Name is required")
+                            skipped++
+                            return@parseStream
+                        }
+
+                        val componentEntities = mineral.components
+                            .filter { it.mineralName.isNotBlank() }
+                            .mapIndexed { index, component ->
+                                component.toEntity(mineral.id, index)
+                            }
+                        val existingComponents = existingDomain?.components ?: emptyList()
+
+                        database.withTransaction {
+                            database.mineralBasicDao().insert(mineral.toEntity())
+                            mineral.provenance?.let { database.provenanceDao().insert(it.toEntity()) }
+                            mineral.storage?.let { database.storageDao().insert(it.toEntity()) }
+
+                            when {
+                                componentEntities.isNotEmpty() -> {
+                                    database.mineralComponentDao().deleteByAggregateId(mineral.id)
+                                    database.mineralComponentDao().insertAll(componentEntities)
+                                }
+                                existingComponents.isNotEmpty() -> {
+                                    database.mineralComponentDao().deleteByAggregateId(mineral.id)
+                                }
+                            }
+                        }
+
+                        stagedMinerals[normalizedName] = mineral
+                        imported++
+                    } catch (e: Exception) {
+                        errors.add("Line $lineNumber: ${e.message}")
+                        skipped++
+                    }
                 }
 
-                if (parseResult.headers.isEmpty()) {
+                if (streamingResult.headers.isEmpty()) {
                     return@withContext Result.failure(Exception("CSV file has no headers"))
                 }
 
-                // Use provided column mapping or auto-map headers to domain fields
-                val mapping = columnMapping ?: net.meshcore.mineralog.data.util.CsvColumnMapper.mapHeaders(parseResult.headers)
-
-                // Get existing minerals and related entities for name-based lookups
-                val existingMinerals = database.mineralBasicDao().getAll()
-                val existingIds = existingMinerals.map { it.id }
-                val provenancesByMineralId = if (existingIds.isNotEmpty()) {
-                    database.provenanceDao().getByMineralIds(existingIds).associateBy { it.mineralId }
-                } else {
-                    emptyMap()
+                if (resolvedMapping == null) {
+                    return@withContext Result.failure(Exception("Failed to resolve CSV column mapping"))
                 }
-                val storagesByMineralId = if (existingIds.isNotEmpty()) {
-                    database.storageDao().getByMineralIds(existingIds).associateBy { it.mineralId }
-                } else {
-                    emptyMap()
-                }
-                val photosByMineralId = if (existingIds.isNotEmpty()) {
-                    database.photoDao().getByMineralIds(existingIds).groupBy { it.mineralId }
-                } else {
-                    emptyMap()
-                }
-                val componentsByMineralId = if (existingIds.isNotEmpty()) {
-                    database.mineralComponentDao().getAllDirect().groupBy { it.aggregateId }
-                } else {
-                    emptyMap()
-                }
-                val existingByName = existingMinerals.associateBy { normalizeName(it.name) }
-                // Track minerals processed during this import run to detect duplicates and reuse IDs before hitting the database
-                val stagedMinerals = mutableMapOf<String, Mineral>()
 
-                // Use transaction for atomicity
-                database.withTransaction {
-                    // Handle REPLACE mode
-                    if (mode == CsvImportMode.REPLACE) {
-                        database.mineralBasicDao().deleteAll()
-                        database.provenanceDao().deleteAll()
-                        database.storageDao().deleteAll()
-                        database.photoDao().deleteAll()
-                        database.mineralComponentDao().deleteAll()
-                    }
-
-                    // Process each row
-                    parseResult.rows.forEachIndexed { index, row ->
-                        try {
-                            // Parse mineral first to get the name
-                            val parsedMineral = csvMapper.parseMineralFromCsvRow(
-                                row = row,
-                                columnMapping = mapping,
-                                existingMineral = null
-                            )
-
-                            // Check for existing mineral by name
-                            val normalizedName = normalizeName(parsedMineral.name)
-                            val existingEntity = existingByName[normalizedName]
-                            val stagedExisting = stagedMinerals[normalizedName]
-
-                            // Check for duplicates based on mode
-                            when (mode) {
-                                CsvImportMode.SKIP_DUPLICATES -> {
-                                    if (existingEntity != null || stagedExisting != null) {
-                                        skipped++
-                                        return@forEachIndexed
-                                    }
-                                }
-                                CsvImportMode.MERGE -> {
-                                    // Will reuse existing ID below
-                                }
-                                CsvImportMode.REPLACE -> {
-                                    // Already cleared, just insert
-                                }
-                            }
-
-                            // For MERGE mode, reuse existing IDs if found
-                            val existingDomain = if (mode == CsvImportMode.MERGE) {
-                                when {
-                                    stagedExisting != null -> stagedExisting
-                                    existingEntity != null -> existingEntity.toDomain(
-                                        provenancesByMineralId[existingEntity.id],
-                                        storagesByMineralId[existingEntity.id],
-                                        photosByMineralId[existingEntity.id] ?: emptyList(),
-                                        componentsByMineralId[existingEntity.id] ?: emptyList()
-                                    )
-                                    else -> null
-                                }
-                            } else null
-
-                            val mineral = if (existingDomain != null) {
-                                csvMapper.parseMineralFromCsvRow(
-                                    row = row,
-                                    columnMapping = mapping,
-                                    existingMineral = existingDomain
-                                )
-                            } else {
-                                parsedMineral
-                            }
-
-                            // Validate required fields
-                            if (mineral.name.isBlank()) {
-                                errors.add("Row ${index + 2}: Name is required")
-                                skipped++
-                                return@forEachIndexed
-                            }
-
-                            // Insert or update mineral
-                            database.mineralBasicDao().insert(mineral.toEntity())
-
-                            // Insert provenance if present
-                            mineral.provenance?.let { prov ->
-                                database.provenanceDao().insert(prov.toEntity())
-                            }
-
-                            // Insert storage if present
-                            mineral.storage?.let { storage ->
-                                database.storageDao().insert(storage.toEntity())
-                            }
-
-                            val existingComponents = existingDomain?.components ?: emptyList()
-                            when {
-                                mineral.components.isNotEmpty() -> {
-                                    val componentEntities = mineral.components
-                                        .filter { it.mineralName.isNotBlank() }
-                                        .mapIndexed { index, component ->
-                                            component.toEntity(mineral.id, index)
-                                        }
-                                    database.mineralComponentDao().deleteByAggregateId(mineral.id)
-                                    if (componentEntities.isNotEmpty()) {
-                                        database.mineralComponentDao().insertAll(componentEntities)
-                                    }
-                                }
-                                existingComponents.isNotEmpty() -> {
-                                    // CSV explicitly cleared components – remove stale records
-                                    database.mineralComponentDao().deleteByAggregateId(mineral.id)
-                                }
-                            }
-
-                            stagedMinerals[normalizedName] = mineral
-                            imported++
-                        } catch (e: Exception) {
-                            errors.add("Row ${index + 2}: ${e.message}")
-                            skipped++
-                        }
-                    }
+                if (streamingResult.errors.isNotEmpty()) {
+                    errors.addAll(streamingResult.errors.map { "Line ${it.lineNumber}: ${it.message}" })
                 }
             } ?: return@withContext Result.failure(Exception("Failed to open CSV file"))
 

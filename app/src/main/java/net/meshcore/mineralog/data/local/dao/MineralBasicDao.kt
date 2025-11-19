@@ -60,6 +60,9 @@ interface MineralBasicDao {
     @Query("SELECT * FROM minerals ORDER BY updatedAt DESC")
     suspend fun getAll(): List<MineralEntity>
 
+    @Query("SELECT * FROM minerals WHERE LOWER(TRIM(name)) = :normalizedName LIMIT 1")
+    suspend fun getByNormalizedName(normalizedName: String): MineralEntity?
+
     // ========== COUNT OPERATIONS ==========
 
     @Query("SELECT COUNT(*) FROM minerals")

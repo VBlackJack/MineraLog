@@ -34,6 +34,14 @@ class CsvParser {
         val errors: List<ParseError> = emptyList()
     )
 
+    data class StreamingParseResult(
+        val headers: List<String>,
+        val encoding: Charset,
+        val delimiter: Char,
+        val lineCount: Int,
+        val errors: List<ParseError> = emptyList()
+    )
+
     data class ParseError(
         val lineNumber: Int,
         val message: String
@@ -47,23 +55,52 @@ class CsvParser {
      * @return ParseResult with parsed data
      */
     suspend fun parse(inputStream: InputStream, maxRows: Int = 0): ParseResult = withContext(Dispatchers.IO) {
-        // Ensure stream supports mark/reset
-        val bufferedStream = if (inputStream.markSupported()) {
-            inputStream
-        } else {
-            inputStream.buffered()
-        }
+        val rows = mutableListOf<Map<String, String>>()
+        val result = processStreamInternal(
+            inputStream = if (inputStream.markSupported()) inputStream else inputStream.buffered(),
+            maxRows = maxRows,
+            onBegin = { _, _, _ -> },
+            onRow = { _, row, _ -> rows.add(row) }
+        )
 
+        ParseResult(
+            headers = result.headers,
+            rows = rows,
+            encoding = result.encoding,
+            delimiter = result.delimiter,
+            lineCount = result.lineCount,
+            errors = result.errors
+        )
+    }
+
+    suspend fun parseStream(
+        inputStream: InputStream,
+        maxRows: Int = 0,
+        onBegin: (headers: List<String>, encoding: Charset, delimiter: Char) -> Unit = { _, _, _ -> },
+        onRow: suspend (rowIndex: Int, row: Map<String, String>, lineNumber: Int) -> Unit
+    ): StreamingParseResult = withContext(Dispatchers.IO) {
+        processStreamInternal(
+            inputStream = if (inputStream.markSupported()) inputStream else inputStream.buffered(),
+            maxRows = maxRows,
+            onBegin = onBegin,
+            onRow = onRow
+        )
+    }
+
+    private suspend fun processStreamInternal(
+        inputStream: InputStream,
+        maxRows: Int,
+        onBegin: (headers: List<String>, encoding: Charset, delimiter: Char) -> Unit,
+        onRow: suspend (rowIndex: Int, row: Map<String, String>, lineNumber: Int) -> Unit
+    ): StreamingParseResult {
         // Detect encoding (uses mark/reset internally)
-        val encoding = detectEncoding(bufferedStream)
+        val encoding = detectEncoding(inputStream)
 
         // Create reader with detected encoding
-        val reader = BufferedReader(InputStreamReader(bufferedStream, encoding))
+        val reader = BufferedReader(InputStreamReader(inputStream, encoding))
 
-        // Read first record (headers) using RFC-compliant reader to support multiline headers
-        val headerRecord = readRecord(reader) ?: return@withContext ParseResult(
+        val headerRecord = readRecord(reader) ?: return StreamingParseResult(
             headers = emptyList(),
-            rows = emptyList(),
             encoding = encoding,
             delimiter = ',',
             lineCount = 0,
@@ -71,12 +108,14 @@ class CsvParser {
         )
 
         val delimiter = detectDelimiter(headerRecord.text)
-        val headers = parseLine(headerRecord.text, delimiter)
+        val headers = parseLine(headerRecord.text, delimiter).map { it.trim() }
+        onBegin(headers, encoding, delimiter)
 
-        // Parse data rows
-        val rows = mutableListOf<Map<String, String>>()
         val errors = mutableListOf<ParseError>()
         var consumedLines = headerRecord.physicalLines
+        var processedRows = 0
+
+        var stopRequested = false
 
         while (true) {
             val record = try {
@@ -90,34 +129,31 @@ class CsvParser {
             val line = record.text
 
             try {
-                if (line.isEmpty()) {
-                    consumedLines += record.physicalLines
-                    continue
-                }
+                if (line.isNotEmpty()) {
+                    val values = parseLine(line, delimiter)
+                    val rowMap = mutableMapOf<String, String>()
+                    headers.forEachIndexed { index, header ->
+                        if (!rowMap.containsKey(header)) {
+                            rowMap[header] = values.getOrNull(index) ?: ""
+                        }
+                    }
 
-                val values = parseLine(line, delimiter)
-
-                // Create map from headers to values
-                // For duplicate headers, first occurrence wins
-                val rowMap = mutableMapOf<String, String>()
-                headers.forEachIndexed { index, header ->
-                    if (!rowMap.containsKey(header)) {
-                        rowMap[header] = values.getOrNull(index) ?: ""
+                    onRow(processedRows, rowMap, recordStartLine)
+                    processedRows++
+                    if (maxRows > 0 && processedRows >= maxRows) {
+                        stopRequested = true
                     }
                 }
-
-                rows.add(rowMap)
             } catch (e: Exception) {
                 errors.add(ParseError(recordStartLine, "Parse error: ${e.message}"))
             }
 
             consumedLines += record.physicalLines
-            if (maxRows > 0 && rows.size >= maxRows) break
+            if (stopRequested) break
         }
 
-        ParseResult(
-            headers = headers.map { it.trim() },
-            rows = rows,
+        return StreamingParseResult(
+            headers = headers,
             encoding = encoding,
             delimiter = delimiter,
             lineCount = consumedLines,

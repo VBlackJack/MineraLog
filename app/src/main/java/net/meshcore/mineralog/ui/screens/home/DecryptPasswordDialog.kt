@@ -37,13 +37,17 @@ fun DecryptPasswordDialog(
     onDismiss: () -> Unit,
     onConfirm: (CharArray) -> Unit
 ) {
-    var password by remember { mutableStateOf("") }
+    val passwordState = rememberSecurePasswordState()
     var passwordVisible by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
 
     // Auto-focus password field when dialog opens
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { passwordState.clear() }
     }
 
     AlertDialog(
@@ -80,8 +84,8 @@ fun DecryptPasswordDialog(
 
                 // Password field
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = passwordState.reveal(),
+                    onValueChange = { passwordState.updateFrom(it) },
                     label = { Text("Password") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -146,12 +150,11 @@ fun DecryptPasswordDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    // Convert to CharArray for secure password handling
-                    val passwordChars = password.toCharArray()
+                    val passwordChars = passwordState.export()
                     onConfirm(passwordChars)
-                    // Note: Caller is responsible for clearing the CharArray
+                    passwordState.clear()
                 },
-                enabled = password.isNotEmpty() && attemptsRemaining > 0
+                enabled = passwordState.isNotEmpty && attemptsRemaining > 0
             ) {
                 Text("Decrypt & Import")
             }
