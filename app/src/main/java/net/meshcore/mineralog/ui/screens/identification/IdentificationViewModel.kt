@@ -96,13 +96,35 @@ class IdentificationViewModel(
         minerals: List<ReferenceMineralEntity>,
         filter: IdentificationFilter
     ): List<MineralResult> {
-        return minerals.mapNotNull { mineral ->
+        android.util.Log.d("IdentificationVM", "filterAndScoreMinerals: ${minerals.size} minerals, filter=$filter")
+
+        // French collator for proper accent-aware and case-insensitive sorting
+        // PRIMARY strength ignores case and accents (É = e = E)
+        val collator = java.text.Collator.getInstance(java.util.Locale.FRENCH).apply {
+            strength = java.text.Collator.PRIMARY
+        }
+
+        val results = minerals.mapNotNull { mineral ->
             val score = calculateRelevanceScore(mineral, filter)
-            if (score > 0) MineralResult(mineral, score) else null
+            if (score > 0) {
+                MineralResult(mineral, score)
+            } else {
+                null
+            }
         }.sortedWith(
-            compareByDescending<MineralResult> { it.relevanceScore }
-                .thenBy { it.mineral.nameFr }
+            // Pure alphabetical sorting with French collator (ignores scores)
+            Comparator { a, b -> collator.compare(a.mineral.nameFr, b.mineral.nameFr) }
         )
+
+        android.util.Log.d("IdentificationVM", "filterAndScoreMinerals: ${results.size} results")
+
+        // Log first 10 results to verify sorting
+        android.util.Log.d("IdentificationVM", "First 10 results (score, name):")
+        results.take(10).forEach { result ->
+            android.util.Log.d("IdentificationVM", "  ${result.relevanceScore} - ${result.mineral.nameFr}")
+        }
+
+        return results
     }
 
     /**
@@ -118,33 +140,47 @@ class IdentificationViewModel(
         // Color matching (most important criterion, weight: 3 points per match)
         if (filter.selectedColors.isNotEmpty()) {
             val mineralColors = mineral.colors?.split(",")?.map { it.trim() } ?: emptyList()
-            val hasColorMatch = filter.selectedColors.any { selectedColor ->
-                mineralColors.any { mineralColor ->
-                    mineralColor.equals(selectedColor, ignoreCase = true)
-                }
-            }
-            if (hasColorMatch) {
-                score += 3
+
+            // FIX: If mineral has no color data (empty or blank), don't exclude it
+            // This handles incomplete reference data where color = "" or null
+            if (mineralColors.isEmpty() || mineralColors.all { it.isBlank() }) {
+                // No penalty, but no bonus points either (missing data = neutral)
             } else {
-                // No color match is a deal-breaker for strict filtering
-                return 0
+                val hasColorMatch = filter.selectedColors.any { selectedColor ->
+                    mineralColors.any { mineralColor ->
+                        mineralColor.equals(selectedColor, ignoreCase = true)
+                    }
+                }
+                if (hasColorMatch) {
+                    score += 3
+                } else {
+                    // No color match is a deal-breaker ONLY if color data exists
+                    return 0
+                }
             }
         }
 
         // Hardness matching (weight: 2 points)
         if (filter.mohsMin != null || filter.mohsMax != null) {
-            val userMin = filter.mohsMin ?: 1f
-            val userMax = filter.mohsMax ?: 10f
             val mineralMin = mineral.mohsMin ?: 0f
-            val mineralMax = mineral.mohsMax ?: 10f
+            val mineralMax = mineral.mohsMax ?: 0f
 
-            // Check if ranges overlap
-            val overlaps = (mineralMin <= userMax && mineralMax >= userMin)
-            if (overlaps) {
-                score += 2
+            // FIX: If hardness is 0.0 (missing data), don't exclude it
+            // This handles incomplete reference data where mohsMin/mohsMax = 0.0
+            if (mineralMin == 0f && mineralMax == 0f) {
+                // No penalty, but no bonus points either (missing data = neutral)
             } else {
-                // No hardness match is a deal-breaker
-                return 0
+                val userMin = filter.mohsMin ?: 1f
+                val userMax = filter.mohsMax ?: 10f
+
+                // Check if ranges overlap
+                val overlaps = (mineralMin <= userMax && mineralMax >= userMin)
+                if (overlaps) {
+                    score += 2
+                } else {
+                    // No hardness match is a deal-breaker ONLY if hardness data exists
+                    return 0
+                }
             }
         }
 
@@ -186,7 +222,9 @@ class IdentificationViewModel(
             }
         }
 
-        return score
+        // FIX: If score is 0, it means the mineral passed all filters but has missing data
+        // Return at least 1 to include it in results (missing data = potential match)
+        return score.coerceAtLeast(1)
     }
 
     // Filter update functions

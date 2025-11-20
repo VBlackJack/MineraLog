@@ -134,5 +134,21 @@ class MineraLogApplication : Application(), Configuration.Provider {
                 AppLogger.e("MineraLogApp", "Failed to apply language preference", e)
             }
         }
+
+        // Initialize reference minerals database (v3.0.0+)
+        // This ensures the identification screen has data available immediately
+        applicationScope.launch(Dispatchers.IO) {
+            try {
+                AppLogger.d("MineraLogApp", "Checking reference minerals database...")
+                val count = referenceMineralRepository.populateInitialDataset(this@MineraLogApplication)
+                if (count > 0) {
+                    AppLogger.i("MineraLogApp", "✅ Reference minerals loaded: $count minerals")
+                } else {
+                    AppLogger.d("MineraLogApp", "Reference minerals already populated")
+                }
+            } catch (e: Exception) {
+                AppLogger.e("MineraLogApp", "Failed to initialize reference minerals", e)
+            }
+        }
     }
 }

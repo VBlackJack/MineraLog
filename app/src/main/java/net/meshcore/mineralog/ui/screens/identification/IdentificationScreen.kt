@@ -1,13 +1,27 @@
 package net.meshcore.mineralog.ui.screens.identification
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -15,13 +29,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.meshcore.mineralog.MineraLogApplication
 import net.meshcore.mineralog.R
+import net.meshcore.mineralog.ui.screens.identification.utils.ImageAnalyzer
 
 // Common color options for filtering
 val COMMON_COLORS = listOf(
@@ -42,6 +62,61 @@ val COMMON_LUSTERS = listOf(
     "Resinous", "Adamantine", "Greasy", "Dull", "Earthy"
 )
 
+/**
+ * Maps color names to Compose Color values for visual indicators.
+ * Used to display color chips with accurate visual representation.
+ *
+ * @param name The color name from COMMON_COLORS
+ * @return Compose Color corresponding to the color name
+ */
+private fun getColorForName(name: String): Color {
+    return when (name) {
+        "White" -> Color.White
+        "Black" -> Color.Black
+        "Gray" -> Color.Gray
+        "Red" -> Color(0xFFDC143C)      // Crimson red
+        "Pink" -> Color(0xFFFFC0CB)     // Pink
+        "Orange" -> Color(0xFFFF8C00)   // Dark orange
+        "Yellow" -> Color(0xFFFFD700)   // Gold
+        "Green" -> Color(0xFF228B22)    // Forest green
+        "Blue" -> Color(0xFF1E90FF)     // Dodger blue
+        "Purple" -> Color(0xFF8A2BE2)   // Blue violet
+        "Brown" -> Color(0xFF8B4513)    // Saddle brown
+        "Colorless" -> Color(0xFFF5F5F5) // Very light gray (almost transparent)
+        else -> Color.Gray
+    }
+}
+
+/**
+ * Converts an image URI to a Bitmap, handling different Android API versions.
+ * Uses ImageDecoder for API 28+ and MediaStore for older versions.
+ *
+ * @param context Android context for content resolver access
+ * @param uri URI of the image to convert
+ * @return Bitmap representation of the image, or null if conversion fails
+ * @throws Exception if the URI is invalid or image cannot be decoded
+ */
+suspend fun uriToBitmap(context: Context, uri: Uri): Bitmap? = withContext(Dispatchers.IO) {
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // API 28+ uses ImageDecoder
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            // CRITICAL FIX: Force SOFTWARE allocator to allow CPU pixel access (getPixel)
+            // Default HARDWARE allocator stores bitmap in GPU memory, making pixels unreadable
+            ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            }
+        } else {
+            // Legacy API uses MediaStore
+            @Suppress("DEPRECATION")
+            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+        }
+    } catch (e: Exception) {
+        // Return null if conversion fails (invalid URI, file deleted, etc.)
+        null
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IdentificationScreen(
@@ -58,6 +133,117 @@ fun IdentificationScreen(
     val loadingState by viewModel.loadingState.collectAsState()
     var filterExpanded by remember { mutableStateOf(true) }
 
+    // Snackbar state for user feedback
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // Get string resources for messages
+    val context = LocalContext.current
+    val colorDetectedMsg = stringResource(R.string.identification_color_detected)
+    val colorAlreadySelectedMsg = stringResource(R.string.identification_color_already_selected)
+    val detectFailedMsg = stringResource(R.string.identification_color_detect_failed)
+    val analysisErrorMsg = stringResource(R.string.identification_analysis_error)
+
+    // Common color analysis logic (DRY principle)
+    val analyzeColorFromBitmap: (Bitmap) -> Unit = { bitmap ->
+        scope.launch {
+            try {
+                // Perform image analysis on Default dispatcher (background thread)
+                val detectedColor = withContext(Dispatchers.Default) {
+                    ImageAnalyzer.detectDominantColorName(bitmap)
+                }
+
+                if (detectedColor != null) {
+                    // Check if color is already selected
+                    if (!filter.selectedColors.contains(detectedColor)) {
+                        // Auto-select the detected color
+                        viewModel.toggleColor(detectedColor)
+
+                        // Show success feedback
+                        snackbarHostState.showSnackbar(
+                            message = colorDetectedMsg.format(detectedColor),
+                            duration = SnackbarDuration.Short
+                        )
+                    } else {
+                        // Color already selected
+                        snackbarHostState.showSnackbar(
+                            message = colorAlreadySelectedMsg.format(detectedColor),
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                } else {
+                    // Detection failed
+                    snackbarHostState.showSnackbar(
+                        message = detectFailedMsg,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            } catch (e: Exception) {
+                // Error during analysis
+                snackbarHostState.showSnackbar(
+                    message = analysisErrorMsg.format(e.message ?: "Unknown error"),
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
+    }
+
+    // Camera launcher for photo-assisted identification
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap: Bitmap? ->
+        bitmap?.let { analyzeColorFromBitmap(it) }
+    }
+
+    // Camera permission launcher
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permission granted, launch camera
+            cameraLauncher.launch(null)
+        } else {
+            // Permission denied, show message
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.camera_permission_denied),
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
+    }
+
+    // Gallery launcher for photo-assisted identification
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let {
+            // Convert URI to Bitmap and analyze
+            scope.launch {
+                try {
+                    val bitmap = uriToBitmap(context, uri)
+                    if (bitmap != null) {
+                        analyzeColorFromBitmap(bitmap)
+                        // Note: Don't recycle here - analyzeColorFromBitmap runs async
+                        // ImageAnalyzer handles its own bitmap cleanup
+                    } else {
+                        // URI conversion failed
+                        snackbarHostState.showSnackbar(
+                            message = detectFailedMsg,
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                } catch (e: Exception) {
+                    // Error loading image from gallery
+                    snackbarHostState.showSnackbar(
+                        message = analysisErrorMsg.format(e.message ?: "Unknown error"),
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -68,6 +254,28 @@ fun IdentificationScreen(
                     }
                 },
                 actions = {
+                    // Photo-assisted identification button (Camera)
+                    IconButton(onClick = {
+                        cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                    }) {
+                        Icon(
+                            Icons.Default.PhotoCamera,
+                            contentDescription = stringResource(R.string.identification_photo_assist)
+                        )
+                    }
+                    // Gallery picker for photo-assisted identification
+                    IconButton(
+                        onClick = {
+                            galleryLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        }
+                    ) {
+                        Icon(
+                            Icons.Default.PhotoLibrary,
+                            contentDescription = stringResource(R.string.identification_gallery_assist)
+                        )
+                    }
                     // Toggle filter visibility
                     IconButton(onClick = { filterExpanded = !filterExpanded }) {
                         Icon(
@@ -83,7 +291,8 @@ fun IdentificationScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -141,6 +350,7 @@ fun IdentificationScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterSection(
     filter: IdentificationFilter,
@@ -159,21 +369,38 @@ fun FilterSection(
     ) {
         // Color filter (primary criterion)
         item {
-            Text(
-                text = stringResource(R.string.identification_filter_color),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(COMMON_COLORS) { color ->
-                    FilterChip(
-                        selected = filter.selectedColors.contains(color),
-                        onClick = { onColorToggle(color) },
-                        label = { Text(color) }
-                    )
+            Column {
+                Text(
+                    text = stringResource(R.string.identification_filter_color),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    COMMON_COLORS.forEach { color ->
+                        FilterChip(
+                            selected = filter.selectedColors.contains(color),
+                            onClick = { onColorToggle(color) },
+                            label = { Text(color) },
+                            leadingIcon = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clip(CircleShape)
+                                        .background(getColorForName(color))
+                                        .border(
+                                            width = 1.dp,
+                                            color = Color(0xFF9E9E9E), // Gray border
+                                            shape = CircleShape
+                                        )
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }
