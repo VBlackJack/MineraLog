@@ -37,6 +37,8 @@ test-runner = "1.6.2"
 test-rules = "1.6.1"
 detekt = "1.23.7"
 material3 = "1.3.1"
+androidx-security-crypto = "1.1.0-alpha06"
+desugar-jdk-libs = "2.1.4"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
@@ -94,6 +96,7 @@ maps-compose-utils = { module = "com.google.maps.android:maps-compose-utils", ve
 tink-android = { module = "com.google.crypto.tink:tink-android", version.ref = "tink" }
 argon2kt = { module = "com.lambdapioneer.argon2kt:argon2kt", version.ref = "argon2kt" }
 sqlcipher = { module = "net.zetetic:android-database-sqlcipher", version.ref = "sqlcipher" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidx-security-crypto" }
 
 # QR generation
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
@@ -112,6 +115,9 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
+
+# Desugaring
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar-jdk-libs" }
 
 # Testing
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }

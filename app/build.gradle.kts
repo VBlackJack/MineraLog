@@ -208,7 +208,7 @@ dependencies {
     implementation(libs.tink.android)
     implementation(libs.argon2kt)
     implementation(libs.sqlcipher)
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation(libs.androidx.security.crypto)
 
     // QR generation
     implementation(libs.zxing.core)
@@ -228,8 +228,8 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
-    // Desugaring
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    # Desugaring
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Testing
     testImplementation(libs.junit.jupiter.api)
@@ -278,6 +278,31 @@ jacoco {
     toolVersion = "0.8.12"
 }
 
+val jacocoExclusionFilter = listOf(
+    // Exclude generated files
+    "**/R.class",
+    "**/R$*.class",
+    "**/BuildConfig.*",
+    "**/Manifest*.*",
+    "**/*Test*.*",
+    "android/**/*.*",
+    // Exclude Android framework
+    "androidx/**/*.*",
+    // Exclude data binding
+    "**/*DataBinding*.*",
+    "**/*Binding*.*",
+    // Exclude DI
+    "**/*_Factory.*",
+    "**/*_MembersInjector.*",
+    "**/Dagger*.*",
+    "**/*Module.*",
+    "**/*Component.*",
+    // Exclude Room generated
+    "**/*_Impl.*",
+    // Exclude Compose generated
+    "**/*\$\$*.*"
+)
+
 tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
 
@@ -287,33 +312,8 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         csv.required.set(false)
     }
 
-    val fileFilter = listOf(
-        // Exclude generated files
-        "**/R.class",
-        "**/R$*.class",
-        "**/BuildConfig.*",
-        "**/Manifest*.*",
-        "**/*Test*.*",
-        "android/**/*.*",
-        // Exclude Android framework
-        "androidx/**/*.*",
-        // Exclude data binding
-        "**/*DataBinding*.*",
-        "**/*Binding*.*",
-        // Exclude DI
-        "**/*_Factory.*",
-        "**/*_MembersInjector.*",
-        "**/Dagger*.*",
-        "**/*Module.*",
-        "**/*Component.*",
-        // Exclude Room generated
-        "**/*_Impl.*",
-        // Exclude Compose generated
-        "**/*\$\$*.*"
-    )
-
     val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
-        exclude(fileFilter)
+        exclude(jacocoExclusionFilter)
     }
 
     val mainSrc = "${project.projectDir}/src/main/java"
@@ -328,33 +328,8 @@ tasks.register<JacocoReport>("jacocoTestReport") {
 tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
     dependsOn("testDebugUnitTest")
 
-    val fileFilter = listOf(
-        // Exclude generated files
-        "**/R.class",
-        "**/R$*.class",
-        "**/BuildConfig.*",
-        "**/Manifest*.*",
-        "**/*Test*.*",
-        "android/**/*.*",
-        // Exclude Android framework
-        "androidx/**/*.*",
-        // Exclude data binding
-        "**/*DataBinding*.*",
-        "**/*Binding*.*",
-        // Exclude DI
-        "**/*_Factory.*",
-        "**/*_MembersInjector.*",
-        "**/Dagger*.*",
-        "**/*Module.*",
-        "**/*Component.*",
-        // Exclude Room generated
-        "**/*_Impl.*",
-        // Exclude Compose generated
-        "**/*\$\$*.*"
-    )
-
     val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
-        exclude(fileFilter)
+        exclude(jacocoExclusionFilter)
     }
 
     classDirectories.setFrom(files(debugTree))
