@@ -2,6 +2,7 @@ package net.meshcore.mineralog.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -118,7 +119,7 @@ fun ProvenanceSection(
                 )
             }
 
-            // Prix et source
+            // Prix, valeur estimée et source
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -127,8 +128,18 @@ fun ProvenanceSection(
                     Column(modifier = Modifier.weight(1f)) {
                         ProvenanceField(
                             icon = Icons.Default.AttachMoney,
-                            label = "Prix",
+                            label = "Prix d'achat",
                             value = "${String.format("%.2f", price)} ${provenance.currency ?: "USD"}"
+                        )
+                    }
+                }
+
+                provenance.estimatedValue?.let { estimated ->
+                    Column(modifier = Modifier.weight(1f)) {
+                        ProvenanceField(
+                            icon = Icons.AutoMirrored.Filled.TrendingUp,
+                            label = "Valeur estimée",
+                            value = "${String.format("%.2f", estimated)} ${provenance.currency ?: "USD"}"
                         )
                     }
                 }

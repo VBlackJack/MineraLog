@@ -58,7 +58,8 @@ fun AddMineralScreen(
             LocalContext.current,
             (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
             (LocalContext.current.applicationContext as MineraLogApplication).settingsRepository,
-            (LocalContext.current.applicationContext as MineraLogApplication).referenceMineralRepository
+            (LocalContext.current.applicationContext as MineraLogApplication).referenceMineralRepository,
+            (LocalContext.current.applicationContext as MineraLogApplication).resourceProvider
         )
     )
 ) {

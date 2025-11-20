@@ -28,7 +28,9 @@ import net.meshcore.mineralog.domain.model.MineralComponent
 import net.meshcore.mineralog.domain.model.MineralType
 import net.meshcore.mineralog.domain.model.SimpleProperties
 import net.meshcore.mineralog.domain.model.Photo
+import net.meshcore.mineralog.domain.provider.ResourceProvider
 import net.meshcore.mineralog.ui.screens.edit.PhotoItem
+import net.meshcore.mineralog.R
 import java.io.File
 import java.time.Instant
 import java.util.UUID
@@ -45,7 +47,8 @@ class AddMineralViewModel(
     private val context: Context,
     private val mineralRepository: MineralRepository,
     private val settingsRepository: SettingsRepository,
-    private val referenceMineralRepository: ReferenceMineralRepository
+    private val referenceMineralRepository: ReferenceMineralRepository,
+    private val resourceProvider: ResourceProvider
 ) : ViewModel() {
 
     private val _name = MutableStateFlow("")
@@ -451,25 +454,25 @@ class AddMineralViewModel(
         viewModelScope.launch {
             // Validation
             if (_name.value.isBlank()) {
-                _saveState.value = SaveMineralState.Error("Mineral name is required")
+                _saveState.value = SaveMineralState.Error(resourceProvider.getString(R.string.error_mineral_name_required))
                 return@launch
             }
 
             if (_name.value.length < 2) {
-                _saveState.value = SaveMineralState.Error("Mineral name must be at least 2 characters")
+                _saveState.value = SaveMineralState.Error(resourceProvider.getString(R.string.error_mineral_name_too_short))
                 return@launch
             }
 
             // v2.0: Validate aggregates
             if (_mineralType.value == MineralType.AGGREGATE) {
                 if (_components.value.size < 2) {
-                    _saveState.value = SaveMineralState.Error("Un agrégat doit avoir au moins 2 composants")
+                    _saveState.value = SaveMineralState.Error(resourceProvider.getString(R.string.error_aggregate_min_components))
                     return@launch
                 }
 
                 // Check that all components have names
                 if (_components.value.any { it.mineralName.isBlank() }) {
-                    _saveState.value = SaveMineralState.Error("Tous les composants doivent avoir un nom")
+                    _saveState.value = SaveMineralState.Error(resourceProvider.getString(R.string.error_aggregate_components_need_names))
                     return@launch
                 }
 
@@ -478,7 +481,7 @@ class AddMineralViewModel(
                 if (componentsWithPercentage.isNotEmpty()) {
                     val totalPercentage = componentsWithPercentage.mapNotNull { it.percentage }.sum()
                     if (totalPercentage !in 95f..105f) {
-                        _saveState.value = SaveMineralState.Error("Les pourcentages doivent totaliser environ 100% (actuellement ${totalPercentage.toInt()}%)")
+                        _saveState.value = SaveMineralState.Error(resourceProvider.getString(R.string.error_aggregate_percentages_invalid, totalPercentage.toInt()))
                         return@launch
                     }
                 }
@@ -617,7 +620,7 @@ class AddMineralViewModel(
 
                 onSuccess(mineralId)
             } catch (e: Exception) {
-                _saveState.value = SaveMineralState.Error(e.message ?: "Failed to save mineral")
+                _saveState.value = SaveMineralState.Error(e.message ?: resourceProvider.getString(R.string.error_failed_to_save_mineral))
             }
         }
     }
@@ -646,12 +649,13 @@ class AddMineralViewModelFactory(
     private val context: Context,
     private val mineralRepository: MineralRepository,
     private val settingsRepository: SettingsRepository,
-    private val referenceMineralRepository: ReferenceMineralRepository
+    private val referenceMineralRepository: ReferenceMineralRepository,
+    private val resourceProvider: ResourceProvider
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AddMineralViewModel::class.java)) {
-            return AddMineralViewModel(context, mineralRepository, settingsRepository, referenceMineralRepository) as T
+            return AddMineralViewModel(context, mineralRepository, settingsRepository, referenceMineralRepository, resourceProvider) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

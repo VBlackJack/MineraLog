@@ -27,6 +27,7 @@ fun HomeScreenTopBar(
     onSelectAll: () -> Unit,
     onShowBulkActionsSheet: () -> Unit,
     onLibraryClick: () -> Unit,
+    onIdentificationClick: () -> Unit,
     onQrScanClick: () -> Unit,
     onEnterSelectionMode: () -> Unit,
     onStatisticsClick: () -> Unit,
@@ -62,6 +63,10 @@ fun HomeScreenTopBar(
                 // Library button
                 IconButton(onClick = onLibraryClick) {
                     Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = stringResource(R.string.cd_library))
+                }
+                // Identification button
+                IconButton(onClick = onIdentificationClick) {
+                    Icon(Icons.Default.Search, contentDescription = stringResource(R.string.cd_identification))
                 }
                 // QR Scanner button
                 IconButton(onClick = onQrScanClick) {

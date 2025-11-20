@@ -29,6 +29,7 @@ import net.meshcore.mineralog.ui.screens.reference.ReferenceMineralListScreen
 import net.meshcore.mineralog.ui.screens.reference.ReferenceMineralDetailScreen
 import net.meshcore.mineralog.ui.screens.reference.AddReferenceMineralScreen
 import net.meshcore.mineralog.ui.screens.reference.EditReferenceMineralScreen
+import net.meshcore.mineralog.ui.screens.identification.IdentificationScreen
 import java.util.UUID
 
 sealed class Screen(val route: String) {
@@ -63,6 +64,7 @@ sealed class Screen(val route: String) {
     data object EditReferenceMineral : Screen("edit_reference_mineral/{referenceMineralId}") {
         fun createRoute(referenceMineralId: String) = "edit_reference_mineral/$referenceMineralId"
     }
+    data object Identification : Screen("identification")
 }
 
 @Composable
@@ -113,6 +115,9 @@ fun MineraLogNavHost(
                 },
                 onLibraryClick = {
                     navController.navigate(Screen.ReferenceLibrary.route)
+                },
+                onIdentificationClick = {
+                    navController.navigate(Screen.Identification.route)
                 }
             )
         }
@@ -132,6 +137,9 @@ fun MineraLogNavHost(
                 },
                 onCameraClick = { id ->
                     navController.navigate(Screen.Camera.createRoute(id))
+                },
+                onShowGallery = { id ->
+                    navController.navigate(Screen.PhotoGallery.createRoute(id))
                 }
             )
         }
@@ -309,6 +317,15 @@ fun MineraLogNavHost(
                 mineralId = referenceMineralId,
                 onNavigateBack = { navController.popBackStack() },
                 onMineralUpdated = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Identification.route) {
+            IdentificationScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onMineralClick = { referenceMineralId ->
+                    navController.navigate(Screen.ReferenceDetail.createRoute(referenceMineralId))
+                }
             )
         }
     }

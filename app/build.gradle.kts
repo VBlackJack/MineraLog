@@ -20,8 +20,8 @@ android {
         applicationId = "net.meshcore.mineralog"
         minSdk = 27
         targetSdk = 35
-        versionCode = 30
-        versionName = "3.0.0-alpha"
+        versionCode = 30001
+        versionName = "3.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

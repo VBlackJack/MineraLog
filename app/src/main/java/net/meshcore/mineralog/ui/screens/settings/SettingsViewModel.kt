@@ -1,6 +1,8 @@
 package net.meshcore.mineralog.ui.screens.settings
 
 import android.net.Uri
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -56,7 +58,7 @@ class SettingsViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = "en"
+            initialValue = "system"
         )
 
     val copyPhotosToInternal: StateFlow<Boolean> = settingsRepository.getCopyPhotosToInternalStorage()
@@ -73,9 +75,21 @@ class SettingsViewModel(
             initialValue = false
         )
 
+    /**
+     * Update app language and apply locale immediately.
+     * @param lang "system", "en", or "fr"
+     */
     fun setLanguage(lang: String) {
         viewModelScope.launch {
+            // Save preference
             settingsRepository.setLanguage(lang)
+
+            // Apply locale using AppCompatDelegate
+            val localeList = when (lang) {
+                "system" -> LocaleListCompat.getEmptyLocaleList()
+                else -> LocaleListCompat.forLanguageTags(lang)
+            }
+            AppCompatDelegate.setApplicationLocales(localeList)
         }
     }
 

@@ -56,6 +56,7 @@ fun SettingsScreen(
     var showAboutDialog by remember { mutableStateOf(false) }
     var showImportResultDialog by remember { mutableStateOf(false) }
     var showEncryptWarningDialog by remember { mutableStateOf(false) }
+    var showLanguageDropdown by remember { mutableStateOf(false) }
     var lastImportResult by remember { mutableStateOf<net.meshcore.mineralog.data.repository.ImportResult?>(null) }
     var decryptAttempts by remember { mutableStateOf(3) }
     var pendingExportUri by remember { mutableStateOf<Uri?>(null) }
@@ -311,22 +312,65 @@ fun SettingsScreen(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-            // Language
-            SettingsItem(
-                title = stringResource(R.string.settings_language),
-                subtitle = language.uppercase()
-            ) {
-                val newLanguage = if (language == "en") "fr" else "en"
-                viewModel.setLanguage(newLanguage)
+            // Language Selector
+            Box {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showLanguageDropdown = true }
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_language),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = when (language) {
+                            "system" -> "System / Système"
+                            "en" -> "English"
+                            "fr" -> "Français"
+                            else -> language.uppercase()
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-                // Also save to SharedPreferences for synchronous access
-                context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
-                    .edit()
-                    .putString("language_sync", newLanguage)
-                    .apply()
-
-                // Recreate activity to apply new language
-                activity?.recreate()
+                DropdownMenu(
+                    expanded = showLanguageDropdown,
+                    onDismissRequest = { showLanguageDropdown = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("System / Système") },
+                        onClick = {
+                            viewModel.setLanguage("system")
+                            showLanguageDropdown = false
+                        },
+                        leadingIcon = if (language == "system") {
+                            { Icon(Icons.Default.Check, contentDescription = null) }
+                        } else null
+                    )
+                    DropdownMenuItem(
+                        text = { Text("English") },
+                        onClick = {
+                            viewModel.setLanguage("en")
+                            showLanguageDropdown = false
+                        },
+                        leadingIcon = if (language == "en") {
+                            { Icon(Icons.Default.Check, contentDescription = null) }
+                        } else null
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Français") },
+                        onClick = {
+                            viewModel.setLanguage("fr")
+                            showLanguageDropdown = false
+                        },
+                        leadingIcon = if (language == "fr") {
+                            { Icon(Icons.Default.Check, contentDescription = null) }
+                        } else null
+                    )
+                }
             }
 
             HorizontalDivider()

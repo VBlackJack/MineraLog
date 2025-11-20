@@ -19,6 +19,8 @@ import net.meshcore.mineralog.data.util.QrLabelPdfGenerator
 import net.meshcore.mineralog.domain.model.Mineral
 import net.meshcore.mineralog.domain.model.MineralComponent
 import net.meshcore.mineralog.domain.model.MineralType
+import net.meshcore.mineralog.domain.provider.ResourceProvider
+import net.meshcore.mineralog.R
 
 sealed class DeleteState {
     data object Idle : DeleteState()
@@ -37,7 +39,8 @@ sealed class QrGenerationState {
 class MineralDetailViewModel(
     private val context: Context,
     private val mineralId: String,
-    private val mineralRepository: MineralRepository
+    private val mineralRepository: MineralRepository,
+    private val resourceProvider: ResourceProvider
 ) : ViewModel() {
 
     val mineral: StateFlow<Mineral?> = mineralRepository.getByIdFlow(mineralId)
@@ -83,7 +86,7 @@ class MineralDetailViewModel(
                 mineralRepository.delete(mineralId)
                 _deleteState.value = DeleteState.Success
             } catch (e: Exception) {
-                _deleteState.value = DeleteState.Error(e.message ?: "Failed to delete mineral")
+                _deleteState.value = DeleteState.Error(e.message ?: resourceProvider.getString(R.string.error_failed_to_delete_mineral))
             }
         }
     }
@@ -101,7 +104,7 @@ class MineralDetailViewModel(
             try {
                 val currentMineral = mineral.value
                 if (currentMineral == null) {
-                    _qrGenerationState.value = QrGenerationState.Error("Mineral not loaded")
+                    _qrGenerationState.value = QrGenerationState.Error(resourceProvider.getString(R.string.error_mineral_not_loaded))
                     return@launch
                 }
 
@@ -113,12 +116,12 @@ class MineralDetailViewModel(
                     _qrGenerationState.value = QrGenerationState.Success(outputUri)
                 } else {
                     _qrGenerationState.value = QrGenerationState.Error(
-                        result.exceptionOrNull()?.message ?: "Failed to generate QR label"
+                        result.exceptionOrNull()?.message ?: resourceProvider.getString(R.string.error_failed_to_generate_qr)
                     )
                 }
             } catch (e: Exception) {
                 _qrGenerationState.value = QrGenerationState.Error(
-                    e.message ?: "Unknown error generating QR label"
+                    e.message ?: resourceProvider.getString(R.string.error_unknown_generating_qr)
                 )
             }
         }
@@ -132,12 +135,13 @@ class MineralDetailViewModel(
 class MineralDetailViewModelFactory(
     private val context: Context,
     private val mineralId: String,
-    private val mineralRepository: MineralRepository
+    private val mineralRepository: MineralRepository,
+    private val resourceProvider: ResourceProvider
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MineralDetailViewModel::class.java)) {
-            return MineralDetailViewModel(context, mineralId, mineralRepository) as T
+            return MineralDetailViewModel(context, mineralId, mineralRepository, resourceProvider) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

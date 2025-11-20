@@ -29,6 +29,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MineraLog"
         android:enableOnBackInvokedCallback="true"
+        android:localeConfig="@xml/locales_config"
         tools:targetApi="tiramisu">
 
         <!-- Google Maps API Key -->

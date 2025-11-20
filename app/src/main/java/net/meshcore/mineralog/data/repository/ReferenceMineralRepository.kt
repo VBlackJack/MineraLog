@@ -215,7 +215,15 @@ class ReferenceMineralRepositoryImpl(
             insertAll(minerals)
             val duration = System.currentTimeMillis() - startTime
 
+            // Verify actual count in database
+            val dbCount = count()
             AppLogger.i("RefMineralRepo", "✅ Successfully loaded ${minerals.size} reference minerals in ${duration}ms")
+            AppLogger.i("RefMineralRepo", "🔍 Database verification: ${dbCount} minerals in reference_minerals table")
+
+            if (dbCount != minerals.size) {
+                AppLogger.w("RefMineralRepo", "⚠️ Count mismatch! Expected ${minerals.size}, got ${dbCount} in database")
+            }
+
             minerals.size
         } catch (e: Exception) {
             AppLogger.e("RefMineralRepo", "❌ Failed to load initial dataset", e)

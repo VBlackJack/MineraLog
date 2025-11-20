@@ -2,9 +2,12 @@ package net.meshcore.mineralog.ui.screens.camera
 
 import android.Manifest
 import net.meshcore.mineralog.util.AppLogger
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.provider.Settings
 import android.view.ViewGroup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -80,6 +83,8 @@ fun CameraCaptureScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    val activity = context as? Activity
+
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -88,6 +93,8 @@ fun CameraCaptureScreen(
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
+
+    var permissionDeniedPermanently by remember { mutableStateOf(false) }
 
     var selectedPhotoType by remember { mutableStateOf(PhotoType.NORMAL) }
     var torchEnabled by remember { mutableStateOf(false) }
@@ -105,6 +112,12 @@ fun CameraCaptureScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         hasCameraPermission = isGranted
+        if (!isGranted) {
+            // Check if permission was permanently denied
+            permissionDeniedPermanently = activity?.shouldShowRequestPermissionRationale(
+                Manifest.permission.CAMERA
+            ) == false
+        }
     }
 
     // Request permission on first composition
@@ -262,10 +275,32 @@ fun CameraCaptureScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = {
-                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                        }) {
-                            Text(stringResource(R.string.camera_grant_permission))
+                        if (permissionDeniedPermanently) {
+                            // Permission was permanently denied, show settings button
+                            Button(onClick = {
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", context.packageName, null)
+                                }
+                                context.startActivity(intent)
+                            }) {
+                                Icon(Icons.Default.Settings, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(stringResource(R.string.camera_open_settings))
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(R.string.camera_permission_denied_help),
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else {
+                            // First time denial or can still request
+                            Button(onClick = {
+                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            }) {
+                                Text(stringResource(R.string.camera_grant_permission))
+                            }
                         }
                     }
                 }

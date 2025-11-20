@@ -67,11 +67,16 @@ class ZipBackupService(
             val storages = database.storageDao().getByMineralIds(mineralIds).associateBy { it.mineralId }
             val photos = database.photoDao().getByMineralIds(mineralIds).groupBy { it.mineralId }
 
+            // v2.0: Load components for aggregates
+            val allComponents = database.mineralComponentDao().getAllDirect()
+            val componentsByMineral = allComponents.groupBy { it.aggregateId }
+
             val minerals = mineralEntities.map { mineralEntity ->
                 mineralEntity.toDomain(
                     provenances[mineralEntity.id],
                     storages[mineralEntity.id],
-                    photos[mineralEntity.id] ?: emptyList()
+                    photos[mineralEntity.id] ?: emptyList(),
+                    componentsByMineral[mineralEntity.id] ?: emptyList()  // v2.0: Include components
                 )
             }
 
@@ -299,8 +304,16 @@ class ZipBackupService(
                         mineralsBytes?.toString(Charsets.UTF_8)
                     }
 
+                    // Validate that minerals.json was found in the backup
+                    if (mineralsJson == null) {
+                        return@withContext Result.failure(
+                            Exception("Invalid backup: minerals.json not found in ZIP file. " +
+                                     "This may not be a valid MineraLog backup.")
+                        )
+                    }
+
                     // Import minerals with transaction for data integrity
-                    mineralsJson?.let { jsonStr ->
+                    mineralsJson.let { jsonStr ->
                         val minerals = json.decodeFromString<List<Mineral>>(jsonStr)
 
                         // Use transaction to ensure atomicity
@@ -310,6 +323,8 @@ class ZipBackupService(
                                 database.provenanceDao().deleteAll()
                                 database.storageDao().deleteAll()
                                 database.photoDao().deleteAll()
+                                database.mineralComponentDao().deleteAll()  // v2.0: Clear components too
+                                // Note: SimpleProperties are CASCADE deleted when minerals are deleted
                             }
 
                             minerals.forEach { mineral ->
@@ -318,6 +333,15 @@ class ZipBackupService(
                                     mineral.provenance?.let { database.provenanceDao().insert(it.toEntity()) }
                                     mineral.storage?.let { database.storageDao().insert(it.toEntity()) }
                                     mineral.photos.forEach { database.photoDao().insert(it.toEntity()) }
+
+                                    // v2.0: Import components for aggregates
+                                    if (mineral.components.isNotEmpty()) {
+                                        mineral.components.forEachIndexed { index, component ->
+                                            val componentEntity = component.toEntity(mineral.id, index)
+                                            database.mineralComponentDao().insert(componentEntity)
+                                        }
+                                    }
+
                                     imported++
                                 } catch (e: Exception) {
                                     errors.add("Failed to import ${mineral.name}: ${e.message}")

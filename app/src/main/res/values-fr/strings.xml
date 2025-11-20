@@ -35,6 +35,7 @@
     <string name="action_apply">Appliquer</string>
     <string name="action_close">Fermer</string>
     <string name="action_confirm">Confirmer</string>
+    <string name="action_view_all">Tout voir</string>
 
     <!-- Content Descriptions -->
     <string name="cd_settings">Paramètres</string>
@@ -48,6 +49,7 @@
     <string name="cd_share">Partager</string>
     <string name="qr_label_generated_success">PDF d\'étiquette QR code généré avec succès</string>
     <string name="cd_more_options">Plus d\'options</string>
+    <string name="cd_identification">Identifier un minéral</string>
     <string name="cd_photo">Photo</string>
     <string name="cd_take_photo">Prendre une photo</string>
     <string name="cd_select_photo">Sélectionner une photo</string>
@@ -404,6 +406,16 @@
     <string name="error_required_field">Ce champ est requis</string>
     <string name="error_database">Erreur de base de données</string>
     <string name="error_encryption">Erreur de chiffrement</string>
+    <string name="error_mineral_name_required">Le nom du minéral est requis</string>
+    <string name="error_mineral_name_too_short">Le nom du minéral doit faire au moins 2 caractères</string>
+    <string name="error_aggregate_min_components">Un agrégat doit avoir au moins 2 composants</string>
+    <string name="error_aggregate_components_need_names">Tous les composants doivent avoir un nom</string>
+    <string name="error_aggregate_percentages_invalid">Les pourcentages doivent totaliser environ 100%% (actuellement %d%%)</string>
+    <string name="error_failed_to_save_mineral">Échec de l\'enregistrement du minéral</string>
+    <string name="error_failed_to_delete_mineral">Échec de la suppression du minéral</string>
+    <string name="error_mineral_not_loaded">Minéral non chargé</string>
+    <string name="error_failed_to_generate_qr">Échec de la génération de l\'étiquette QR</string>
+    <string name="error_unknown_generating_qr">Erreur inconnue lors de la génération de l\'étiquette QR</string>
 
     <!-- Validation -->
     <string name="validation_name_required">Le nom est requis</string>
@@ -484,6 +496,8 @@
     <string name="camera_title">Prendre une photo</string>
     <string name="camera_permission_required">La permission caméra est requise pour prendre des photos</string>
     <string name="camera_grant_permission">Accorder la permission</string>
+    <string name="camera_open_settings">Ouvrir les paramètres</string>
+    <string name="camera_permission_denied_help">La permission caméra a été refusée. Veuillez l\'activer dans les Paramètres pour prendre des photos.</string>
     <string name="camera_select_photo_type">Sélectionner le type de photo</string>
     <string name="camera_photo_type_normal">Normale</string>
     <string name="camera_photo_type_normal_desc">Photo standard</string>
@@ -788,4 +802,29 @@
     </plurals>
     <string name="field_hardness_placeholder">Ex: 7 ou 6.5-7</string>
     <string name="field_hardness_error">Doit être un nombre ou une plage entre 1 et 10</string>
+
+    <!-- Identification Screen -->
+    <string name="identification_title">Identifier un minéral</string>
+    <string name="identification_filter_color">Couleur (Critère principal)</string>
+    <string name="identification_filter_hardness">Dureté (Échelle de Mohs)</string>
+    <string name="identification_filter_streak">Couleur du trait</string>
+    <string name="identification_filter_luster">Éclat</string>
+    <string name="identification_filter_magnetic">Magnétique ?</string>
+    <string name="identification_set_range">Définir la plage</string>
+    <string name="identification_hardness_soft">Rayé par l\'ongle (&lt;2.5)</string>
+    <string name="identification_hardness_hard">Raye le verre (&gt;5.5)</string>
+    <string name="identification_hardness_any">Tous</string>
+    <string name="identification_hardness_range_title">Plage de dureté</string>
+    <string name="identification_min">Min</string>
+    <string name="identification_max">Max</string>
+    <string name="identification_any">Tous</string>
+    <string name="identification_select_criteria">Sélectionnez des critères ci-dessus pour commencer</string>
+    <string name="identification_no_results">Aucun minéral ne correspond à vos critères</string>
+    <string name="identification_try_different">Essayez d\'ajuster vos filtres</string>
+    <string name="identification_results_found">minéraux trouvés</string>
+    <string name="identification_mohs">Mohs</string>
+    <string name="identification_match">Correspondance</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+    <string name="action_ok">OK</string>
 </resources>

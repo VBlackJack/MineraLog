@@ -44,6 +44,7 @@ fun HomeScreen(
     onCompareClick: (List<String>) -> Unit = {},
     onQrScanClick: () -> Unit = {},
     onLibraryClick: () -> Unit = {},
+    onIdentificationClick: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             context = LocalContext.current.applicationContext,
@@ -144,6 +145,7 @@ fun HomeScreen(
                 onSelectAll = { viewModel.selectAll() },
                 onShowBulkActionsSheet = { viewModel.showBulkActionsDialog() },
                 onLibraryClick = onLibraryClick,
+                onIdentificationClick = onIdentificationClick,
                 onQrScanClick = onQrScanClick,
                 onEnterSelectionMode = { viewModel.enterSelectionMode() },
                 onStatisticsClick = onStatisticsClick,

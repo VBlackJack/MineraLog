@@ -1,6 +1,6 @@
 # MineraLog 🪨
 
-[![Version](https://img.shields.io/badge/Version-3.0.0--alpha-brightgreen.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-3.0.0-brightgreen.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-8.0+-green.svg)](https://www.android.com)
 
@@ -82,6 +82,13 @@ MineraLog s'adresse à :
 
 ## Fonctionnalités principales 🔬
 
+### 🔬 Identification de minéraux (NOUVEAU v3.0)
+- **Assistant d'identification intelligent** : Identifiez vos minéraux inconnus grâce à leurs propriétés physiques
+- Filtres multiples : Couleur, dureté (Mohs), couleur du trait, éclat, magnétisme
+- **Algorithme de pertinence** : Résultats classés par score de correspondance
+- Base de données de 464+ minéraux de référence
+- Accès rapide depuis l'écran d'accueil
+
 ### 📸 Photos et galerie
 - Prenez jusqu'à 4 types de photos par minéral (normale, UV, macro)
 - Galerie avec zoom jusqu'à 5x
@@ -92,6 +99,7 @@ MineraLog s'adresse à :
 - **Provenance** : Pays, localité, coordonnées GPS, date d'acquisition, prix
 - **Stockage** : Lieu → Armoire → Tiroir → Boîte → Emplacement
 - **Notes et étiquettes** : Ajoutez vos observations personnelles
+- **Prix et valeur** : Suivi de la valeur estimée et du prix d'achat
 
 ### 🔍 Recherche et tri
 - Recherche instantanée par nom, formule chimique, groupe, notes ou étiquettes
@@ -103,11 +111,16 @@ MineraLog s'adresse à :
 - **Scanner** : Scannez une étiquette et affichez la fiche du minéral instantanément
 - Idéal pour organiser des boîtes de rangement physiques
 
-### 💾 Import/Export
-- **Format ZIP** : Sauvegarde complète avec toutes les photos (avec ou sans mot de passe)
+### 💾 Import/Export (Amélioré v3.0)
+- **Format ZIP sécurisé** : Sauvegarde complète avec toutes les photos
+  - Protection par mot de passe (Argon2id + AES-256-GCM)
+  - Protection anti-ZIP bomb et validation des chemins
+  - Validation automatique de l'intégrité (minerals.json requis)
+  - Export de la bibliothèque de référence optionnel
 - **Format CSV** : Compatible Excel/LibreOffice pour partage et édition
 - **3 modes d'import** : Fusionner, Remplacer, ou Ignorer les doublons
 - Aperçu avant import avec détection automatique des colonnes
+- Messages d'erreur clairs en cas de corruption
 
 ### 📊 Statistiques
 - Graphiques de répartition par groupe, système cristallin, pays
@@ -128,7 +141,7 @@ MineraLog s'adresse à :
 ### Méthode 1 : Télécharger le fichier APK (recommandé)
 
 1. Rendez-vous sur la page [Releases](https://github.com/VBlackJack/MineraLog/releases) de GitHub
-2. Téléchargez le fichier `MineraLog-v3.0.0-alpha.apk` (dernière version)
+2. Téléchargez le fichier `MineraLog-v3.0.0.apk` (dernière version)
 3. Ouvrez le fichier téléchargé
 4. Autorisez l'installation depuis "Sources inconnues" si demandé
 5. Tapez sur "Installer"
@@ -417,6 +430,13 @@ MineraLog is designed for:
 
 ## Main Features 🔬
 
+### 🔬 Mineral Identification (NEW v3.0)
+- **Smart Identification Assistant**: Identify unknown minerals using physical properties
+- Multiple filters: Color, hardness (Mohs), streak, luster, magnetism
+- **Relevance algorithm**: Results ranked by match score
+- Database of 464+ reference minerals
+- Quick access from home screen
+
 ### 📸 Photos and Gallery
 - Take up to 4 photo types per mineral (normal, UV, macro)
 - Gallery with zoom up to 5x
@@ -427,6 +447,7 @@ MineraLog is designed for:
 - **Provenance**: Country, locality, GPS coordinates, acquisition date, price
 - **Storage**: Place → Cabinet → Drawer → Box → Slot
 - **Notes and tags**: Add your personal observations
+- **Price and value**: Track estimated value and purchase price
 
 ### 🔍 Search and Sort
 - Instant search by name, chemical formula, group, notes, or tags
@@ -438,11 +459,16 @@ MineraLog is designed for:
 - **Scanner**: Scan a label and display the mineral record instantly
 - Ideal for organizing physical storage boxes
 
-### 💾 Import/Export
-- **ZIP format**: Complete backup with all photos (with or without password)
+### 💾 Import/Export (Enhanced v3.0)
+- **Secure ZIP format**: Complete backup with all photos
+  - Password protection (Argon2id + AES-256-GCM encryption)
+  - ZIP bomb protection and path validation
+  - Automatic integrity validation (minerals.json required)
+  - Optional reference library export
 - **CSV format**: Excel/LibreOffice compatible for sharing and editing
 - **3 import modes**: Merge, Replace, or Skip duplicates
 - Preview before import with automatic column detection
+- Clear error messages for corrupt backups
 
 ### 📊 Statistics
 - Distribution charts by group, crystal system, country
@@ -463,7 +489,7 @@ MineraLog is designed for:
 ### Method 1: Download the APK file (recommended)
 
 1. Go to the [Releases](https://github.com/VBlackJack/MineraLog/releases) page on GitHub
-2. Download the `MineraLog-v3.0.0-alpha.apk` file (latest version)
+2. Download the `MineraLog-v3.0.0.apk` file (latest version)
 3. Open the downloaded file
 4. Allow installation from "Unknown sources" if prompted
 5. Tap "Install"

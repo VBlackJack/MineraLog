@@ -9,6 +9,8 @@ import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.repository.*
+import net.meshcore.mineralog.domain.provider.AndroidResourceProvider
+import net.meshcore.mineralog.domain.provider.ResourceProvider
 import net.meshcore.mineralog.util.AppLogger
 
 /**
@@ -65,6 +67,11 @@ class MineraLogApplication : Application(), Configuration.Provider {
             referenceMineralDao = database.referenceMineralDao(),
             context = this
         )
+    }
+
+    // Resource Provider for internationalization
+    val resourceProvider: ResourceProvider by lazy {
+        AndroidResourceProvider(this)
     }
 
     // Tink AEAD for local encryption (app-level key)

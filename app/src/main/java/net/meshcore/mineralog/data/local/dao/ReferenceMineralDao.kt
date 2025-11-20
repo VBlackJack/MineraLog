@@ -125,15 +125,15 @@ interface ReferenceMineralDao {
      */
     @Query("""
         SELECT * FROM reference_minerals
-        WHERE nameFr LIKE '%' || :query || '%'
-           OR nameEn LIKE '%' || :query || '%'
-           OR synonyms LIKE '%' || :query || '%'
+        WHERE nameFr LIKE '%' || :query || '%' COLLATE NOCASE
+           OR nameEn LIKE '%' || :query || '%' COLLATE NOCASE
+           OR synonyms LIKE '%' || :query || '%' COLLATE NOCASE
         ORDER BY
             CASE
-                WHEN nameFr = :query THEN 1
-                WHEN nameEn = :query THEN 2
-                WHEN nameFr LIKE :query || '%' THEN 3
-                WHEN nameEn LIKE :query || '%' THEN 4
+                WHEN LOWER(nameFr) = LOWER(:query) THEN 1
+                WHEN LOWER(nameEn) = LOWER(:query) THEN 2
+                WHEN nameFr LIKE :query || '%' COLLATE NOCASE THEN 3
+                WHEN nameEn LIKE :query || '%' COLLATE NOCASE THEN 4
                 ELSE 5
             END,
             nameFr ASC
@@ -150,15 +150,15 @@ interface ReferenceMineralDao {
      */
     @Query("""
         SELECT * FROM reference_minerals
-        WHERE nameFr LIKE '%' || :query || '%'
-           OR nameEn LIKE '%' || :query || '%'
-           OR synonyms LIKE '%' || :query || '%'
+        WHERE nameFr LIKE '%' || :query || '%' COLLATE NOCASE
+           OR nameEn LIKE '%' || :query || '%' COLLATE NOCASE
+           OR synonyms LIKE '%' || :query || '%' COLLATE NOCASE
         ORDER BY
             CASE
-                WHEN nameFr = :query THEN 1
-                WHEN nameEn = :query THEN 2
-                WHEN nameFr LIKE :query || '%' THEN 3
-                WHEN nameEn LIKE :query || '%' THEN 4
+                WHEN LOWER(nameFr) = LOWER(:query) THEN 1
+                WHEN LOWER(nameEn) = LOWER(:query) THEN 2
+                WHEN nameFr LIKE :query || '%' COLLATE NOCASE THEN 3
+                WHEN nameEn LIKE :query || '%' COLLATE NOCASE THEN 4
                 ELSE 5
             END,
             nameFr ASC

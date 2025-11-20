@@ -54,11 +54,13 @@ fun MineralDetailScreen(
     onNavigateBack: () -> Unit,
     onEditClick: (String) -> Unit = {},
     onCameraClick: (String) -> Unit = {},
+    onShowGallery: (String) -> Unit = {},
     viewModel: MineralDetailViewModel = viewModel(
         factory = MineralDetailViewModelFactory(
             LocalContext.current.applicationContext,
             mineralId,
-            (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository
+            (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
+            (LocalContext.current.applicationContext as MineraLogApplication).resourceProvider
         )
     )
 ) {
@@ -213,6 +215,7 @@ fun MineralDetailScreen(
                     selectedPhotoIndex = index
                     showPhotoViewer = true
                 },
+                onShowGallery = { onShowGallery(mineralId) },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
@@ -301,6 +304,7 @@ fun MineralDetailScreen(
 fun MineralDetailContent(
     mineral: Mineral,
     onPhotoClick: (Int) -> Unit,
+    onShowGallery: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -322,10 +326,25 @@ fun MineralDetailContent(
         if (mineral.photos.isNotEmpty()) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        stringResource(R.string.detail_photos_count, mineral.photos.size),
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        Text(
+                            stringResource(R.string.detail_photos_count, mineral.photos.size),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        TextButton(onClick = onShowGallery) {
+                            Text(stringResource(R.string.action_view_all))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
 
                     LazyRow(

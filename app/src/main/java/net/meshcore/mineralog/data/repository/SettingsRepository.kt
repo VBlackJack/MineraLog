@@ -231,7 +231,7 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     companion object {
-        private const val DEFAULT_LANGUAGE = "en"
+        private const val DEFAULT_LANGUAGE = "system"  // "system", "en", "fr"
         private const val DEFAULT_THEME = "SYSTEM"
     }
 }
