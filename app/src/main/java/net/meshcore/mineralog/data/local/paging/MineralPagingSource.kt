@@ -2,7 +2,7 @@ package net.meshcore.mineralog.data.local.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import net.meshcore.mineralog.data.local.dao.MineralDao
+import net.meshcore.mineralog.data.local.dao.MineralDaoComposite
 import net.meshcore.mineralog.data.local.dao.MineralComponentDao
 import net.meshcore.mineralog.data.local.dao.PhotoDao
 import net.meshcore.mineralog.data.local.dao.ProvenanceDao
@@ -31,7 +31,7 @@ import net.meshcore.mineralog.domain.model.Mineral
  * (from 61 queries to 4 queries).
  */
 class MineralPagingSource(
-    private val mineralDao: MineralDao,
+    private val mineralDao: MineralDaoComposite,
     private val provenanceDao: ProvenanceDao,
     private val storageDao: StorageDao,
     private val photoDao: PhotoDao,

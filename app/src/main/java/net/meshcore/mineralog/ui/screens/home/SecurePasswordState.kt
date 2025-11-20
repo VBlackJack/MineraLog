@@ -16,7 +16,8 @@ import androidx.compose.runtime.structuralEqualityPolicy
 @Stable
 class SecurePasswordState internal constructor() {
 
-    private var backingChars by mutableStateOf(CharArray(0), structuralEqualityPolicy())
+    @PublishedApi
+    internal var backingChars by mutableStateOf(CharArray(0), structuralEqualityPolicy())
 
     val length: Int
         get() = backingChars.size
@@ -55,8 +56,9 @@ class SecurePasswordState internal constructor() {
         backingChars = newValue
     }
 
-    private companion object {
-        private const val ZERO_CHAR: Char = '\u0000'
+    companion object {
+        @PublishedApi
+        internal const val ZERO_CHAR: Char = '\u0000'
     }
 }
 

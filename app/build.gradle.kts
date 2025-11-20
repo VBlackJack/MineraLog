@@ -263,7 +263,7 @@ detekt {
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform()
+    // useJUnitPlatform()  // Disabled to support Robolectric tests (JUnit 4)
     ignoreFailures = false
     // Configure test logging
     testLogging {

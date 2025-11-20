@@ -238,7 +238,7 @@ class CsvParser {
 
             if (containsExtendedAscii(sampleBuffer, sampleLength)) {
                 // Prefer Windows-1252 over ISO-8859-1 for broader glyph coverage
-                return Charsets.WINDOWS_1252
+                return Charset.forName("windows-1252")
             }
         }
 

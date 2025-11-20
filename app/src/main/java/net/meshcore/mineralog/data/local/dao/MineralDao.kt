@@ -736,12 +736,3 @@ interface MineralDao {
     suspend fun getAverageComponentCount(): Double?
 }
 
-/**
- * Data class for most valuable mineral query result.
- */
-data class MineralValueInfo(
-    val id: String,
-    val name: String,
-    val value: Double,
-    val currency: String?
-)
