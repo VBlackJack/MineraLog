@@ -782,4 +782,10 @@
         <item>Colorless</item>
         <item>Other</item>
     </string-array>
+    <plurals name="photo_added_snackbar_message">
+        <item quantity="one">Photo added. Total: %d photo.</item>
+        <item quantity="other">Photo added. Total: %d photos.</item>
+    </plurals>
+    <string name="field_hardness_placeholder">Ex: 7 or 6.5-7</string>
+    <string name="field_hardness_error">Must be a number or a range between 1 and 10</string>
 </resources>

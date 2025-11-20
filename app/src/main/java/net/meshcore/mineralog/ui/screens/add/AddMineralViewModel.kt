@@ -82,6 +82,9 @@ class AddMineralViewModel(
     private val _crystalSystem = MutableStateFlow("")
     val crystalSystem: StateFlow<String> = _crystalSystem.asStateFlow()
 
+    private val _mohsHardness = MutableStateFlow("")
+    val mohsHardness: StateFlow<String> = _mohsHardness.asStateFlow()
+
     // Quick Win #8: Tags with autocomplete (v1.7.0)
     private val _tags = MutableStateFlow("")
     val tags: StateFlow<String> = _tags.asStateFlow()
@@ -300,6 +303,10 @@ class AddMineralViewModel(
         _crystalSystem.value = value
     }
 
+    fun onMohsHardnessChange(value: String) {
+        _mohsHardness.value = value
+    }
+
     // Quick Win #8: Tag management
     fun onTagsChange(value: String) {
         _tags.value = value
@@ -490,12 +497,13 @@ class AddMineralViewModel(
                 // v2.0: Save based on mineral type
                 if (_mineralType.value == MineralType.SIMPLE) {
                     // Save as simple mineral using v2.0+ API
+                    val (mohsMin, mohsMax) = parseMohsHardness(_mohsHardness.value)
                     val properties = SimpleProperties(
                         referenceMineralId = _selectedReferenceMineral.value?.id,
                         group = _group.value.trim().takeIf { it.isNotBlank() },
                         formula = _formula.value.trim().takeIf { it.isNotBlank() },
                         crystalSystem = _crystalSystem.value.trim().takeIf { it.isNotBlank() },
-                        cleavage = _cleavage.value.trim().takeIf { it.isNotBlank() },
+                        cleavage = _cleavage.value.trim().takeIf { it'isNotBlank() },
                         fracture = _fracture.value.trim().takeIf { it.isNotBlank() },
                         luster = _luster.value.trim().takeIf { it.isNotBlank() },
                         streak = _streak.value.trim().takeIf { it.isNotBlank() },
@@ -503,7 +511,9 @@ class AddMineralViewModel(
                         habit = _habit.value.trim().takeIf { it.isNotBlank() },
                         colorVariety = _colorVariety.value.trim().takeIf { it.isNotBlank() },
                         actualDiaphaneity = _actualDiaphaneity.value.trim().takeIf { it.isNotBlank() },
-                        qualityNotes = _qualityNotes.value.trim().takeIf { it.isNotBlank() }
+                        qualityNotes = _qualityNotes.value.trim().takeIf { it.isNotBlank() },
+                        mohsMin = mohsMin,
+                        mohsMax = mohsMax
                     )
 
                     val simpleMineralData = SimpleMineralData(
@@ -614,6 +624,21 @@ class AddMineralViewModel(
 
     fun resetSaveState() {
         _saveState.value = SaveMineralState.Idle
+    }
+
+    private fun parseMohsHardness(hardness: String): Pair<Float?, Float?> {
+        if (hardness.isBlank()) return null to null
+        return try {
+            if (hardness.contains("-")) {
+                val parts = hardness.split("-").map { it.trim().toFloat() }
+                parts.getOrNull(0) to parts.getOrNull(1)
+            } else {
+                val value = hardness.toFloat()
+                value to value
+            }
+        } catch (e: NumberFormatException) {
+            null to null // Invalid format
+        }
     }
 }
 

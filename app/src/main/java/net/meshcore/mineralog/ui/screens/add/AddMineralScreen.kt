@@ -73,6 +73,7 @@ fun AddMineralScreen(
     val streak by viewModel.streak.collectAsState()
     val habit by viewModel.habit.collectAsState()
     val crystalSystem by viewModel.crystalSystem.collectAsState()
+    val mohsHardness by viewModel.mohsHardness.collectAsState()
     val tags by viewModel.tags.collectAsState() // Quick Win #8
     val tagSuggestions by viewModel.tagSuggestions.collectAsState() // Quick Win #8
     val photos by viewModel.photos.collectAsState()
@@ -121,6 +122,23 @@ fun AddMineralScreen(
     var showDiscardDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show snackbar on photo added
+    var previousPhotoCount by remember { mutableStateOf(photos.size) }
+    LaunchedEffect(photos.size) {
+        if (photos.size > previousPhotoCount) {
+            val photoAddedMessage = context.resources.getQuantityString(
+                R.plurals.photo_added_snackbar_message,
+                photos.size,
+                photos.size
+            )
+            snackbarHostState.showSnackbar(
+                message = photoAddedMessage,
+                duration = SnackbarDuration.Short
+            )
+        }
+        previousPhotoCount = photos.size
+    }
 
     // Show error messages
     LaunchedEffect(saveState) {
@@ -583,6 +601,43 @@ fun AddMineralScreen(
                     options = crystalSystems,
                     placeholder = stringResource(R.string.field_crystal_system_placeholder),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+
+                val isMohsError = remember(mohsHardness) {
+                    if (mohsHardness.isBlank()) {
+                        false // Not an error if blank
+                    } else {
+                        try {
+                            if (mohsHardness.contains("-")) {
+                                val parts = mohsHardness.split("-").map { it.trim().toFloat() }
+                                val min = parts.getOrNull(0)
+                                val max = parts.getOrNull(1)
+                                min == null || max == null || min < 1f || max > 10f || min > max
+                            } else {
+                                val value = mohsHardness.toFloat()
+                                value < 1f || value > 10f
+                            }
+                        } catch (e: NumberFormatException) {
+                            true // Error if not a number
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = mohsHardness,
+                    onValueChange = { viewModel.onMohsHardnessChange(it) },
+                    label = { Text(stringResource(R.string.field_hardness)) },
+                    placeholder = { Text(stringResource(R.string.field_hardness_placeholder)) },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Next
+                    ),
+                    isError = isMohsError,
+                    supportingText = if (isMohsError) {
+                        { Text(stringResource(R.string.field_hardness_error), color = MaterialTheme.colorScheme.error) }
+                    } else null,
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
                 )
                 }
             }
