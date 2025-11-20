@@ -37,7 +37,7 @@ class ReferenceMineralDatasetLoader(private val context: Context) {
      */
     fun loadInitialDataset(): List<ReferenceMineralEntity> {
         android.util.Log.i("DatasetLoader", "🔍 Opening reference_minerals_initial.json from assets...")
-        val jsonString = context.assets.open("reference_minerals_initial.json")
+        val jsonString = context.assets.open("reference_minerals_v6.json")
             .bufferedReader()
             .use { it.readText() }
 
@@ -109,7 +109,7 @@ class ReferenceMineralDatasetLoader(private val context: Context) {
      */
     fun datasetExists(): Boolean {
         return try {
-            context.assets.open("reference_minerals_initial.json").close()
+            context.assets.open("reference_minerals_v6.json").close()
             true
         } catch (e: Exception) {
             false
