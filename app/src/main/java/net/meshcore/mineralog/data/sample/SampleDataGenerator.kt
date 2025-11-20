@@ -66,6 +66,8 @@ class SampleDataGenerator(
                 mineralId = id,
                 country = "Brazil",
                 locality = "Minas Gerais",
+                latitude = -18.5122,
+                longitude = -44.5550,
                 acquiredAt = Instant.now().minus(180, ChronoUnit.DAYS),
                 price = 25.0f,
                 currency = "EUR"
@@ -100,6 +102,8 @@ class SampleDataGenerator(
                 country = "Mexico",
                 locality = "Chihuahua",
                 mineName = "Naica Mine",
+                latitude = 27.8507,
+                longitude = -105.4947,
                 acquiredAt = Instant.now().minus(90, ChronoUnit.DAYS),
                 price = 15.0f,
                 currency = "EUR"
@@ -133,6 +137,8 @@ class SampleDataGenerator(
                 mineralId = id,
                 country = "Spain",
                 locality = "Navajún, La Rioja",
+                latitude = 42.1833,
+                longitude = -2.0333,
                 acquiredAt = Instant.now().minus(45, ChronoUnit.DAYS),
                 price = 35.0f,
                 currency = "EUR"
@@ -167,6 +173,8 @@ class SampleDataGenerator(
                 country = "USA",
                 locality = "Missouri",
                 mineName = "Sweetwater Mine",
+                latitude = 37.7500,
+                longitude = -90.5000,
                 acquiredAt = Instant.now().minus(120, ChronoUnit.DAYS),
                 price = 20.0f,
                 currency = "USD"
@@ -201,6 +209,8 @@ class SampleDataGenerator(
                 mineralId = id,
                 country = "China",
                 locality = "Hunan Province",
+                latitude = 27.7100,
+                longitude = 111.6500,
                 acquiredAt = Instant.now().minus(60, ChronoUnit.DAYS),
                 price = 28.0f,
                 currency = "EUR"
@@ -234,6 +244,8 @@ class SampleDataGenerator(
                 mineralId = id,
                 country = "Congo (DRC)",
                 locality = "Katanga Province",
+                latitude = -10.8500,
+                longitude = 26.9000,
                 acquiredAt = Instant.now().minus(30, ChronoUnit.DAYS),
                 price = 45.0f,
                 currency = "EUR"
@@ -267,6 +279,8 @@ class SampleDataGenerator(
                 mineralId = id,
                 country = "Uruguay",
                 locality = "Artigas",
+                latitude = -30.4000,
+                longitude = -56.4667,
                 acquiredAt = Instant.now().minus(150, ChronoUnit.DAYS),
                 price = 32.0f,
                 currency = "EUR"
@@ -300,6 +314,8 @@ class SampleDataGenerator(
                 mineralId = id,
                 country = "Madagascar",
                 locality = "Fianarantsoa Province",
+                latitude = -21.4500,
+                longitude = 47.0860,
                 acquiredAt = Instant.now().minus(75, ChronoUnit.DAYS),
                 price = 18.0f,
                 currency = "EUR"
@@ -335,6 +351,8 @@ class SampleDataGenerator(
                 country = "England",
                 locality = "Cumberland",
                 mineName = "Florence Mine",
+                latitude = 54.5667,
+                longitude = -3.3667,
                 acquiredAt = Instant.now().minus(200, ChronoUnit.DAYS),
                 price = 22.0f,
                 currency = "GBP"
@@ -370,6 +388,8 @@ class SampleDataGenerator(
                 country = "Sweden",
                 locality = "Kiruna",
                 mineName = "LKAB Mine",
+                latitude = 67.8558,
+                longitude = 20.2253,
                 acquiredAt = Instant.now().minus(105, ChronoUnit.DAYS),
                 price = 15.0f,
                 currency = "EUR"
@@ -404,6 +424,8 @@ class SampleDataGenerator(
                 country = "Mexico",
                 locality = "Chihuahua",
                 mineName = "Naica Mine",
+                latitude = 27.8507,
+                longitude = -105.4947,
                 acquiredAt = Instant.now().minus(135, ChronoUnit.DAYS),
                 price = 12.0f,
                 currency = "EUR"
@@ -437,6 +459,8 @@ class SampleDataGenerator(
                 mineralId = id,
                 country = "Morocco",
                 locality = "Kerrouchen",
+                latitude = 32.8333,
+                longitude = -5.3833,
                 acquiredAt = Instant.now().minus(20, ChronoUnit.DAYS),
                 price = 38.0f,
                 currency = "EUR"
