@@ -845,4 +845,20 @@
     <string name="yes">Oui</string>
     <string name="no">Non</string>
     <string name="action_ok">OK</string>
+    <string name="action_ok">OK</string>
+    <!-- Migration Report Dialog -->
+    <string name="migration_report_title">Migration automatique terminée</string>
+    <string name="migration_report_summary">Vos spécimens existants ont été analysés pour créer automatiquement des minéraux de référence.</string>
+    <string name="migration_report_refs_added">Minéraux ajoutés à la bibliothèque</string>
+    <string name="migration_report_simple_linked">Spécimens simples liés</string>
+    <string name="migration_report_aggregate_linked">Composants d\'agrégats liés</string>
+    <string name="migration_report_divergent_minerals">Minéraux avec propriétés divergentes</string>
+    <string name="migration_report_divergent_reason">Les minéraux suivants n\'ont pas été ajoutés car leurs propriétés varient trop :</string>
+    <plurals name="migration_report_divergent_others">
+        <item quantity="one">... et %d autre</item>
+        <item quantity="other">... et %d autres</item>
+    </plurals>
+    <string name="migration_report_duration">Temps de migration : %dms</string>
+    <string name="migration_report_no_changes">Aucun minéral récurrent détecté. La bibliothèque n\'a pas été modifiée.</string>
+    <string name="action_view_library">Voir la bibliothèque</string>
 </resources>

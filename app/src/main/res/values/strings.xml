@@ -845,4 +845,20 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="action_ok">OK</string>
+    <string name="action_ok">OK</string>
+    <!-- Migration Report Dialog -->
+    <string name="migration_report_title">Automatic Migration Complete</string>
+    <string name="migration_report_summary">Your existing specimens have been analyzed to automatically create reference minerals.</string>
+    <string name="migration_report_refs_added">Minerals added to library</string>
+    <string name="migration_report_simple_linked">Simple specimens linked</string>
+    <string name="migration_report_aggregate_linked">Aggregate components linked</string>
+    <string name="migration_report_divergent_minerals">Minerals with divergent properties</string>
+    <string name="migration_report_divergent_reason">The following minerals were not added because their properties vary too much:</string>
+    <plurals name="migration_report_divergent_others">
+        <item quantity="one">... and %d other</item>
+        <item quantity="other">... and %d others</item>
+    </plurals>
+    <string name="migration_report_duration">Migration time: %dms</string>
+    <string name="migration_report_no_changes">No recurring minerals detected. Library was not modified.</string>
+    <string name="action_view_library">View Library</string>
 </resources>

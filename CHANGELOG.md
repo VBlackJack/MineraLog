@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added - Major Features
 
+**🎨 Navigation Drawer & Improved UX:**
+- **Lateral navigation menu** with hamburger button (☰)
+  - 5 main sections: My Collection, Reference Library, Identification, Statistics, Settings
+  - Material Design 3 compliant with current route highlighting
+  - Automatic close after navigation
+- **TopAppBar optimization**: Reduced from 6 to 2 action buttons
+  - QR Scanner and Bulk Edit remain for quick access
+  - "MineraLog" title no longer truncated on small screens
+- **Better horizontal space utilization** on compact devices
+
+**🌍 Per-App Language Preferences (Fixed):**
+- **Language switching now works correctly**
+  - Official Android AppCompatDelegate API implementation
+  - Theme changed from Material to AppCompat.Light for compatibility
+  - Removed conflicting attachBaseContext() override
+  - SharedPreferences sync for backward compatibility
+- **3 language options**: French, English, System default
+- **Persistent across restarts**: Language preference properly saved
+- **Complete French localization**: All UI strings translated (EN/FR)
+
+**🧪 Sample Data Generator:**
+- **Developer tools section** in Settings
+- **One-click sample data loading** with 12 realistic mineral specimens:
+  - Quartz (Brazil, 125.5g), Calcite (Mexico, 89.3g), Pyrite (Spain, 245.8g)
+  - Galena (USA, 432.1g), Fluorite (China, 156.7g), Malachite (Congo, 198.4g)
+  - Amethyst (Uruguay, 87.2g), Rose Quartz (Madagascar, 142.9g)
+  - Hematite (England, 312.5g), Magnetite (Sweden, 267.8g)
+  - Gypsum (Mexico, 54.6g), Azurite (Morocco, 176.3g)
+- **Complete properties**: Formula, crystal system, hardness, provenance, prices
+- **Faster testing**: No manual data entry required for demos and testing
+
+**📝 Provenance Fields in Creation:**
+- **Country, Locality, Mine, Acquisition Date** now available during mineral creation
+- **No longer need to edit** after creation for provenance data
+- **Improved workflow**: All data in one place from the start
+
 **🔬 Mineral Identification Assistant (New Feature):**
 - **Smart Filtering System**: Identify unknown minerals using physical properties
   - **Color selection** (primary criterion, multi-select)

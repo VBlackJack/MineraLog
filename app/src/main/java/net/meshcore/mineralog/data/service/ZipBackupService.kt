@@ -157,10 +157,23 @@ class ZipBackupService(
         password: CharArray?,
         mode: ImportMode
     ): Result<ImportResult> = withContext(Dispatchers.IO) {
-        var totalCompressedBytes = 0L
-        var totalDecompressedBytes = 0L
+        val extractedFiles = mutableListOf<File>()
+        val cleanup: () -> Unit = {
+            if (extractedFiles.isNotEmpty()) {
+                AppLogger.w("ZipBackupService", "Import failed. Rolling back ${extractedFiles.size} extracted files...")
+                extractedFiles.forEach { file ->
+                    if (file.exists() && file.delete()) {
+                        AppLogger.d("ZipBackupService", "Deleted orphaned file: ${file.path}")
+                    } else {
+                        AppLogger.e("ZipBackupService", "Failed to delete orphaned file: ${file.path}")
+                    }
+                }
+            }
+        }
 
         try {
+            var totalCompressedBytes = 0L
+            var totalDecompressedBytes = 0L
             val errors = mutableListOf<String>()
             var imported = 0
             var skipped = 0
@@ -177,6 +190,7 @@ class ZipBackupService(
                 } ?: 0L
 
                 if (fileSize > MAX_FILE_SIZE) {
+                    cleanup()
                     return@withContext Result.failure(Exception("File too large. Maximum size is 100 MB."))
                 }
 
@@ -184,12 +198,10 @@ class ZipBackupService(
                     var entry: ZipEntry? = zip.nextEntry
                     var mineralsBytes: ByteArray? = null
                     var manifestJson: String? = null
-
                     var referenceMineralsCsvContent: String? = null
 
                     // First pass: read manifest, minerals.json, and reference_minerals.csv
                     while (entry != null) {
-                        // Security: Sanitize entry path
                         val sanitizedPath = sanitizeZipEntryPath(entry.name)
                         if (sanitizedPath == null) {
                             errors.add("Skipped malicious ZIP entry: ${entry.name}")
@@ -198,7 +210,6 @@ class ZipBackupService(
                             continue
                         }
 
-                        // Security: Track decompression ratio (ZIP bomb protection)
                         val entryCompressedSize = entry.compressedSize
                         val entryUncompressedSize = entry.size
 
@@ -206,52 +217,37 @@ class ZipBackupService(
                             totalCompressedBytes += if (entryCompressedSize > 0) entryCompressedSize else entryUncompressedSize
                             totalDecompressedBytes += entryUncompressedSize
 
-                            // Check decompression ratio (ZIP bomb protection)
                             if (totalCompressedBytes > 0 && totalDecompressedBytes > 0) {
                                 val ratio = totalDecompressedBytes.toDouble() / totalCompressedBytes.toDouble()
                                 if (ratio > MAX_DECOMPRESSION_RATIO) {
-                                    val message = "Potential ZIP bomb detected: decompression ratio %.1f:1 exceeds limit of %d:1"
-                                        .format(ratio, MAX_DECOMPRESSION_RATIO)
-                                    return@withContext Result.failure(Exception(message))
+                                    cleanup()
+                                    return@withContext Result.failure(Exception("Potential ZIP bomb detected: decompression ratio %.1f:1 exceeds limit of %d:1".format(ratio, MAX_DECOMPRESSION_RATIO)))
                                 }
                             }
 
-                            // Check total decompressed size
                             if (totalDecompressedBytes > MAX_DECOMPRESSED_SIZE) {
-                                val decompressedMB = totalDecompressedBytes / 1024 / 1024
-                                val maxMB = MAX_DECOMPRESSED_SIZE / 1024 / 1024
-                                val message = "Decompressed size ${decompressedMB}MB exceeds maximum ${maxMB}MB"
-                                return@withContext Result.failure(Exception(message))
+                                cleanup()
+                                return@withContext Result.failure(Exception("Decompressed size ${totalDecompressedBytes / 1024 / 1024}MB exceeds maximum ${MAX_DECOMPRESSED_SIZE / 1024 / 1024}MB"))
                             }
                         }
 
-                        // Security: Check individual entry size before reading into memory
                         if (entryUncompressedSize > MAX_ENTRY_SIZE) {
-                            val entryMB = entryUncompressedSize / 1024 / 1024
-                            val maxMB = MAX_ENTRY_SIZE / 1024 / 1024
-                            errors.add("Skipped entry '$sanitizedPath': size ${entryMB}MB exceeds ${maxMB}MB limit")
+                            errors.add("Skipped entry '$sanitizedPath': size ${entryUncompressedSize / 1024 / 1024}MB exceeds ${MAX_ENTRY_SIZE / 1024 / 1024}MB limit")
                             zip.closeEntry()
                             entry = zip.nextEntry
                             continue
                         }
 
                         when {
-                            sanitizedPath == "manifest.json" -> {
-                                manifestJson = zip.readBytes().toString(Charsets.UTF_8)
-                            }
-                            sanitizedPath == "minerals.json" -> {
-                                mineralsBytes = zip.readBytes()
-                            }
-                            sanitizedPath == "reference_minerals.csv" -> {
-                                referenceMineralsCsvContent = zip.readBytes().toString(Charsets.UTF_8)
-                            }
+                            sanitizedPath == "manifest.json" -> manifestJson = zip.readBytes().toString(Charsets.UTF_8)
+                            sanitizedPath == "minerals.json" -> mineralsBytes = zip.readBytes()
+                            sanitizedPath == "reference_minerals.csv" -> referenceMineralsCsvContent = zip.readBytes().toString(Charsets.UTF_8)
                             sanitizedPath.startsWith("photos/") || sanitizedPath.startsWith("media/") -> {
-                                // BUGFIX: Support both photos/ (new format) and media/ (legacy format)
                                 val file = File(context.filesDir, sanitizedPath)
-                                // Additional safety: ensure file is within filesDir
                                 if (file.canonicalPath.startsWith(context.filesDir.canonicalPath)) {
                                     file.parentFile?.mkdirs()
                                     file.outputStream().use { zip.copyTo(it) }
+                                    extractedFiles.add(file)
                                 } else {
                                     errors.add("Skipped file outside allowed directory: $sanitizedPath")
                                 }
@@ -261,70 +257,50 @@ class ZipBackupService(
                         entry = zip.nextEntry
                     }
 
-                    // Parse manifest to check for encryption
                     val manifest = manifestJson?.let { json.decodeFromString<BackupManifest>(it) }
-
-                    // Security: Validate schema version
                     if (!encryptionService.validateSchemaVersion(manifest?.schemaVersion)) {
-                        val message = "Incompatible backup schema version: ${manifest?.schemaVersion}. " +
-                            "Only version 1.0.0 is supported."
-                        return@withContext Result.failure(Exception(message))
+                        cleanup()
+                        return@withContext Result.failure(Exception("Incompatible backup schema version: ${manifest?.schemaVersion}. Only version 1.0.0 is supported."))
                     }
-                    val isEncrypted = manifest?.encrypted ?: false
 
-                    // Decrypt minerals.json if necessary
+                    val isEncrypted = manifest?.encrypted ?: false
                     val mineralsJson = if (isEncrypted) {
                         if (password == null) {
+                            cleanup()
                             return@withContext Result.failure(Exception("This backup is encrypted. Please provide a password."))
                         }
-
-                        // Extract encryption metadata
-                        val encryptionMetadata = manifest?.encryption
-                            ?: return@withContext Result.failure(Exception("Encrypted backup is missing encryption metadata"))
-
-                        val encodedSalt = encryptionMetadata.salt
-                        val encodedIv = encryptionMetadata.iv
-
-                        // Decrypt
+                        val encryptionMetadata = manifest?.encryption ?: run {
+                            cleanup()
+                            return@withContext Result.failure(Exception("Encrypted backup is missing encryption metadata"))
+                        }
                         try {
                             if (mineralsBytes == null) {
+                                cleanup()
                                 return@withContext Result.failure(Exception("Missing minerals.json in encrypted backup"))
                             }
-                            val decryptedBytes = encryptionService.decrypt(
-                                ciphertext = mineralsBytes,
-                                password = password,
-                                encodedSalt = encodedSalt,
-                                encodedIv = encodedIv
-                            )
-                            String(decryptedBytes, Charsets.UTF_8)
+                            String(encryptionService.decrypt(mineralsBytes, password, encryptionMetadata.salt, encryptionMetadata.iv), Charsets.UTF_8)
                         } catch (e: DecryptionException) {
+                            cleanup()
                             return@withContext Result.failure(Exception("Failed to decrypt backup. Wrong password or corrupted data.", e))
                         }
                     } else {
                         mineralsBytes?.toString(Charsets.UTF_8)
                     }
 
-                    // Validate that minerals.json was found in the backup
                     if (mineralsJson == null) {
-                        return@withContext Result.failure(
-                            Exception("Invalid backup: minerals.json not found in ZIP file. " +
-                                     "This may not be a valid MineraLog backup.")
-                        )
+                        cleanup()
+                        return@withContext Result.failure(Exception("Invalid backup: minerals.json not found in ZIP file. This may not be a valid MineraLog backup."))
                     }
 
-                    // Import minerals with transaction for data integrity
                     mineralsJson.let { jsonStr ->
                         val minerals = json.decodeFromString<List<Mineral>>(jsonStr)
-
-                        // Use transaction to ensure atomicity
                         database.withTransaction {
                             if (mode == ImportMode.REPLACE) {
                                 database.mineralBasicDao().deleteAll()
                                 database.provenanceDao().deleteAll()
                                 database.storageDao().deleteAll()
                                 database.photoDao().deleteAll()
-                                database.mineralComponentDao().deleteAll()  // v2.0: Clear components too
-                                // Note: SimpleProperties are CASCADE deleted when minerals are deleted
+                                database.mineralComponentDao().deleteAll()
                             }
 
                             minerals.forEach { mineral ->
@@ -333,15 +309,11 @@ class ZipBackupService(
                                     mineral.provenance?.let { database.provenanceDao().insert(it.toEntity()) }
                                     mineral.storage?.let { database.storageDao().insert(it.toEntity()) }
                                     mineral.photos.forEach { database.photoDao().insert(it.toEntity()) }
-
-                                    // v2.0: Import components for aggregates
                                     if (mineral.components.isNotEmpty()) {
                                         mineral.components.forEachIndexed { index, component ->
-                                            val componentEntity = component.toEntity(mineral.id, index)
-                                            database.mineralComponentDao().insert(componentEntity)
+                                            database.mineralComponentDao().insert(component.toEntity(mineral.id, index))
                                         }
                                     }
-
                                     imported++
                                 } catch (e: Exception) {
                                     errors.add("Failed to import ${mineral.name}: ${e.message}")
@@ -350,16 +322,13 @@ class ZipBackupService(
                             }
                         }
 
-                        // Import reference minerals if present
                         referenceMineralsCsvContent?.let { csvContent ->
                             try {
                                 val (referenceMinerals, csvErrors) = parseReferenceMineralsCsv(csvContent)
                                 errors.addAll(csvErrors.map { "Reference minerals CSV: $it" })
-
                                 if (referenceMinerals.isNotEmpty()) {
                                     val (refImported, refErrors) = importReferenceMinerals(referenceMinerals, mode)
                                     errors.addAll(refErrors.map { "Reference minerals: $it" })
-                                    // Note: refImported is not added to main import count to keep it separate
                                     AppLogger.i("ZipBackupService", "Imported $refImported reference minerals")
                                 }
                             } catch (e: Exception) {
@@ -369,9 +338,9 @@ class ZipBackupService(
                     }
                 }
             }
-
             Result.success(ImportResult(imported, skipped, errors))
         } catch (e: Exception) {
+            cleanup()
             Result.failure(e)
         }
     }
