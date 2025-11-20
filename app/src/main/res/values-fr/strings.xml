@@ -53,6 +53,13 @@
     <string name="cd_select_photo">Sélectionner une photo</string>
     <string name="cd_delete_photo">Supprimer la photo</string>
     <string name="cd_mineral_image">Image du minéral</string>
+    <string name="cd_exit_selection">Quitter la sélection</string>
+    <string name="cd_select_all">Tout sélectionner</string>
+    <string name="cd_actions">Actions</string>
+    <string name="cd_library">Bibliothèque</string>
+    <string name="cd_scan_qr">Scanner code QR</string>
+    <string name="cd_bulk_edit">Édition groupée</string>
+    <string name="cd_statistics">Statistiques</string>
 
     <!-- Home Screen -->
     <string name="home_title">MineraLog</string>

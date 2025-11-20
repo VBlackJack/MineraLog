@@ -17,7 +17,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -49,11 +51,17 @@ fun PhotoManager(
     // Get context at composable scope
     val context = androidx.compose.ui.platform.LocalContext.current
 
+    // Quick Win #2: Haptic feedback for photo actions
+    val haptic = LocalHapticFeedback.current
+
     // Gallery picker
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { onAddFromGallery(it) }
+        uri?.let {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            onAddFromGallery(it)
+        }
     }
 
     // Camera launcher
@@ -61,7 +69,8 @@ fun PhotoManager(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            // Photo was saved to the URI we provided
+            // Quick Win #2: Haptic feedback on successful photo capture
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
 

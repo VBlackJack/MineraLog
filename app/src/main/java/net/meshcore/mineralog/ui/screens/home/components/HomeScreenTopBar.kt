@@ -38,18 +38,18 @@ fun HomeScreenTopBar(
             title = { Text(stringResource(R.string.home_selection_count, selectionCount)) },
             navigationIcon = {
                 IconButton(onClick = onExitSelectionMode) {
-                    Icon(Icons.Default.Close, contentDescription = "Exit selection")
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cd_exit_selection))
                 }
             },
             actions = {
                 if (selectionCount < totalCount) {
                     IconButton(onClick = onSelectAll) {
-                        Icon(Icons.Default.DoneAll, contentDescription = "Select all")
+                        Icon(Icons.Default.DoneAll, contentDescription = stringResource(R.string.cd_select_all))
                     }
                 }
                 if (selectionCount > 0) {
                     IconButton(onClick = onShowBulkActionsSheet) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Actions")
+                        Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.cd_actions))
                     }
                 }
             }
@@ -61,21 +61,21 @@ fun HomeScreenTopBar(
             actions = {
                 // Library button
                 IconButton(onClick = onLibraryClick) {
-                    Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = "Bibliothèque")
+                    Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = stringResource(R.string.cd_library))
                 }
                 // QR Scanner button
                 IconButton(onClick = onQrScanClick) {
-                    Icon(Icons.Default.QrCodeScanner, contentDescription = "Scan QR code")
+                    Icon(Icons.Default.QrCodeScanner, contentDescription = stringResource(R.string.cd_scan_qr))
                 }
                 // Bulk edit button
                 IconButton(onClick = onEnterSelectionMode) {
-                    Icon(Icons.Default.Ballot, contentDescription = "Bulk edit")
+                    Icon(Icons.Default.Ballot, contentDescription = stringResource(R.string.cd_bulk_edit))
                 }
                 IconButton(onClick = onStatisticsClick) {
-                    Icon(Icons.Default.BarChart, contentDescription = "Statistics")
+                    Icon(Icons.Default.BarChart, contentDescription = stringResource(R.string.cd_statistics))
                 }
                 IconButton(onClick = onSettingsClick) {
-                    Icon(Icons.Default.Settings, contentDescription = "Settings")
+                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.cd_settings))
                 }
             }
         )

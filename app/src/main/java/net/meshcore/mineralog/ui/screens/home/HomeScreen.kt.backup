@@ -1,0 +1,442 @@
+package net.meshcore.mineralog.ui.screens.home
+
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.compose.collectAsLazyPagingItems
+import kotlinx.coroutines.launch
+import net.meshcore.mineralog.MineraLogApplication
+import net.meshcore.mineralog.R
+import net.meshcore.mineralog.data.model.FilterCriteria
+import net.meshcore.mineralog.data.repository.CsvImportMode
+import net.meshcore.mineralog.domain.model.FilterPreset
+import net.meshcore.mineralog.domain.model.Mineral
+import net.meshcore.mineralog.ui.screens.home.components.*
+
+/**
+ * HomeScreen - Main screen displaying the mineral collection.
+ *
+ * Refactored to follow Single Responsibility Principle (SRP).
+ * Decomposed from 919 lines into specialized components:
+ * - HomeScreenTopBar: Top app bar (normal + selection modes)
+ * - SearchFilterBar: Search, sort, and filter controls
+ * - BulkOperationProgressCard: Bulk operation progress indicator
+ * - MineralPagingList: Paginated mineral list with empty states
+ * - HomeScreenDialogs: All dialogs and bottom sheets
+ *
+ * Sprint 2: Architecture Refactoring
+ * Target: Reduce god composable from 918 lines to ~300 lines
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreen(
+    onMineralClick: (String) -> Unit,
+    onAddClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onStatisticsClick: () -> Unit = {},
+    onCompareClick: (List<String>) -> Unit = {},
+    onQrScanClick: () -> Unit = {},
+    onLibraryClick: () -> Unit = {},
+    viewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(
+            context = LocalContext.current.applicationContext,
+            mineralRepository = (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
+            filterPresetRepository = (LocalContext.current.applicationContext as MineraLogApplication).filterPresetRepository,
+            backupRepository = (LocalContext.current.applicationContext as MineraLogApplication).backupRepository,
+            settingsRepository = (LocalContext.current.applicationContext as MineraLogApplication).settingsRepository
+        )
+    )
+) {
+    // BUGFIX: Refresh list when returning to HomeScreen to show newly created/edited minerals
+    LaunchedEffect(Unit) {
+        viewModel.refreshMineralsList()
+    }
+
+    // State collection
+    val mineralsPaged = viewModel.mineralsPaged.collectAsLazyPagingItems()
+    val minerals by viewModel.minerals.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val sortOption by viewModel.sortOption.collectAsState()
+    val filterCriteria by viewModel.filterCriteria.collectAsState()
+    val isFilterActive by viewModel.isFilterActive.collectAsState()
+    val filterPresets by viewModel.filterPresets.collectAsState()
+    val selectionMode by viewModel.selectionMode.collectAsState()
+    val selectedIds by viewModel.selectedIds.collectAsState()
+    val selectionCount by viewModel.selectionCount.collectAsState()
+    val exportState by viewModel.exportState.collectAsState()
+    val importState by viewModel.importState.collectAsState()
+    val labelGenerationState by viewModel.labelGenerationState.collectAsState()
+    val bulkOperationProgress by viewModel.bulkOperationProgress.collectAsState()
+    val csvExportWarningShown by viewModel.csvExportWarningShown.collectAsState()
+
+    // Dialog states
+    var showFilterSheet by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
+    var showBulkActionsSheet by remember { mutableStateOf(false) }
+    var showCsvExportWarningDialog by remember { mutableStateOf(false) }
+    var showExportCsvDialog by remember { mutableStateOf(false) }
+    var showImportCsvDialog by remember { mutableStateOf(false) }
+    var selectedCsvUri by remember { mutableStateOf<Uri?>(null) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val hapticFeedback = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
+
+    // File picker for CSV import
+    val csvImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            selectedCsvUri = selectedUri
+            showImportCsvDialog = true
+        }
+    }
+
+    // Handle export state changes
+    LaunchedEffect(exportState) {
+        when (exportState) {
+            is ExportState.Success -> {
+                snackbarHostState.showSnackbar(
+                    message = "Exported ${(exportState as ExportState.Success).count} minerals successfully",
+                    duration = SnackbarDuration.Short
+                )
+                viewModel.resetExportState()
+                viewModel.exitSelectionMode()
+            }
+            is ExportState.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = "Export failed: ${(exportState as ExportState.Error).message}",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetExportState()
+            }
+            else -> {}
+        }
+    }
+
+    // Handle import state changes
+    LaunchedEffect(importState) {
+        when (importState) {
+            is ImportState.Success -> {
+                val success = importState as ImportState.Success
+                snackbarHostState.showSnackbar(
+                    message = "Imported ${success.imported} minerals. Skipped: ${success.skipped}",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetImportState()
+            }
+            is ImportState.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = "Import failed: ${(importState as ImportState.Error).message}",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetImportState()
+            }
+            else -> {}
+        }
+    }
+
+    // Handle label generation state changes (v1.5.0)
+    LaunchedEffect(labelGenerationState) {
+        when (labelGenerationState) {
+            is LabelGenerationState.Success -> {
+                val count = (labelGenerationState as LabelGenerationState.Success).count
+                snackbarHostState.showSnackbar(
+                    message = "Generated $count QR labels successfully",
+                    duration = SnackbarDuration.Short
+                )
+                viewModel.resetLabelGenerationState()
+                viewModel.exitSelectionMode()
+            }
+            is LabelGenerationState.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = "Label generation failed: ${(labelGenerationState as LabelGenerationState.Error).message}",
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetLabelGenerationState()
+            }
+            else -> {}
+        }
+    }
+
+    // Quick Win #6: Handle bulk operation progress announcements
+    LaunchedEffect(bulkOperationProgress) {
+        when (bulkOperationProgress) {
+            is BulkOperationProgress.Complete -> {
+                val state = bulkOperationProgress as BulkOperationProgress.Complete
+                val operationName = state.operation.replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString()
+                }
+                snackbarHostState.showSnackbar(
+                    message = "$operationName completed: ${state.count} items",
+                    duration = SnackbarDuration.Short
+                )
+            }
+            is BulkOperationProgress.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = "Operation failed: ${(bulkOperationProgress as BulkOperationProgress.Error).message}",
+                    duration = SnackbarDuration.Long
+                )
+            }
+            else -> {}
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            HomeScreenTopBar(
+                selectionMode = selectionMode,
+                selectionCount = selectionCount,
+                totalCount = minerals.size,
+                onExitSelectionMode = { viewModel.exitSelectionMode() },
+                onSelectAll = { viewModel.selectAll() },
+                onShowBulkActionsSheet = { showBulkActionsSheet = true },
+                onLibraryClick = onLibraryClick,
+                onQrScanClick = onQrScanClick,
+                onEnterSelectionMode = { viewModel.enterSelectionMode() },
+                onStatisticsClick = onStatisticsClick,
+                onSettingsClick = onSettingsClick
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onAddClick()
+                }
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add mineral")
+            }
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            // Search and filter bar
+            SearchFilterBar(
+                searchQuery = searchQuery,
+                sortOption = sortOption,
+                filterCriteria = filterCriteria,
+                isFilterActive = isFilterActive,
+                onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
+                onShowSortSheet = { showSortSheet = true },
+                onShowFilterSheet = { showFilterSheet = true },
+                onClearFilter = { viewModel.clearFilter() }
+            )
+
+            // Quick Win #6: Bulk operation progress indicator
+            if (bulkOperationProgress is BulkOperationProgress.InProgress) {
+                BulkOperationProgressCard(
+                    progress = bulkOperationProgress as BulkOperationProgress.InProgress
+                )
+            }
+
+            // Mineral list with pagination (v1.5.0)
+            MineralPagingList(
+                mineralsPaged = mineralsPaged,
+                searchQuery = searchQuery,
+                isFilterActive = isFilterActive,
+                selectionMode = selectionMode,
+                selectedIds = selectedIds,
+                onMineralClick = onMineralClick,
+                onToggleSelection = { viewModel.toggleSelection(it) },
+                onClearSearch = { viewModel.onSearchQueryChange("") },
+                onClearFilter = { viewModel.clearFilter() }
+            )
+        }
+    }
+
+    // All dialogs and bottom sheets
+    HomeScreenDialogs(
+        showFilterSheet = showFilterSheet,
+        showSortSheet = showSortSheet,
+        showBulkActionsSheet = showBulkActionsSheet,
+        showCsvExportWarningDialog = showCsvExportWarningDialog,
+        showExportCsvDialog = showExportCsvDialog,
+        showImportCsvDialog = showImportCsvDialog,
+        filterCriteria = filterCriteria,
+        filterPresets = filterPresets,
+        sortOption = sortOption,
+        selectedCsvUri = selectedCsvUri,
+        selectionCount = selectionCount,
+        selectedMineralNames = viewModel.getSelectedMinerals().map { it.name },
+        csvExportWarningShown = csvExportWarningShown,
+        exportState = exportState,
+        labelGenerationState = labelGenerationState,
+        onFilterCriteriaChange = { viewModel.onFilterCriteriaChange(it) },
+        onClearFilter = { viewModel.clearFilter() },
+        onSavePreset = { viewModel.savePreset(it) },
+        onLoadPreset = { viewModel.applyPreset(it) },
+        onDeletePreset = { viewModel.deletePreset(it) },
+        onSortSelected = { viewModel.onSortOptionChange(it) },
+        onDeleteSelected = {
+            val count = selectionCount
+            viewModel.deleteSelected()
+            // Quick Win #4: Indefinite Undo snackbar with haptic feedback
+            coroutineScope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = "Deleted $count mineral${if (count > 1) "s" else ""}",
+                    actionLabel = "Undo",
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Indefinite
+                )
+                when (result) {
+                    SnackbarResult.ActionPerformed -> {
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.undoDelete()
+                    }
+                    SnackbarResult.Dismissed -> {
+                        // User dismissed, deletion is permanent
+                    }
+                }
+            }
+        },
+        onExportCsv = { viewModel.exportSelectedToCsv(it) },
+        onImportCsv = { uri, columnMapping, mode ->
+            viewModel.importCsvFile(uri, columnMapping, mode)
+        },
+        onGenerateLabels = { viewModel.generateLabelsForSelected(it) },
+        onCompareClick = if (selectionCount in 2..3) {
+            {
+                val selectedMinerals = viewModel.getSelectedMinerals()
+                onCompareClick(selectedMinerals.map { it.id })
+                viewModel.exitSelectionMode()
+            }
+        } else null,
+        onMarkCsvExportWarningShown = { viewModel.markCsvExportWarningShown() },
+        onDismissFilterSheet = { showFilterSheet = false },
+        onDismissSortSheet = { showSortSheet = false },
+        onDismissBulkActionsSheet = { showBulkActionsSheet = false },
+        onDismissCsvExportWarningDialog = { showCsvExportWarningDialog = false },
+        onDismissExportCsvDialog = { showExportCsvDialog = false },
+        onDismissImportCsvDialog = {
+            showImportCsvDialog = false
+            selectedCsvUri = null
+        },
+        onShowExportCsvDialog = { showExportCsvDialog = true },
+        onShowCsvExportWarningDialog = { showCsvExportWarningDialog = true }
+    )
+}
+
+/**
+ * Mineral list item component.
+ *
+ * Displays a single mineral in the list with selection support.
+ * v2.0: Shows aggregate badge for mineral aggregates.
+ */
+@Composable
+fun MineralListItem(
+    mineral: Mineral,
+    selectionMode: Boolean = false,
+    isSelected: Boolean = false,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .semantics {
+                role = Role.Button
+                contentDescription = if (selectionMode) {
+                    val selectedState = if (isSelected) "Selected" else "Not selected"
+                    val action = if (isSelected) "deselect" else "select"
+                    "${mineral.name}. $selectedState. Tap to $action."
+                } else {
+                    "${mineral.name}. Tap to view details."
+                }
+            },
+        colors = if (isSelected) {
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        } else {
+            CardDefaults.cardColors()
+        }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            // Checkbox in selection mode
+            if (selectionMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = null, // Handled by card click
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = mineral.name,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    // v2.0: Aggregate badge
+                    if (mineral.mineralType == net.meshcore.mineralog.domain.model.MineralType.AGGREGATE) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = "Agrégat",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            modifier = Modifier.height(24.dp),
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                            )
+                        )
+                    }
+                }
+                mineral.group?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                mineral.formula?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            if (!selectionMode) {
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = "View details",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}

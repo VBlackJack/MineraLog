@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat(arch): Complete Sprint 1 & 2 - Security Audit & MVI Refactoring\n\n- Disable legacy test suite for architectural refactoring\n- Update build configuration and data layer components\n- Refactor SecurePasswordState for improved security\n- Prepare codebase for new testing strategy aligned with MVI pattern\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(mkdir:*)",
+      "Bash(./gradlew compileDebugKotlin:*)",
+      "Bash(git reset:*)",
+      "Bash(git commit:*)",
+      "Bash(./gradlew testDebugUnitTest:*)",
+      "Bash(find:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
