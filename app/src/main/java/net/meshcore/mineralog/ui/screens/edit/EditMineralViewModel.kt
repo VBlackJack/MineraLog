@@ -120,6 +120,16 @@ class EditMineralViewModel(
     private val _acquisitionNotes = MutableStateFlow("")
     val acquisitionNotes: StateFlow<String> = _acquisitionNotes.asStateFlow()
 
+    // Sprint 5: Price and Weight fields
+    private val _price = MutableStateFlow("")
+    val price: StateFlow<String> = _price.asStateFlow()
+
+    private val _currency = MutableStateFlow("USD")
+    val currency: StateFlow<String> = _currency.asStateFlow()
+
+    private val _weightGr = MutableStateFlow("")
+    val weightGr: StateFlow<String> = _weightGr.asStateFlow()
+
     // v3.1: Aggregate-specific fields
     private val _rockType = MutableStateFlow("")
     val rockType: StateFlow<String> = _rockType.asStateFlow()
@@ -176,6 +186,9 @@ class EditMineralViewModel(
                         _crystalSystem.value = mineral.crystalSystem ?: ""
                         _tags.value = mineral.tags.joinToString(", ")
 
+                        // Sprint 5: Load weight
+                        _weightGr.value = mineral.weightGr?.toString() ?: ""
+
                         // Load existing photos
                         _photos.value = mineral.photos.map { photo ->
                             PhotoItem(
@@ -193,6 +206,10 @@ class EditMineralViewModel(
                         _catalogNumber.value = mineral.provenance?.catalogNumber ?: ""
                         _collectorName.value = mineral.provenance?.collectorName ?: ""
                         _acquisitionNotes.value = mineral.provenance?.acquisitionNotes ?: ""
+
+                        // Sprint 5: Load price and currency
+                        _price.value = mineral.provenance?.price?.toString() ?: ""
+                        _currency.value = mineral.provenance?.currency ?: "USD"
 
                         // v3.1: Load aggregate fields
                         _rockType.value = mineral.rockType ?: ""
@@ -285,6 +302,19 @@ class EditMineralViewModel(
 
     fun onAcquisitionNotesChange(value: String) {
         _acquisitionNotes.value = value
+    }
+
+    // Sprint 5: Price and Weight updates
+    fun onPriceChange(value: String) {
+        _price.value = value
+    }
+
+    fun onCurrencyChange(value: String) {
+        _currency.value = value
+    }
+
+    fun onWeightChange(value: String) {
+        _weightGr.value = value
     }
 
     // v3.1: Aggregate field updates
@@ -416,6 +446,7 @@ class EditMineralViewModel(
                     _catalogNumber.value.isNotBlank() ||
                     _collectorName.value.isNotBlank() ||
                     _acquisitionNotes.value.isNotBlank() ||
+                    _price.value.isNotBlank() ||  // Sprint 5: Check price field
                     currentOriginal?.provenance != null
                 ) {
                     net.meshcore.mineralog.domain.model.Provenance(
@@ -428,9 +459,9 @@ class EditMineralViewModel(
                         longitude = currentOriginal?.provenance?.longitude,
                         acquiredAt = currentOriginal?.provenance?.acquiredAt,
                         source = currentOriginal?.provenance?.source,
-                        price = currentOriginal?.provenance?.price,
+                        price = _price.value.toFloatOrNull(),  // Sprint 5: Use StateFlow value
                         estimatedValue = currentOriginal?.provenance?.estimatedValue,
-                        currency = currentOriginal?.provenance?.currency,
+                        currency = _currency.value,  // Sprint 5: Use StateFlow value
                         mineName = _mineName.value.trim().takeIf { it.isNotBlank() },
                         dealer = _dealer.value.trim().takeIf { it.isNotBlank() },
                         catalogNumber = _catalogNumber.value.trim().takeIf { it.isNotBlank() },
@@ -454,6 +485,7 @@ class EditMineralViewModel(
                     streak = _streak.value.trim().takeIf { it.isNotBlank() },
                     habit = _habit.value.trim().takeIf { it.isNotBlank() },
                     crystalSystem = _crystalSystem.value.trim().takeIf { it.isNotBlank() },
+                    weightGr = _weightGr.value.toFloatOrNull(),  // Sprint 5: Use StateFlow value
                     // v3.1: Aggregate fields
                     rockType = _rockType.value.trim().takeIf { it.isNotBlank() },
                     texture = _texture.value.trim().takeIf { it.isNotBlank() },

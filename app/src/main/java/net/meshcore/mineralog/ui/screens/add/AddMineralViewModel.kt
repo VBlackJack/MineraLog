@@ -132,6 +132,16 @@ class AddMineralViewModel(
     private val _qualityNotes = MutableStateFlow("")
     val qualityNotes: StateFlow<String> = _qualityNotes.asStateFlow()
 
+    // Sprint 5: Price and Weight fields
+    private val _price = MutableStateFlow("")
+    val price: StateFlow<String> = _price.asStateFlow()
+
+    private val _currency = MutableStateFlow("USD")
+    val currency: StateFlow<String> = _currency.asStateFlow()
+
+    private val _weightGr = MutableStateFlow("")
+    val weightGr: StateFlow<String> = _weightGr.asStateFlow()
+
     init {
         // Load draft on initialization
         loadDraft()
@@ -362,6 +372,19 @@ class AddMineralViewModel(
         _qualityNotes.value = value
     }
 
+    // Sprint 5: Price and Weight updates
+    fun onPriceChange(value: String) {
+        _price.value = value
+    }
+
+    fun onCurrencyChange(value: String) {
+        _currency.value = value
+    }
+
+    fun onWeightChange(value: String) {
+        _weightGr.value = value
+    }
+
     private fun updateTagSuggestions(input: String) {
         if (input.isBlank()) {
             _tagSuggestions.value = emptyList()
@@ -507,6 +530,43 @@ class AddMineralViewModel(
                     )
 
                     mineralId = (mineralRepository as MineralRepositoryImpl).insertAggregate(aggregateData)
+                }
+
+                // Sprint 5: Update mineral with weightGr and/or provenance if provided
+                if (_weightGr.value.isNotBlank() || _price.value.isNotBlank()) {
+                    // Load the just-created mineral
+                    val createdMineral = mineralRepository.getById(mineralId)
+                    if (createdMineral != null) {
+                        // Create provenance if price or currency is provided
+                        val provenance = if (_price.value.isNotBlank()) {
+                            net.meshcore.mineralog.domain.model.Provenance(
+                                id = java.util.UUID.randomUUID().toString(),
+                                mineralId = mineralId,
+                                site = null,
+                                locality = null,
+                                country = null,
+                                latitude = null,
+                                longitude = null,
+                                acquiredAt = null,
+                                source = null,
+                                price = _price.value.toFloatOrNull(),
+                                estimatedValue = null,
+                                currency = _currency.value,
+                                mineName = null,
+                                dealer = null,
+                                catalogNumber = null,
+                                collectorName = null,
+                                acquisitionNotes = null
+                            )
+                        } else null
+
+                        // Update mineral with weightGr and provenance
+                        val updatedMineral = createdMineral.copy(
+                            weightGr = _weightGr.value.toFloatOrNull(),
+                            provenance = provenance
+                        )
+                        mineralRepository.update(updatedMineral)
+                    }
                 }
 
                 // Insert photos - BUGFIX: Actually copy the file from URI

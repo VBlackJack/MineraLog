@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.meshcore.mineralog.MineraLogApplication
@@ -76,6 +77,11 @@ fun EditMineralScreen(
     val catalogNumber by viewModel.catalogNumber.collectAsState()
     val collectorName by viewModel.collectorName.collectAsState()
     val acquisitionNotes by viewModel.acquisitionNotes.collectAsState()
+
+    // Sprint 5: Price and Weight fields
+    val price by viewModel.price.collectAsState()
+    val currency by viewModel.currency.collectAsState()
+    val weightGr by viewModel.weightGr.collectAsState()
 
     // v3.1: Aggregate fields
     val rockType by viewModel.rockType.collectAsState()
@@ -476,6 +482,34 @@ fun EditMineralScreen(
                     )
                 }
 
+                // Sprint 5: Measurements Section
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                Text(
+                    text = stringResource(R.string.detail_section_measurements_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Text(
+                    text = "Dimensions et poids du spécimen",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                OutlinedTextField(
+                    value = weightGr,
+                    onValueChange = { viewModel.onWeightChange(it) },
+                    label = { Text(stringResource(R.string.field_weight)) },
+                    placeholder = { Text("Ex: 125.5") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Next
+                    )
+                )
+
                 // v3.1: Provenance Section
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -535,6 +569,35 @@ fun EditMineralScreen(
                     minLines = 3,
                     maxLines = 6
                 )
+
+                // Sprint 5: Price and Currency fields
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = price,
+                        onValueChange = { viewModel.onPriceChange(it) },
+                        label = { Text(stringResource(R.string.field_value)) },
+                        placeholder = { Text("Ex: 150.00") },
+                        modifier = Modifier.weight(2f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal,
+                            imeAction = ImeAction.Next
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = currency,
+                        onValueChange = { viewModel.onCurrencyChange(it) },
+                        label = { Text(stringResource(R.string.field_value_currency)) },
+                        placeholder = { Text("USD") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
+                }
 
                 // Tags Section
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

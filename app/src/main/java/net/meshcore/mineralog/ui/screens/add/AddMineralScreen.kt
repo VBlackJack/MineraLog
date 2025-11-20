@@ -92,6 +92,11 @@ fun AddMineralScreen(
     val actualDiaphaneity by viewModel.actualDiaphaneity.collectAsState()
     val qualityNotes by viewModel.qualityNotes.collectAsState()
 
+    // Sprint 5: Price and Weight fields
+    val price by viewModel.price.collectAsState()
+    val currency by viewModel.currency.collectAsState()
+    val weightGr by viewModel.weightGr.collectAsState()
+
     val context = LocalContext.current
     val photosDir = remember {
         File(context.filesDir, "photos").apply {
@@ -686,6 +691,71 @@ fun AddMineralScreen(
                         }
                     }
                 }
+            }
+
+            // Sprint 5: Measurements Section
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            Text(
+                text = stringResource(R.string.detail_section_measurements_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Text(
+                text = "Dimensions et poids du spécimen",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            OutlinedTextField(
+                value = weightGr,
+                onValueChange = { viewModel.onWeightChange(it) },
+                label = { Text(stringResource(R.string.field_weight)) },
+                placeholder = { Text("Ex: 125.5") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Next
+                )
+            )
+
+            // Sprint 5: Price and Currency Section
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            Text(
+                text = "Valeur et Acquisition",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = price,
+                    onValueChange = { viewModel.onPriceChange(it) },
+                    label = { Text(stringResource(R.string.field_value)) },
+                    placeholder = { Text("Ex: 150.00") },
+                    modifier = Modifier.weight(2f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Next
+                    )
+                )
+
+                OutlinedTextField(
+                    value = currency,
+                    onValueChange = { viewModel.onCurrencyChange(it) },
+                    label = { Text(stringResource(R.string.field_value_currency)) },
+                    placeholder = { Text("USD") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
             }
 
             // Photos Section
