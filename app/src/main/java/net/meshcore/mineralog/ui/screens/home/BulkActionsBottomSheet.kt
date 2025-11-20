@@ -28,6 +28,7 @@ fun BulkActionsBottomSheet(
     onDelete: () -> Unit,
     onExportCsv: () -> Unit,
     onGenerateLabels: (() -> Unit)? = null,
+    onExportCatalog: (() -> Unit)? = null,
     onCompare: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
@@ -162,6 +163,30 @@ fun BulkActionsBottomSheet(
                         .fillMaxWidth()
                         .clickable {
                             generateLabels()
+                            onDismiss()
+                        }
+                )
+            }
+
+            // Export PDF Catalog action
+            onExportCatalog?.let { exportCatalog ->
+                ListItem(
+                    headlineContent = {
+                        Text(stringResource(R.string.bulk_action_export_catalog))
+                    },
+                    supportingContent = {
+                        Text(stringResource(R.string.bulk_action_export_catalog_desc))
+                    },
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.PictureAsPdf,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            exportCatalog()
                             onDismiss()
                         }
                 )

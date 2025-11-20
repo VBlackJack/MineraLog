@@ -56,6 +56,8 @@ import java.util.UUID
  * @property collectingDifficulty Difficulty of obtaining for collectors (e.g., "Easy to find", "Requires dealer", "Museum-grade only").
  * @property historicalInfo Historical context, discovery, or cultural significance.
  * @property etymology Origin and meaning of the mineral's name.
+ * @property imageUrl Remote image URL for cloud/web-hosted mineral images (e.g., "https://cdn.example.com/minerals/quartz.jpg").
+ * @property localIconName Local drawable resource name for bundled icons (e.g., "min_quartz", "min_calcite"). Maps to res/drawable resources.
  * @property notes Additional reference notes, mineralogical context, or important observations.
  * @property isUserDefined True if this mineral was created by the user, false if from the standard library.
  * @property source Data source or reference (e.g., "mindat.org", "webmineral.com", "User-defined").
@@ -130,6 +132,10 @@ data class ReferenceMineralEntity(
     val collectingDifficulty: String? = null,     // Difficulty of obtaining
     val historicalInfo: String? = null,           // Historical information
     val etymology: String? = null,                // Etymology of the name
+
+    // Visual media (v3.3.0 - Image support)
+    val imageUrl: String? = null,                 // Remote image URL (cloud/web hosting)
+    val localIconName: String? = null,            // Local drawable resource name (e.g., "min_quartz", "min_calcite")
 
     // Metadata
     val notes: String? = null,

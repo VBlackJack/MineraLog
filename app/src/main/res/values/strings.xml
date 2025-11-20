@@ -69,6 +69,7 @@
     <string name="nav_drawer_reference_library">Reference Library</string>
     <string name="nav_drawer_identification">Identification</string>
     <string name="nav_drawer_statistics">Statistics</string>
+    <string name="nav_drawer_map">Collection Map</string>
     <string name="nav_drawer_settings">Settings</string>
 
     <!-- Home Screen -->
@@ -229,7 +230,8 @@
     <string name="statistics_time_based">Recent Activity</string>
     <string name="statistics_highlights">Highlights</string>
     <string name="statistics_by_group">Distribution by Group</string>
-    <string name="statistics_by_country">Distribution by Country</string>
+    <string name="statistics_by_color">Dominant Colors</string>
+    <string name="statistics_by_country">Top Origins</string>
     <string name="statistics_by_crystal_system">Distribution by Crystal System</string>
     <string name="statistics_by_hardness">Distribution by Hardness</string>
     <string name="statistics_by_status">Distribution by Status</string>
@@ -508,6 +510,7 @@
     <!-- Camera Capture Screen -->
     <string name="camera_title">Take Photo</string>
     <string name="camera_permission_required">Camera permission is required to take photos</string>
+    <string name="camera_permission_denied">Camera permission denied</string>
     <string name="camera_grant_permission">Grant Permission</string>
     <string name="camera_open_settings">Open Settings</string>
     <string name="camera_permission_denied_help">Camera permission was denied. Please enable it in Settings to take photos.</string>
@@ -842,10 +845,19 @@
     <string name="identification_results_found">minerals found</string>
     <string name="identification_mohs">Mohs</string>
     <string name="identification_match">Match</string>
+
+    <!-- Photo-assisted identification -->
+    <string name="identification_photo_assist">Photo-assisted identification (Camera)</string>
+    <string name="identification_gallery_assist">Photo-assisted identification (Gallery)</string>
+    <string name="identification_color_detected">Detected color: %s</string>
+    <string name="identification_color_already_selected">Color %s already selected</string>
+    <string name="identification_color_detect_failed">Unable to detect color. Please try again.</string>
+    <string name="identification_analysis_error">Error during analysis: %s</string>
+
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="action_ok">OK</string>
-    <string name="action_ok">OK</string>
+
     <!-- Migration Report Dialog -->
     <string name="migration_report_title">Automatic Migration Complete</string>
     <string name="migration_report_summary">Your existing specimens have been analyzed to automatically create reference minerals.</string>
@@ -861,4 +873,20 @@
     <string name="migration_report_duration">Migration time: %dms</string>
     <string name="migration_report_no_changes">No recurring minerals detected. Library was not modified.</string>
     <string name="action_view_library">View Library</string>
+
+    <!-- Collection Map Screen -->
+    <string name="action_back">Back</string>
+    <string name="collection_map_title">Collection Map</string>
+    <string name="collection_map_tap_for_details">Tap for details</string>
+    <string name="collection_map_empty_title">No Geolocated Minerals</string>
+    <string name="collection_map_empty_description">Add location information to your minerals to see them on the map</string>
+    <string name="mineral_photo_description">Photo of %s</string>
+
+    <!-- PDF Catalog Export -->
+    <string name="bulk_action_export_catalog">Export PDF Catalog</string>
+    <string name="bulk_action_export_catalog_desc">Generate a complete illustrated catalog</string>
+    <string name="catalog_export_generating">Generating PDF catalog…</string>
+    <string name="catalog_export_success">PDF catalog generated successfully with %d minerals</string>
+    <string name="catalog_export_error">Failed to generate catalog: %s</string>
+    <string name="catalog_export_empty">No minerals in collection</string>
 </resources>

@@ -255,6 +255,8 @@ class MineralDaoComposite(
 
     suspend fun getStatusDistribution(): Map<String, Int> = statisticsDao.getStatusDistribution()
 
+    suspend fun getDominantColorDistribution(): Map<String, Int> = statisticsDao.getDominantColorDistribution()
+
     suspend fun getTypeDistribution(): Map<String, Int> = statisticsDao.getTypeDistribution()
 
     suspend fun getTotalValue(): Double = statisticsDao.getTotalValue()

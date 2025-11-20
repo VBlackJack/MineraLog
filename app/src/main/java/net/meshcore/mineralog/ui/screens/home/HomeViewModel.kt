@@ -19,6 +19,7 @@ import net.meshcore.mineralog.data.repository.CsvImportMode
 import net.meshcore.mineralog.data.repository.FilterPresetRepository
 import net.meshcore.mineralog.data.repository.MineralRepository
 import net.meshcore.mineralog.data.repository.SettingsRepository
+import net.meshcore.mineralog.data.util.PdfCatalogGenerator
 import net.meshcore.mineralog.data.util.QrLabelPdfGenerator
 import net.meshcore.mineralog.domain.model.FilterPreset
 import net.meshcore.mineralog.domain.model.Mineral
@@ -333,6 +334,45 @@ class HomeViewModel(
         _uiState.update { it.copy(labelGenerationState = LabelGenerationState.Idle) }
     }
 
+    /**
+     * Generates a PDF catalog of the entire mineral collection.
+     * Includes all minerals (not just selected ones) with photos, names, formulas, and provenance.
+     *
+     * @param outputUri URI where the PDF will be saved (from CreateDocument contract)
+     */
+    fun generateCatalogPdf(outputUri: Uri) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(catalogGenerationState = CatalogGenerationState.Generating) }
+            try {
+                // Get all minerals (not filtered, not paged)
+                val allMinerals = mineralRepository.getAll()
+
+                if (allMinerals.isEmpty()) {
+                    _uiState.update { it.copy(catalogGenerationState = CatalogGenerationState.Error("No minerals in collection")) }
+                    return@launch
+                }
+
+                val generator = PdfCatalogGenerator(context)
+                val result = generator.generateCatalog(allMinerals, outputUri)
+
+                if (result.isSuccess) {
+                    _uiState.update { it.copy(catalogGenerationState = CatalogGenerationState.Success(allMinerals.size)) }
+                } else {
+                    _uiState.update { it.copy(catalogGenerationState = CatalogGenerationState.Error(result.exceptionOrNull()?.message ?: "Error")) }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(catalogGenerationState = CatalogGenerationState.Error(e.message ?: "Unknown error")) }
+            }
+        }
+    }
+
+    /**
+     * Resets the catalog generation state to Idle.
+     */
+    fun resetCatalogGenerationState() {
+        _uiState.update { it.copy(catalogGenerationState = CatalogGenerationState.Idle) }
+    }
+
     fun resetBulkOperationProgress() {
         _uiState.update { it.copy(bulkOperationProgress = BulkOperationProgress.Idle) }
     }
@@ -357,6 +397,13 @@ sealed class LabelGenerationState {
     data object Generating : LabelGenerationState()
     data class Success(val count: Int) : LabelGenerationState()
     data class Error(val message: String) : LabelGenerationState()
+}
+
+sealed class CatalogGenerationState {
+    data object Idle : CatalogGenerationState()
+    data object Generating : CatalogGenerationState()
+    data class Success(val count: Int) : CatalogGenerationState()
+    data class Error(val message: String) : CatalogGenerationState()
 }
 
 sealed class BulkOperationProgress {

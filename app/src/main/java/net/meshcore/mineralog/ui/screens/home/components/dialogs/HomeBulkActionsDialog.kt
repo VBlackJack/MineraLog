@@ -13,6 +13,7 @@ import net.meshcore.mineralog.ui.screens.home.BulkActionsBottomSheet
  * Responsibilities:
  * - Bulk actions bottom sheet (delete, export CSV, generate labels, compare)
  * - File picker launcher for PDF label generation
+ * - File picker launcher for PDF catalog export
  * - Coordination between bulk actions and related dialogs
  *
  * Part of Sprint 3 refactoring to reduce prop drilling and improve modularity.
@@ -30,6 +31,7 @@ fun HomeBulkActionsDialog(
     // Actions
     onDeleteSelected: () -> Unit,
     onGenerateLabels: (Uri) -> Unit,
+    onExportCatalog: (Uri) -> Unit,
     onCompareClick: (() -> Unit)?,
 
     // Navigation to other dialogs
@@ -47,6 +49,15 @@ fun HomeBulkActionsDialog(
     ) { uri: Uri? ->
         uri?.let { selectedUri ->
             onGenerateLabels(selectedUri)
+        }
+    }
+
+    // File picker for PDF catalog export
+    val pdfCatalogLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            onExportCatalog(selectedUri)
         }
     }
 
@@ -71,6 +82,13 @@ fun HomeBulkActionsDialog(
                 val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
                     .format(java.util.Date())
                 pdfLabelLauncher.launch("mineralog_labels_$timestamp.pdf")
+            },
+            onExportCatalog = {
+                onDismissBulkActionsSheet()
+                // Generate filename with date
+                val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                    .format(java.util.Date())
+                pdfCatalogLauncher.launch("MineraLog_Catalog_$timestamp.pdf")
             },
             onCompare = onCompareClick,
             onDismiss = onDismissBulkActionsSheet

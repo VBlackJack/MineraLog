@@ -1,16 +1,20 @@
 package net.meshcore.mineralog.ui.screens.edit
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import net.meshcore.mineralog.util.AppLogger
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.meshcore.mineralog.data.repository.MineralRepository
 import net.meshcore.mineralog.data.repository.MineralRepositoryImpl
 import net.meshcore.mineralog.data.repository.getMineralType
@@ -20,6 +24,7 @@ import net.meshcore.mineralog.domain.model.Mineral
 import net.meshcore.mineralog.domain.model.MineralComponent
 import net.meshcore.mineralog.domain.model.MineralType
 import net.meshcore.mineralog.domain.model.Photo
+import net.meshcore.mineralog.ui.screens.identification.utils.ImageAnalyzer
 import java.io.File
 import java.time.Instant
 import java.util.UUID
@@ -91,6 +96,10 @@ class EditMineralViewModel(
 
     private val _photos = MutableStateFlow<List<PhotoItem>>(emptyList())
     val photos: StateFlow<List<PhotoItem>> = _photos.asStateFlow()
+
+    // v3.2.0: Photo analysis - dominant color
+    private val _dominantColor = MutableStateFlow<String?>(null)
+    val dominantColor: StateFlow<String?> = _dominantColor.asStateFlow()
 
     private val _updateState = MutableStateFlow<UpdateMineralState>(UpdateMineralState.Idle)
     val updateState: StateFlow<UpdateMineralState> = _updateState.asStateFlow()
@@ -199,6 +208,9 @@ class EditMineralViewModel(
                                 isExisting = true
                             )
                         }
+
+                        // v3.2.0: Load dominant color from photo analysis
+                        _dominantColor.value = mineral.dominantColor
 
                         // v3.1: Load provenance fields
                         _mineName.value = mineral.provenance?.mineName ?: ""
@@ -366,6 +378,31 @@ class EditMineralViewModel(
             isExisting = false
         )
         _photos.value = _photos.value + photoItem
+
+        // v3.2.0: Analyze dominant color when replacing first photo
+        // Business rule: Reanalyze if this is first photo OR if dominantColor was null
+        if (_photos.value.size == 1 || _dominantColor.value == null) {
+            viewModelScope.launch(Dispatchers.Default) {
+                try {
+                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                        // Force software bitmap (ARGB_8888) to allow CPU pixel access
+                        val options = BitmapFactory.Options().apply {
+                            inPreferredConfig = Bitmap.Config.ARGB_8888
+                        }
+                        val bitmap = BitmapFactory.decodeStream(inputStream, null, options)
+                        val detectedColor = bitmap?.let { ImageAnalyzer.detectDominantColorName(it) }
+                        bitmap?.recycle()
+
+                        withContext(Dispatchers.Main) {
+                            _dominantColor.value = detectedColor
+                            AppLogger.d("EditMineral", "Detected dominant color: $detectedColor")
+                        }
+                    }
+                } catch (e: Exception) {
+                    AppLogger.e("EditMineral", "Failed to analyze photo color", e)
+                }
+            }
+        }
     }
 
     fun removePhoto(photoId: String) {
@@ -491,6 +528,8 @@ class EditMineralViewModel(
                     texture = _texture.value.trim().takeIf { it.isNotBlank() },
                     dominantMinerals = _dominantMinerals.value.trim().takeIf { it.isNotBlank() },
                     interestingFeatures = _interestingFeatures.value.trim().takeIf { it.isNotBlank() },
+                    // v3.2.0: Photo analysis - persist dominant color
+                    dominantColor = _dominantColor.value,
                     tags = tagsList,
                     status = currentOriginal?.status ?: "incomplete",
                     statusType = currentOriginal?.statusType ?: "in_collection",

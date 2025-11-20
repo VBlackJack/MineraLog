@@ -621,5 +621,73 @@ val MIGRATION_7_8 = object : Migration(7, 8) {
 }
 
 /**
+ * Migration from version 8 to version 9.
+ *
+ * Changes:
+ * - Add dominantColor column for photo analysis results (v3.2.0)
+ *
+ * New field:
+ * - dominantColor: String detected by ImageAnalyzer (e.g., "Red", "Blue", "Green")
+ *   Used for statistics and visualization of color distribution in collection
+ *
+ * v3.2.0 enhancement: Photo analysis integration
+ *
+ * This field stores the dominant color detected from the first photo of each specimen.
+ * - Populated automatically when using the photo analysis feature
+ * - Enables color-based statistics and filtering
+ * - Indexed for efficient query performance in statistics screens
+ *
+ * Backward compatibility:
+ * - Field is nullable (default NULL)
+ * - Existing specimens will have NULL until photo analysis is run
+ * - Index created to optimize GROUP BY queries for statistics
+ */
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // Add dominantColor column to minerals table
+        db.execSQL("""
+            ALTER TABLE minerals
+            ADD COLUMN dominantColor TEXT DEFAULT NULL
+        """.trimIndent())
+
+        // Create index for efficient statistics queries
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_minerals_dominantColor
+            ON minerals(dominantColor)
+        """.trimIndent())
+    }
+}
+
+/**
+ * Migration from version 9 to version 10.
+ *
+ * Changes:
+ * - Add imageUrl column to reference_minerals (remote image URLs)
+ * - Add localIconName column to reference_minerals (local drawable resource names)
+ *
+ * v3.3.0 feature: Image support for reference minerals (hybrid cloud/local)
+ *
+ * Backward compatibility:
+ * - Both fields are nullable (default NULL)
+ * - Existing reference minerals will have NULL until images are added
+ * - No indices needed (not used for querying, only for display)
+ */
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // Add imageUrl column for remote/cloud-hosted images
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN imageUrl TEXT DEFAULT NULL
+        """.trimIndent())
+
+        // Add localIconName column for bundled drawable resources
+        db.execSQL("""
+            ALTER TABLE reference_minerals
+            ADD COLUMN localIconName TEXT DEFAULT NULL
+        """.trimIndent())
+    }
+}
+
+/**
  * Future migrations will be added here as the schema evolves.
  */

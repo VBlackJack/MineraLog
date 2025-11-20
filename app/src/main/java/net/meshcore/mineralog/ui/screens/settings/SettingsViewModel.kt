@@ -12,7 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import net.meshcore.mineralog.data.repository.BackupRepository
 import net.meshcore.mineralog.data.repository.CsvImportMode
 import net.meshcore.mineralog.data.repository.ImportMode
@@ -20,6 +24,9 @@ import net.meshcore.mineralog.data.repository.ImportResult
 import net.meshcore.mineralog.data.repository.MineralRepository
 import net.meshcore.mineralog.data.repository.SettingsRepository
 import net.meshcore.mineralog.data.sample.SampleDataGenerator
+import net.meshcore.mineralog.ui.screens.identification.utils.ImageAnalyzer
+import net.meshcore.mineralog.util.AppLogger
+import java.io.File
 
 sealed class BackupExportState {
     data object Idle : BackupExportState()
@@ -50,6 +57,13 @@ sealed class SampleDataState {
     data class Error(val message: String) : SampleDataState()
 }
 
+sealed class ReanalysisState {
+    data object Idle : ReanalysisState()
+    data class Processing(val progress: Int, val total: Int) : ReanalysisState()
+    data class Success(val count: Int) : ReanalysisState()
+    data class Error(val message: String) : ReanalysisState()
+}
+
 class SettingsViewModel(
     private val context: Context,
     private val mineralRepository: MineralRepository,
@@ -68,6 +82,9 @@ class SettingsViewModel(
 
     private val _sampleDataState = MutableStateFlow<SampleDataState>(SampleDataState.Idle)
     val sampleDataState: StateFlow<SampleDataState> = _sampleDataState.asStateFlow()
+
+    private val _reanalysisState = MutableStateFlow<ReanalysisState>(ReanalysisState.Idle)
+    val reanalysisState: StateFlow<ReanalysisState> = _reanalysisState.asStateFlow()
 
     val language: StateFlow<String> = settingsRepository.getLanguage()
         .stateIn(
@@ -234,6 +251,85 @@ class SettingsViewModel(
 
     fun resetSampleDataState() {
         _sampleDataState.value = SampleDataState.Idle
+    }
+
+    /**
+     * Reanalyze dominant colors for all minerals that have photos but no dominantColor.
+     * v3.2.0: Batch maintenance function for existing collections.
+     */
+    fun reanalyzeMineralColors() {
+        viewModelScope.launch(Dispatchers.Default) {
+            _reanalysisState.value = ReanalysisState.Processing(0, 0)
+
+            try {
+                // Get all minerals
+                val allMinerals = mineralRepository.getAll()
+
+                // Filter minerals that have photos but no dominant color
+                val candidateMinerals = allMinerals.filter { mineral ->
+                    mineral.photos.isNotEmpty() && mineral.dominantColor.isNullOrBlank()
+                }
+
+                val totalCount = candidateMinerals.size
+                var processedCount = 0
+                var updatedCount = 0
+
+                AppLogger.d("ColorReanalysis", "Found $totalCount minerals to reanalyze")
+
+                // Process each candidate
+                candidateMinerals.forEach { mineral ->
+                    try {
+                        // Get first photo
+                        val firstPhoto = mineral.photos.firstOrNull()
+                        if (firstPhoto != null) {
+                            // Load photo bitmap
+                            val photoFile = File(context.filesDir, "photos/${firstPhoto.fileName}")
+                            if (photoFile.exists()) {
+                                // Force software bitmap (ARGB_8888) to allow CPU pixel access
+                                val options = BitmapFactory.Options().apply {
+                                    inPreferredConfig = Bitmap.Config.ARGB_8888
+                                }
+                                val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath, options)
+                                if (bitmap != null) {
+                                    // Analyze color
+                                    val detectedColor = ImageAnalyzer.detectDominantColorName(bitmap)
+                                    bitmap.recycle()
+
+                                    if (detectedColor != null) {
+                                        // Update mineral with detected color
+                                        val updatedMineral = mineral.copy(dominantColor = detectedColor)
+                                        mineralRepository.update(updatedMineral)
+                                        updatedCount++
+
+                                        AppLogger.d("ColorReanalysis", "Updated ${mineral.name} with color: $detectedColor")
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // Log error but continue processing
+                        AppLogger.e("ColorReanalysis", "Failed to process mineral ${mineral.name}", e)
+                    }
+
+                    processedCount++
+                    _reanalysisState.value = ReanalysisState.Processing(processedCount, totalCount)
+
+                    // Small delay to prevent UI freezing
+                    delay(50)
+                }
+
+                AppLogger.i("ColorReanalysis", "Completed: $updatedCount/$totalCount minerals updated")
+                _reanalysisState.value = ReanalysisState.Success(updatedCount)
+
+            } catch (e: Exception) {
+                AppLogger.e("ColorReanalysis", "Batch reanalysis failed", e)
+                _reanalysisState.value = ReanalysisState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
+
+    fun resetReanalysisState() {
+        _reanalysisState.value = ReanalysisState.Idle
     }
 }
 

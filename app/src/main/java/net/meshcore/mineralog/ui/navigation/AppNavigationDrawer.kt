@@ -13,7 +13,7 @@ import net.meshcore.mineralog.R
 
 /**
  * Navigation Drawer for MineraLog app.
- * Contains main navigation items: Collection, Library, Identification, Statistics, Settings.
+ * Contains main navigation items: Collection, Library, Identification, Statistics, Map, Settings.
  */
 @Composable
 fun AppNavigationDrawer(
@@ -22,6 +22,7 @@ fun AppNavigationDrawer(
     onNavigateToLibrary: () -> Unit,
     onNavigateToIdentification: () -> Unit,
     onNavigateToStatistics: () -> Unit,
+    onNavigateToMap: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onCloseDrawer: () -> Unit
 ) {
@@ -86,6 +87,18 @@ fun AppNavigationDrawer(
             selected = currentRoute == Screen.Statistics.route,
             onClick = {
                 onNavigateToStatistics()
+                onCloseDrawer()
+            },
+            modifier = Modifier.padding(horizontal = 12.dp)
+        )
+
+        // Collection Map
+        NavigationDrawerItem(
+            icon = { Icon(Icons.Default.Map, contentDescription = null) },
+            label = { Text(stringResource(R.string.nav_drawer_map)) },
+            selected = currentRoute == Screen.CollectionMap.route,
+            onClick = {
+                onNavigateToMap()
                 onCloseDrawer()
             },
             modifier = Modifier.padding(horizontal = 12.dp)

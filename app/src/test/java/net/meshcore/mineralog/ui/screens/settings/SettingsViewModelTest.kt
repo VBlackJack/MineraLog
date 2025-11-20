@@ -1,12 +1,12 @@
 package net.meshcore.mineralog.ui.screens.settings
 
+import android.content.Context
 import android.net.Uri
 import app.cash.turbine.test
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,6 +19,7 @@ import net.meshcore.mineralog.data.repository.BackupRepository
 import net.meshcore.mineralog.data.repository.CsvImportMode
 import net.meshcore.mineralog.data.repository.ImportMode
 import net.meshcore.mineralog.data.repository.ImportResult
+import net.meshcore.mineralog.data.repository.MineralRepository
 import net.meshcore.mineralog.data.repository.SettingsRepository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -30,6 +31,8 @@ import org.junit.jupiter.api.DisplayName
 @DisplayName("SettingsViewModel Tests")
 class SettingsViewModelTest {
 
+    private lateinit var context: Context
+    private lateinit var mineralRepository: MineralRepository
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var backupRepository: BackupRepository
     private lateinit var viewModel: SettingsViewModel
@@ -38,6 +41,10 @@ class SettingsViewModelTest {
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+
+        // Create mocks for all dependencies
+        context = mockk(relaxed = true)
+        mineralRepository = mockk(relaxed = true)
         settingsRepository = mockk(relaxed = true)
         backupRepository = mockk(relaxed = true)
 
@@ -46,7 +53,13 @@ class SettingsViewModelTest {
         every { settingsRepository.getCopyPhotosToInternalStorage() } returns flowOf(true)
         every { settingsRepository.getEncryptByDefault() } returns flowOf(false)
 
-        viewModel = SettingsViewModel(settingsRepository, backupRepository)
+        // Initialize ViewModel with all 4 required dependencies
+        viewModel = SettingsViewModel(
+            context = context,
+            mineralRepository = mineralRepository,
+            settingsRepository = settingsRepository,
+            backupRepository = backupRepository
+        )
     }
 
     @AfterEach
@@ -372,6 +385,83 @@ class SettingsViewModelTest {
         viewModel.csvImportState.test {
             assertEquals(CsvImportState.Idle, awaitItem())
         }
+    }
+
+    // Sample Data tests
+    @Test
+    fun `loadSampleData should update sampleDataState from Idle to Loading to Success`() = runTest {
+        // Given - mock successful mineral insertion (SampleDataGenerator internally calls mineralRepository.insert)
+        coEvery { mineralRepository.insert(any()) } returns "mock-mineral-id"
+
+        // When/Then - verify state transitions
+        viewModel.sampleDataState.test {
+            // Initial state should be Idle
+            assertEquals(SampleDataState.Idle, awaitItem())
+
+            // Trigger sample data loading
+            viewModel.loadSampleData()
+
+            // Should transition to Loading
+            assertEquals(SampleDataState.Loading, awaitItem())
+
+            // Should transition to Success with 12 minerals
+            val successState = awaitItem()
+            assertTrue(successState is SampleDataState.Success)
+            assertEquals(12, (successState as SampleDataState.Success).count)
+        }
+    }
+
+    @Test
+    fun `loadSampleData should emit error state on repository failure`() = runTest {
+        // Given - mock repository failure
+        val errorMessage = "Database error: unable to insert mineral"
+        coEvery { mineralRepository.insert(any()) } throws Exception(errorMessage)
+
+        // When/Then
+        viewModel.sampleDataState.test {
+            assertEquals(SampleDataState.Idle, awaitItem())
+
+            viewModel.loadSampleData()
+
+            assertEquals(SampleDataState.Loading, awaitItem())
+
+            val errorState = awaitItem()
+            assertTrue(errorState is SampleDataState.Error)
+            assertTrue((errorState as SampleDataState.Error).message.contains(errorMessage))
+        }
+    }
+
+    @Test
+    fun `resetSampleDataState should set state back to idle`() = runTest {
+        // Given - sample data loaded successfully
+        coEvery { mineralRepository.insert(any()) } returns "mock-mineral-id"
+        viewModel.loadSampleData()
+
+        // When
+        viewModel.resetSampleDataState()
+
+        // Then
+        viewModel.sampleDataState.test {
+            assertEquals(SampleDataState.Idle, awaitItem())
+        }
+    }
+
+    @Test
+    fun `loadSampleData should call mineralRepository insert for each sample mineral`() = runTest {
+        // Given
+        coEvery { mineralRepository.insert(any()) } returns "mock-mineral-id"
+
+        // When
+        viewModel.loadSampleData()
+
+        // Wait for operation to complete
+        viewModel.sampleDataState.test {
+            skipItems(2) // Skip Idle and Loading
+            awaitItem() // Wait for Success
+        }
+
+        // Then - verify insert was called 12 times (once per sample mineral)
+        coVerify(exactly = 12) { mineralRepository.insert(any()) }
     }
 
     // Edge cases and security tests

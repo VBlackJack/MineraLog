@@ -20,8 +20,8 @@ android {
         applicationId = "net.meshcore.mineralog"
         minSdk = 27
         targetSdk = 35
-        versionCode = 30001
-        versionName = "3.0.0"
+        versionCode = 30200
+        versionName = "3.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -72,9 +72,9 @@ android {
                 enableV3Signing = true  // Android 9.0+ (key rotation support)
                 enableV4Signing = true  // Android 11+ (faster installation)
             } else {
-                // Fallback to debug signing for local development
-                // WARNING: This is NOT suitable for production releases!
-                println("WARNING: Release keystore not configured. Using debug keystore.")
+                // SECURITY: Use debug keystore as placeholder during configuration
+                // Will fail during actual release build task (see buildTypes.release)
+                println("WARNING: Release keystore not configured. Using debug keystore as placeholder.")
                 println("Set RELEASE_KEYSTORE_PATH, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS, and RELEASE_KEY_PASSWORD")
                 storeFile = signingConfigs.getByName("debug").storeFile
                 storePassword = signingConfigs.getByName("debug").storePassword
@@ -362,4 +362,46 @@ tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
 // Make build task depend on coverage verification
 tasks.named("check") {
     dependsOn("jacocoTestCoverageVerification")
+}
+
+// SECURITY: Validate release keystore configuration before building release APK/AAB
+// This task runs ONLY when assembleRelease or bundleRelease is executed
+tasks.register("validateReleaseKeystoreConfig") {
+    doFirst {
+        val releaseConfig = android.signingConfigs.getByName("release")
+        val debugConfig = android.signingConfigs.getByName("debug")
+
+        if (releaseConfig.storeFile == debugConfig.storeFile) {
+            logger.error("")
+            logger.error("━".repeat(80))
+            logger.error("  ⛔ RELEASE BUILD BLOCKED: Keystore Not Configured")
+            logger.error("━".repeat(80))
+            logger.error("")
+            logger.error("  Production releases MUST use a secure keystore.")
+            logger.error("  Debug keystore is NOT acceptable for production.")
+            logger.error("")
+            logger.error("  Required environment variables:")
+            logger.error("    • RELEASE_KEYSTORE_PATH")
+            logger.error("    • RELEASE_KEYSTORE_PASSWORD")
+            logger.error("    • RELEASE_KEY_ALIAS")
+            logger.error("    • RELEASE_KEY_PASSWORD")
+            logger.error("")
+            logger.error("  For local testing, use:")
+            logger.error("    ./gradlew assembleDebug")
+            logger.error("")
+            logger.error("━".repeat(80))
+            logger.error("")
+
+            throw GradleException("Release build requires proper keystore configuration")
+        } else {
+            logger.lifecycle("✓ Release keystore configured: ${releaseConfig.storeFile?.name}")
+        }
+    }
+}
+
+// Make release build tasks depend on keystore validation
+tasks.whenTaskAdded {
+    if (name == "assembleRelease" || name == "bundleRelease") {
+        dependsOn("validateReleaseKeystoreConfig")
+    }
 }

@@ -32,6 +32,8 @@ data class Mineral(
     val fluorescence: String? = null,
     val magnetic: Boolean = false,
     val radioactive: Boolean = false,
+    // Photo analysis (v3.2.0)
+    val dominantColor: String? = null,
     val dimensionsMm: String? = null,
     val weightGr: Float? = null,
     // v3.1: Aggregate-specific fields (for type=AGGREGATE)

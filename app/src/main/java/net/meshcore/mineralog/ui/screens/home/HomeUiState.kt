@@ -38,6 +38,7 @@ data class HomeUiState(
     val exportState: ExportState = ExportState.Idle,
     val importState: ImportState = ImportState.Idle,
     val labelGenerationState: LabelGenerationState = LabelGenerationState.Idle,
+    val catalogGenerationState: CatalogGenerationState = CatalogGenerationState.Idle,
     val bulkOperationProgress: BulkOperationProgress = BulkOperationProgress.Idle
 ) {
     /**
@@ -53,6 +54,7 @@ data class HomeUiState(
         get() = exportState is ExportState.Exporting ||
                 importState is ImportState.Importing ||
                 labelGenerationState is LabelGenerationState.Generating ||
+                catalogGenerationState is CatalogGenerationState.Generating ||
                 bulkOperationProgress is BulkOperationProgress.InProgress
 }
 

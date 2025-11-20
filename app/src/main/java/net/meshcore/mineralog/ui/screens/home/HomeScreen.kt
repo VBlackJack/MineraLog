@@ -118,6 +118,20 @@ fun HomeScreen(
         }
     }
 
+    LaunchedEffect(uiState.catalogGenerationState) {
+        when (val state = uiState.catalogGenerationState) {
+            is CatalogGenerationState.Success -> {
+                snackbarHostState.showSnackbar("PDF catalog generated successfully with ${state.count} minerals")
+                viewModel.resetCatalogGenerationState()
+            }
+            is CatalogGenerationState.Error -> {
+                snackbarHostState.showSnackbar("Catalog generation failed: ${state.message}")
+                viewModel.resetCatalogGenerationState()
+            }
+            else -> {}
+        }
+    }
+
     LaunchedEffect(uiState.bulkOperationProgress) {
         when (val state = uiState.bulkOperationProgress) {
             is BulkOperationProgress.Complete -> {
@@ -249,6 +263,7 @@ fun HomeScreen(
             }
         },
         onGenerateLabels = { viewModel.generateLabelsForSelected(it) },
+        onExportCatalog = { viewModel.generateCatalogPdf(it) },
         onCompareClick = if (uiState.selectionCount in 2..3) {
             {
                 val selectedMinerals = viewModel.getSelectedMinerals()
@@ -263,7 +278,8 @@ fun HomeScreen(
 
     HomeLoadingIndicators(
         exportState = uiState.exportState,
-        labelGenerationState = uiState.labelGenerationState
+        labelGenerationState = uiState.labelGenerationState,
+        catalogGenerationState = uiState.catalogGenerationState
     )
 }
 

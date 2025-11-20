@@ -1,11 +1,14 @@
 package net.meshcore.mineralog.ui.screens.add
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import net.meshcore.mineralog.util.AppLogger
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +17,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.meshcore.mineralog.data.repository.MineralRepository
 import net.meshcore.mineralog.data.repository.MineralRepositoryImpl
 import net.meshcore.mineralog.data.repository.SettingsRepository
@@ -30,6 +34,7 @@ import net.meshcore.mineralog.domain.model.SimpleProperties
 import net.meshcore.mineralog.domain.model.Photo
 import net.meshcore.mineralog.domain.provider.ResourceProvider
 import net.meshcore.mineralog.ui.screens.edit.PhotoItem
+import net.meshcore.mineralog.ui.screens.identification.utils.ImageAnalyzer
 import net.meshcore.mineralog.R
 import java.io.File
 import java.time.Instant
@@ -100,6 +105,10 @@ class AddMineralViewModel(
 
     private val _photos = MutableStateFlow<List<PhotoItem>>(emptyList())
     val photos: StateFlow<List<PhotoItem>> = _photos.asStateFlow()
+
+    // v3.2.0: Photo analysis - dominant color
+    private val _dominantColor = MutableStateFlow<String?>(null)
+    val dominantColor: StateFlow<String?> = _dominantColor.asStateFlow()
 
     private val _saveState = MutableStateFlow<SaveMineralState>(SaveMineralState.Idle)
     val saveState: StateFlow<SaveMineralState> = _saveState.asStateFlow()
@@ -454,6 +463,30 @@ class AddMineralViewModel(
             isExisting = false
         )
         _photos.value = _photos.value + photoItem
+
+        // v3.2.0: Analyze dominant color from first photo
+        if (_photos.value.size == 1 && _dominantColor.value == null) {
+            viewModelScope.launch(Dispatchers.Default) {
+                try {
+                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                        // Force software bitmap (ARGB_8888) to allow CPU pixel access
+                        val options = BitmapFactory.Options().apply {
+                            inPreferredConfig = Bitmap.Config.ARGB_8888
+                        }
+                        val bitmap = BitmapFactory.decodeStream(inputStream, null, options)
+                        val detectedColor = bitmap?.let { ImageAnalyzer.detectDominantColorName(it) }
+                        bitmap?.recycle()
+
+                        withContext(Dispatchers.Main) {
+                            _dominantColor.value = detectedColor
+                            AppLogger.d("AddMineral", "Detected dominant color: $detectedColor")
+                        }
+                    }
+                } catch (e: Exception) {
+                    AppLogger.e("AddMineral", "Failed to analyze photo color", e)
+                }
+            }
+        }
     }
 
     fun removePhoto(photoId: String) {
@@ -555,6 +588,7 @@ class AddMineralViewModel(
                         notes = _notes.value.trim().takeIf { it.isNotBlank() },
                         tags = tagsList,
                         statusType = "in_collection",
+                        dominantColor = _dominantColor.value, // v3.2.0: Photo analysis
                         createdAt = Instant.now(),
                         updatedAt = Instant.now()
                     )
@@ -568,6 +602,7 @@ class AddMineralViewModel(
                         notes = _notes.value.trim().takeIf { it.isNotBlank() },
                         tags = tagsList,
                         statusType = "in_collection",
+                        dominantColor = _dominantColor.value, // v3.2.0: Photo analysis
                         createdAt = Instant.now(),
                         updatedAt = Instant.now()
                     )

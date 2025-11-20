@@ -97,6 +97,19 @@ interface MineralStatisticsDao {
     suspend fun getStatusDistribution(): Map<@MapColumn(columnName = "statusType") String, @MapColumn(columnName = "count") Int>
 
     /**
+     * Get distribution of minerals by dominant color.
+     * Returns map of color name to count.
+     */
+    @Query("""
+        SELECT dominantColor, COUNT(*) as count
+        FROM minerals
+        WHERE dominantColor IS NOT NULL
+        GROUP BY dominantColor
+        ORDER BY count DESC
+    """)
+    suspend fun getDominantColorDistribution(): Map<@MapColumn(columnName = "dominantColor") String, @MapColumn(columnName = "count") Int>
+
+    /**
      * Get type distribution (SIMPLE vs AGGREGATE vs ROCK).
      * Returns map of type to count.
      */

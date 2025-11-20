@@ -51,6 +51,7 @@ fun SettingsScreen(
     val importState by viewModel.importState.collectAsState()
     val csvImportState by viewModel.csvImportState.collectAsState()
     val sampleDataState by viewModel.sampleDataState.collectAsState()
+    val reanalysisState by viewModel.reanalysisState.collectAsState()
 
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -278,6 +279,37 @@ fun SettingsScreen(
         }
     }
 
+    // Handle color reanalysis state
+    LaunchedEffect(reanalysisState) {
+        when (reanalysisState) {
+            is ReanalysisState.Processing -> {
+                val state = reanalysisState as ReanalysisState.Processing
+                operationStatusMessage = "Analyzing colors... ${state.progress}/${state.total}"
+            }
+            is ReanalysisState.Success -> {
+                val count = (reanalysisState as ReanalysisState.Success).count
+                val message = "Color analysis complete. $count minerals updated."
+                operationStatusMessage = message
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetReanalysisState()
+            }
+            is ReanalysisState.Error -> {
+                val errorMessage = (reanalysisState as ReanalysisState.Error).message
+                val message = "Color analysis failed: $errorMessage"
+                operationStatusMessage = message
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetReanalysisState()
+            }
+            else -> {}
+        }
+    }
+
     // Live region for operation status announcements (invisible)
     if (operationStatusMessage.isNotEmpty()) {
         Box(
@@ -474,6 +506,54 @@ fun SettingsScreen(
                         }
                     }
                 )
+            }
+
+            HorizontalDivider()
+
+            // Maintenance Section (v3.2.0)
+            SectionHeader(title = "Maintenance")
+
+            // Color reanalysis action
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    SettingsActionItem(
+                        icon = Icons.Default.Palette,
+                        title = "Reanalyze Colors",
+                        subtitle = "Detect dominant colors for existing minerals with photos",
+                        onClick = { viewModel.reanalyzeMineralColors() }
+                    )
+
+                    // Show progress indicator when processing
+                    when (val state = reanalysisState) {
+                        is ReanalysisState.Processing -> {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LinearProgressIndicator(
+                                progress = { if (state.total > 0) state.progress.toFloat() / state.total.toFloat() else 0f },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = "Analyzing... ${state.progress}/${state.total}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                        is ReanalysisState.Success -> {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "✓ ${state.count} minerals updated",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        else -> {}
+                    }
+                }
             }
 
             HorizontalDivider()
@@ -689,7 +769,8 @@ fun SettingsScreen(
     // Loading indicator
     if (exportState is BackupExportState.Exporting ||
         importState is BackupImportState.Importing ||
-        csvImportState is CsvImportState.Importing) {
+        csvImportState is CsvImportState.Importing ||
+        sampleDataState is SampleDataState.Loading) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center

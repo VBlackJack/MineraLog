@@ -54,6 +54,7 @@ class StatisticsRepositoryImpl(
             val byCrystalSystemDeferred = async { mineralDao.getCrystalSystemDistribution() }
             val byHardnessDeferred = async { mineralDao.getHardnessDistribution() }
             val byStatusDeferred = async { mineralDao.getStatusDistribution() }
+            val byDominantColorDeferred = async { mineralDao.getDominantColorDistribution() }
             val addedByMonthDeferred = async { mineralDao.getAddedByMonthDistribution() }
             val mostCommonGroupDeferred = async { mineralDao.getMostCommonGroup() }
             val mostCommonCountryDeferred = async { mineralDao.getMostCommonCountry() }
@@ -76,6 +77,7 @@ class StatisticsRepositoryImpl(
             val byCrystalSystem = byCrystalSystemDeferred.await()
             val byHardness = convertHardnessDistribution(byHardnessDeferred.await())
             val byStatus = byStatusDeferred.await()
+            val byDominantColor = byDominantColorDeferred.await()
             val addedByMonth = addedByMonthDeferred.await()
             val mostCommonGroup = mostCommonGroupDeferred.await()
             val mostCommonCountry = mostCommonCountryDeferred.await()
@@ -115,6 +117,7 @@ class StatisticsRepositoryImpl(
                 byCrystalSystem = byCrystalSystem,
                 byHardness = byHardness,
                 byStatus = byStatus,
+                byDominantColor = byDominantColor,
                 mostCommonGroup = mostCommonGroup,
                 mostCommonCountry = mostCommonCountry,
                 mostValuableSpecimen = mostValuable,

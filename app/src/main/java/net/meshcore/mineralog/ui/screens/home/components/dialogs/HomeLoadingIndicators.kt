@@ -14,6 +14,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import net.meshcore.mineralog.R
+import net.meshcore.mineralog.ui.screens.home.CatalogGenerationState
 import net.meshcore.mineralog.ui.screens.home.ExportState
 import net.meshcore.mineralog.ui.screens.home.LabelGenerationState
 
@@ -23,6 +24,7 @@ import net.meshcore.mineralog.ui.screens.home.LabelGenerationState
  * Responsibilities:
  * - CSV export loading overlay
  * - PDF label generation loading overlay
+ * - PDF catalog generation loading overlay
  * - Accessibility support with live regions
  *
  * Part of Sprint 3 refactoring to reduce prop drilling and improve modularity.
@@ -31,6 +33,7 @@ import net.meshcore.mineralog.ui.screens.home.LabelGenerationState
 fun HomeLoadingIndicators(
     exportState: ExportState,
     labelGenerationState: LabelGenerationState,
+    catalogGenerationState: CatalogGenerationState,
     modifier: Modifier = Modifier
 ) {
     // Loading indicator for export
@@ -66,6 +69,31 @@ fun HomeLoadingIndicators(
                 CircularProgressIndicator()
                 Text(
                     text = stringResource(R.string.home_generating_labels),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+
+    // Loading indicator for catalog generation
+    if (catalogGenerationState is CatalogGenerationState.Generating) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = "Generating PDF catalog"
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CircularProgressIndicator()
+                Text(
+                    text = stringResource(R.string.catalog_export_generating),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )

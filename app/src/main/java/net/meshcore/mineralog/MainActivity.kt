@@ -145,6 +145,12 @@ fun MineraLogApp(
                         restoreState = true
                     }
                 },
+                onNavigateToMap = {
+                    navController.navigate(Screen.CollectionMap.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route) {
                         launchSingleTop = true

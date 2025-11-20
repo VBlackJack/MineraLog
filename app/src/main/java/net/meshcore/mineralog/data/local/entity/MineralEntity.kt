@@ -23,6 +23,7 @@ import java.util.UUID
         Index(value = ["qualityRating"]), // v1.1
         Index(value = ["provenanceId"]), // v1.1 FK
         Index(value = ["storageId"]), // v1.1 FK
+        Index(value = ["dominantColor"]), // v3.2 - photo analysis
         Index(value = ["createdAt"]),
         Index(value = ["updatedAt"])
     ]
@@ -78,6 +79,9 @@ data class MineralEntity(
     val fluorescence: String? = null, // Format: "LW:blue,SW:green" or "none"
     val magnetic: Boolean = false,
     val radioactive: Boolean = false,
+
+    // Photo analysis properties (v3.2.0)
+    val dominantColor: String? = null, // Detected via ImageAnalyzer (e.g., "Red", "Blue", "Green")
 
     // Physical measurements
     val dimensionsMm: String? = null, // Format: "length x width x height" or free text

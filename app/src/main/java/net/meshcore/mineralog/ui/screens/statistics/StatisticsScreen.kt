@@ -17,6 +17,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import net.meshcore.mineralog.R
@@ -270,7 +271,52 @@ private fun StatisticsContent(
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        // Distribution by Country
+        // Distribution by Dominant Color
+        if (statistics.byDominantColor.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.statistics_by_color),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Map color names to actual colors
+                val colorMapping = getMineralColorMapping()
+                val pieColors = statistics.byDominantColor.keys.map { colorName ->
+                    colorMapping[colorName] ?: MaterialTheme.colorScheme.primary
+                }
+
+                PieChart(
+                    data = statistics.byDominantColor,
+                    colors = pieColors,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .padding(16.dp)
+                        .semantics {
+                            contentDescription = buildString {
+                                append("Pie chart showing distribution by dominant color. ")
+                                append("${statistics.byDominantColor.size} colors displayed. ")
+                                statistics.byDominantColor.entries.forEachIndexed { index, entry ->
+                                    if (index < 3) {
+                                        append("${entry.key}: ${entry.value} minerals. ")
+                                    }
+                                }
+                                if (statistics.byDominantColor.size > 3) {
+                                    append("And ${statistics.byDominantColor.size - 3} more colors.")
+                                }
+                            }
+                        }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // Distribution by Country (Top 5 + Others)
         if (statistics.byCountry.isNotEmpty()) {
             Text(
                 text = stringResource(R.string.statistics_by_country),
@@ -282,25 +328,38 @@ private fun StatisticsContent(
             Card(
                 modifier = Modifier.fillMaxWidth()
             ) {
+                // Process data for Top 5 + Others
+                val sortedByCountry = statistics.byCountry.entries
+                    .sortedByDescending { it.value }
+                    .toList()
+
+                val displayData = if (sortedByCountry.size > 5) {
+                    val top5 = sortedByCountry.take(5)
+                    val othersCount = sortedByCountry.drop(5).sumOf { it.value }
+                    top5.associate { it.key to it.value } + ("Others" to othersCount)
+                } else {
+                    statistics.byCountry
+                }
+
                 BarChart(
-                    data = statistics.byCountry,
+                    data = displayData,
                     modifier = Modifier
                         .fillMaxWidth()
                         .semantics {
                             contentDescription = buildString {
-                                append("Bar chart showing distribution by country. ")
-                                val topCountries = statistics.byCountry.entries
+                                append("Bar chart showing top origins by country. ")
+                                val topCountries = displayData.entries
                                     .sortedByDescending { it.value }
                                     .take(3)
-                                topCountries.forEachIndexed { index, entry ->
+                                topCountries.forEach { entry ->
                                     append("${entry.key}: ${entry.value} minerals. ")
                                 }
-                                if (statistics.byCountry.size > 3) {
-                                    append("And ${statistics.byCountry.size - 3} more countries.")
+                                if (displayData.size > 3) {
+                                    append("And ${displayData.size - 3} more entries.")
                                 }
                             }
                         },
-                    maxBars = 15
+                    maxBars = 6  // Top 5 + Others
                 )
             }
 
@@ -485,4 +544,44 @@ private fun MetricRow(label: String, value: String) {
             color = MaterialTheme.colorScheme.onSurface
         )
     }
+}
+
+/**
+ * Maps mineral color names to actual Color values for pie chart rendering.
+ * Ensures that color segments in the chart use realistic colors.
+ */
+@Composable
+private fun getMineralColorMapping(): Map<String, Color> {
+    return mapOf(
+        // Basic colors
+        "Red" to Color(0xFFE53935),         // Material Red 600
+        "Orange" to Color(0xFFFB8C00),      // Material Orange 600
+        "Yellow" to Color(0xFFFDD835),      // Material Yellow 600
+        "Green" to Color(0xFF43A047),       // Material Green 600
+        "Blue" to Color(0xFF1E88E5),        // Material Blue 600
+        "Purple" to Color(0xFF8E24AA),      // Material Purple 600
+        "Pink" to Color(0xFFD81B60),        // Material Pink 600
+        "Brown" to Color(0xFF6D4C41),       // Material Brown 600
+
+        // Achromatic colors
+        "White" to Color(0xFFFAFAFA),       // Off-white
+        "Black" to Color(0xFF212121),       // Near-black
+        "Gray" to Color(0xFF757575),        // Material Gray 600
+        "Grey" to Color(0xFF757575),        // Alternative spelling
+        "Colorless" to Color(0xFFE0E0E0),   // Light gray
+
+        // Variations
+        "Light Red" to Color(0xFFEF5350),   // Material Red 400
+        "Dark Red" to Color(0xFFC62828),    // Material Red 800
+        "Light Blue" to Color(0xFF42A5F5),  // Material Blue 400
+        "Dark Blue" to Color(0xFF1565C0),   // Material Blue 800
+        "Light Green" to Color(0xFF66BB6A), // Material Green 400
+        "Dark Green" to Color(0xFF2E7D32),  // Material Green 800
+
+        // Special colors
+        "Gold" to Color(0xFFFFD700),        // Gold
+        "Silver" to Color(0xFFC0C0C0),      // Silver
+        "Bronze" to Color(0xFFCD7F32),      // Bronze
+        "Copper" to Color(0xFFB87333)       // Copper
+    )
 }

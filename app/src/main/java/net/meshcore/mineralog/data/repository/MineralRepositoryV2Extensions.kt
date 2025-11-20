@@ -31,6 +31,7 @@ data class SimpleMineralData(
     val tags: List<String> = emptyList(),
     val statusType: String = "in_collection",
     val qualityRating: Int? = null,
+    val dominantColor: String? = null, // v3.2.0: Photo analysis result
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
 )
@@ -46,6 +47,7 @@ data class AggregateMineralData(
     val tags: List<String> = emptyList(),
     val statusType: String = "in_collection",
     val qualityRating: Int? = null,
+    val dominantColor: String? = null, // v3.2.0: Photo analysis result
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
 )
@@ -71,6 +73,7 @@ suspend fun MineralRepositoryImpl.insertSimpleMineral(
             tags = mineral.tags.joinToString(","),
             statusType = mineral.statusType,
             qualityRating = mineral.qualityRating,
+            dominantColor = mineral.dominantColor, // v3.2.0: Photo analysis
             createdAt = mineral.createdAt,
             updatedAt = mineral.updatedAt
         )
@@ -109,6 +112,7 @@ suspend fun MineralRepositoryImpl.insertAggregate(
             tags = aggregate.tags.joinToString(","),
             statusType = aggregate.statusType,
             qualityRating = aggregate.qualityRating,
+            dominantColor = aggregate.dominantColor, // v3.2.0: Photo analysis
             createdAt = aggregate.createdAt,
             updatedAt = aggregate.updatedAt
         )

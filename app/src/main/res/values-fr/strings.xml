@@ -69,6 +69,7 @@
     <string name="nav_drawer_reference_library">Bibliothèque de référence</string>
     <string name="nav_drawer_identification">Identification</string>
     <string name="nav_drawer_statistics">Statistiques</string>
+    <string name="nav_drawer_map">Carte de la Collection</string>
     <string name="nav_drawer_settings">Paramètres</string>
 
     <!-- Home Screen -->
@@ -229,7 +230,8 @@
     <string name="statistics_time_based">Activité récente</string>
     <string name="statistics_highlights">Points forts</string>
     <string name="statistics_by_group">Distribution par groupe</string>
-    <string name="statistics_by_country">Distribution par pays</string>
+    <string name="statistics_by_color">Couleurs dominantes</string>
+    <string name="statistics_by_country">Principales origines</string>
     <string name="statistics_by_crystal_system">Distribution par système cristallin</string>
     <string name="statistics_by_hardness">Distribution par dureté</string>
     <string name="statistics_by_status">Distribution par statut</string>
@@ -508,6 +510,7 @@
     <!-- Camera Capture Screen -->
     <string name="camera_title">Prendre une photo</string>
     <string name="camera_permission_required">La permission caméra est requise pour prendre des photos</string>
+    <string name="camera_permission_denied">Permission caméra refusée</string>
     <string name="camera_grant_permission">Accorder la permission</string>
     <string name="camera_open_settings">Ouvrir les paramètres</string>
     <string name="camera_permission_denied_help">La permission caméra a été refusée. Veuillez l\'activer dans les Paramètres pour prendre des photos.</string>
@@ -842,10 +845,19 @@
     <string name="identification_results_found">minéraux trouvés</string>
     <string name="identification_mohs">Mohs</string>
     <string name="identification_match">Correspondance</string>
+
+    <!-- Identification assistée par photo -->
+    <string name="identification_photo_assist">Identification assistée par photo (Caméra)</string>
+    <string name="identification_gallery_assist">Identification assistée par photo (Galerie)</string>
+    <string name="identification_color_detected">Couleur détectée\u00A0: %s</string>
+    <string name="identification_color_already_selected">Couleur %s déjà sélectionnée</string>
+    <string name="identification_color_detect_failed">Impossible de détecter la couleur. Réessayez.</string>
+    <string name="identification_analysis_error">Erreur lors de l\'analyse\u00A0: %s</string>
+
     <string name="yes">Oui</string>
     <string name="no">Non</string>
     <string name="action_ok">OK</string>
-    <string name="action_ok">OK</string>
+
     <!-- Migration Report Dialog -->
     <string name="migration_report_title">Migration automatique terminée</string>
     <string name="migration_report_summary">Vos spécimens existants ont été analysés pour créer automatiquement des minéraux de référence.</string>
@@ -861,4 +873,20 @@
     <string name="migration_report_duration">Temps de migration : %dms</string>
     <string name="migration_report_no_changes">Aucun minéral récurrent détecté. La bibliothèque n\'a pas été modifiée.</string>
     <string name="action_view_library">Voir la bibliothèque</string>
+
+    <!-- Collection Map Screen -->
+    <string name="action_back">Retour</string>
+    <string name="collection_map_title">Carte de la Collection</string>
+    <string name="collection_map_tap_for_details">Appuyez pour les détails</string>
+    <string name="collection_map_empty_title">Aucun Minéral Géolocalisé</string>
+    <string name="collection_map_empty_description">Ajoutez des informations de localisation à vos minéraux pour les voir sur la carte</string>
+    <string name="mineral_photo_description">Photo de %s</string>
+
+    <!-- PDF Catalog Export -->
+    <string name="bulk_action_export_catalog">Exporter Catalogue PDF</string>
+    <string name="bulk_action_export_catalog_desc">Générer un catalogue illustré complet</string>
+    <string name="catalog_export_generating">Génération du catalogue PDF…</string>
+    <string name="catalog_export_success">Catalogue PDF généré avec succès avec %d minéraux</string>
+    <string name="catalog_export_error">Échec de la génération du catalogue\u00A0: %s</string>
+    <string name="catalog_export_empty">Aucun minéral dans la collection</string>
 </resources>

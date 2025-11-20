@@ -16,6 +16,7 @@ data class CollectionStatistics(
     val byCrystalSystem: Map<String, Int> = emptyMap(), // e.g., {"Cubic": 12, "Hexagonal": 8}
     val byHardness: Map<IntRange, Int> = emptyMap(), // e.g., {1..2: 3, 3..4: 7}
     val byStatus: Map<String, Int> = emptyMap(), // e.g., {"in_collection": 20, "on_display": 5}
+    val byDominantColor: Map<String, Int> = emptyMap(), // e.g., {"Red": 8, "Blue": 12}
 
     // Top items
     val mostCommonGroup: String? = null,

@@ -18,7 +18,13 @@
       "Bash(git tag:*)",
       "Bash(gh release create:*)",
       "Bash(gh release upload:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(./gradlew compileDebugUnitTestKotlin:*)",
+      "Bash(adb shell am start:*)",
+      "Bash(adb shell pm:*)",
+      "Bash(adb shell dumpsys:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
