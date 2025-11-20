@@ -503,7 +503,7 @@ class AddMineralViewModel(
                         group = _group.value.trim().takeIf { it.isNotBlank() },
                         formula = _formula.value.trim().takeIf { it.isNotBlank() },
                         crystalSystem = _crystalSystem.value.trim().takeIf { it.isNotBlank() },
-                        cleavage = _cleavage.value.trim().takeIf { it'isNotBlank() },
+                        cleavage = _cleavage.value.trim().takeIf { it.isNotBlank() },
                         fracture = _fracture.value.trim().takeIf { it.isNotBlank() },
                         luster = _luster.value.trim().takeIf { it.isNotBlank() },
                         streak = _streak.value.trim().takeIf { it.isNotBlank() },

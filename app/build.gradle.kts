@@ -228,7 +228,7 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
-    # Desugaring
+    // Desugaring
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Testing
