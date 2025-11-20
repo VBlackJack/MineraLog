@@ -24,7 +24,8 @@
       "Bash(adb shell am start:*)",
       "Bash(adb shell pm:*)",
       "Bash(adb shell dumpsys:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(./gradlew:*)"
     ],
     "deny": [],
     "ask": []

@@ -2,13 +2,11 @@ package net.meshcore.mineralog.ui.screens.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.repository.MineralRepository
-import javax.inject.Inject
 
 /**
  * Data class representing a mineral marker on the map.
@@ -37,8 +35,7 @@ data class MapMineralItem(
  * - Provenance must have non-null latitude and longitude
  * - Excludes coordinates at (0.0, 0.0) as they are likely default/invalid values
  */
-@HiltViewModel
-class CollectionMapViewModel @Inject constructor(
+class CollectionMapViewModel(
     private val mineralRepository: MineralRepository
 ) : ViewModel() {
 

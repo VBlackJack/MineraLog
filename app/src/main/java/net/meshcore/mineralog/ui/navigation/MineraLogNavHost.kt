@@ -31,7 +31,7 @@ import net.meshcore.mineralog.ui.screens.reference.AddReferenceMineralScreen
 import net.meshcore.mineralog.ui.screens.reference.EditReferenceMineralScreen
 import net.meshcore.mineralog.ui.screens.identification.IdentificationScreen
 import net.meshcore.mineralog.ui.screens.map.CollectionMapScreen
-import androidx.hilt.navigation.compose.hiltViewModel
+import net.meshcore.mineralog.ui.screens.map.CollectionMapViewModel
 import java.util.UUID
 
 sealed class Screen(val route: String) {
@@ -323,8 +323,12 @@ fun MineraLogNavHost(
         }
 
         composable(Screen.CollectionMap.route) {
+            val application = LocalContext.current.applicationContext as MineraLogApplication
+            val viewModel = CollectionMapViewModel(
+                mineralRepository = application.mineralRepository
+            )
             CollectionMapScreen(
-                viewModel = hiltViewModel(),
+                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onMineralClick = { mineralId ->
                     navController.navigate(Screen.Detail.createRoute(mineralId))
