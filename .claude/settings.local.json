@@ -14,7 +14,11 @@
       "Bash(./gradlew assembleDebug:*)",
       "Bash(adb uninstall:*)",
       "Bash(adb install:*)",
-      "Bash(adb logcat:*)"
+      "Bash(adb logcat:*)",
+      "Bash(git tag:*)",
+      "Bash(gh release create:*)",
+      "Bash(gh release upload:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
