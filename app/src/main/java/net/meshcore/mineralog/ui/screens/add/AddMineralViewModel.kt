@@ -148,6 +148,19 @@ class AddMineralViewModel(
     private val _weightGr = MutableStateFlow("")
     val weightGr: StateFlow<String> = _weightGr.asStateFlow()
 
+    // v3.0.0: Provenance fields for creation screen
+    private val _provenanceCountry = MutableStateFlow("")
+    val provenanceCountry: StateFlow<String> = _provenanceCountry.asStateFlow()
+
+    private val _provenanceLocality = MutableStateFlow("")
+    val provenanceLocality: StateFlow<String> = _provenanceLocality.asStateFlow()
+
+    private val _provenanceMine = MutableStateFlow("")
+    val provenanceMine: StateFlow<String> = _provenanceMine.asStateFlow()
+
+    private val _provenanceDate = MutableStateFlow("")
+    val provenanceDate: StateFlow<String> = _provenanceDate.asStateFlow()
+
     init {
         // Load draft on initialization
         loadDraft()
@@ -395,6 +408,23 @@ class AddMineralViewModel(
         _weightGr.value = value
     }
 
+    // v3.0.0: Provenance field updates
+    fun onProvenanceCountryChange(value: String) {
+        _provenanceCountry.value = value
+    }
+
+    fun onProvenanceLocalityChange(value: String) {
+        _provenanceLocality.value = value
+    }
+
+    fun onProvenanceMineChange(value: String) {
+        _provenanceMine.value = value
+    }
+
+    fun onProvenanceDateChange(value: String) {
+        _provenanceDate.value = value
+    }
+
     private fun updateTagSuggestions(input: String) {
         if (input.isBlank()) {
             _tagSuggestions.value = emptyList()
@@ -545,27 +575,42 @@ class AddMineralViewModel(
                     mineralId = (mineralRepository as MineralRepositoryImpl).insertAggregate(aggregateData)
                 }
 
-                // Sprint 5: Update mineral with weightGr and/or provenance if provided
-                if (_weightGr.value.isNotBlank() || _price.value.isNotBlank()) {
+                // v3.0.0: Update mineral with weightGr and/or provenance if any field is provided
+                val hasProvenanceData = _price.value.isNotBlank() ||
+                                       _provenanceCountry.value.isNotBlank() ||
+                                       _provenanceLocality.value.isNotBlank() ||
+                                       _provenanceMine.value.isNotBlank() ||
+                                       _provenanceDate.value.isNotBlank()
+
+                if (_weightGr.value.isNotBlank() || hasProvenanceData) {
                     // Load the just-created mineral
                     val createdMineral = mineralRepository.getById(mineralId)
                     if (createdMineral != null) {
-                        // Create provenance if price or currency is provided
-                        val provenance = if (_price.value.isNotBlank()) {
+                        // Create provenance if any provenance field is provided
+                        val provenance = if (hasProvenanceData) {
+                            // Parse date if provided (format: yyyy-MM-dd)
+                            val acquiredDate = if (_provenanceDate.value.isNotBlank()) {
+                                try {
+                                    java.time.LocalDate.parse(_provenanceDate.value).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()
+                                } catch (e: Exception) {
+                                    null
+                                }
+                            } else null
+
                             net.meshcore.mineralog.domain.model.Provenance(
                                 id = java.util.UUID.randomUUID().toString(),
                                 mineralId = mineralId,
                                 site = null,
-                                locality = null,
-                                country = null,
+                                locality = _provenanceLocality.value.trim().takeIf { it.isNotBlank() },
+                                country = _provenanceCountry.value.trim().takeIf { it.isNotBlank() },
                                 latitude = null,
                                 longitude = null,
-                                acquiredAt = null,
+                                acquiredAt = acquiredDate,
                                 source = null,
                                 price = _price.value.toFloatOrNull(),
                                 estimatedValue = null,
                                 currency = _currency.value,
-                                mineName = null,
+                                mineName = _provenanceMine.value.trim().takeIf { it.isNotBlank() },
                                 dealer = null,
                                 catalogNumber = null,
                                 collectorName = null,

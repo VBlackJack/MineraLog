@@ -62,6 +62,14 @@
     <string name="cd_scan_qr">Scanner code QR</string>
     <string name="cd_bulk_edit">Édition groupée</string>
     <string name="cd_statistics">Statistiques</string>
+    <string name="cd_menu">Menu</string>
+
+    <!-- Navigation Drawer -->
+    <string name="nav_drawer_my_collection">Ma Collection</string>
+    <string name="nav_drawer_reference_library">Bibliothèque de référence</string>
+    <string name="nav_drawer_identification">Identification</string>
+    <string name="nav_drawer_statistics">Statistiques</string>
+    <string name="nav_drawer_settings">Paramètres</string>
 
     <!-- Home Screen -->
     <string name="home_title">MineraLog</string>
@@ -121,6 +129,11 @@
     <string name="field_weight">Poids (g)</string>
     <string name="field_value">Valeur estimée</string>
     <string name="field_value_currency">Devise</string>
+    <string name="field_provenance">Provenance</string>
+    <string name="field_provenance_country">Pays</string>
+    <string name="field_provenance_locality">Localité</string>
+    <string name="field_provenance_mine">Mine / Site</string>
+    <string name="field_provenance_date">Date d\'acquisition (AAAA-MM-JJ)</string>
     <string name="field_notes">Notes</string>
     <string name="field_notes_hint">Observations additionnelles, histoire de la collection…</string>
     <string name="field_tags">Étiquettes</string>

@@ -72,7 +72,8 @@ fun MineraLogNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     startDestination: String = Screen.Home.route,
-    deepLinkMineralId: String? = null
+    deepLinkMineralId: String? = null,
+    onOpenDrawer: () -> Unit = {}
 ) {
     // Handle deep link with UUID validation (defense-in-depth)
     LaunchedEffect(deepLinkMineralId) {
@@ -101,24 +102,13 @@ fun MineraLogNavHost(
                 onAddClick = {
                     navController.navigate(Screen.Add.route)
                 },
-                onSettingsClick = {
-                    navController.navigate(Screen.Settings.route)
-                },
-                onStatisticsClick = {
-                    navController.navigate(Screen.Statistics.route)
-                },
                 onCompareClick = { mineralIds ->
                     navController.navigate(Screen.Compare.createRoute(mineralIds))
                 },
                 onQrScanClick = {
                     navController.navigate(Screen.QrScanner.route)
                 },
-                onLibraryClick = {
-                    navController.navigate(Screen.ReferenceLibrary.route)
-                },
-                onIdentificationClick = {
-                    navController.navigate(Screen.Identification.route)
-                }
+                onOpenDrawer = onOpenDrawer
             )
         }
 

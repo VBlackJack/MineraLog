@@ -39,12 +39,9 @@ import net.meshcore.mineralog.ui.screens.home.components.dialogs.*
 fun HomeScreen(
     onMineralClick: (String) -> Unit,
     onAddClick: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onStatisticsClick: () -> Unit = {},
     onCompareClick: (List<String>) -> Unit = {},
     onQrScanClick: () -> Unit = {},
-    onLibraryClick: () -> Unit = {},
-    onIdentificationClick: () -> Unit = {},
+    onOpenDrawer: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             context = LocalContext.current.applicationContext,
@@ -144,12 +141,9 @@ fun HomeScreen(
                 onExitSelectionMode = { viewModel.exitSelectionMode() },
                 onSelectAll = { viewModel.selectAll() },
                 onShowBulkActionsSheet = { viewModel.showBulkActionsDialog() },
-                onLibraryClick = onLibraryClick,
-                onIdentificationClick = onIdentificationClick,
                 onQrScanClick = onQrScanClick,
                 onEnterSelectionMode = { viewModel.enterSelectionMode() },
-                onStatisticsClick = onStatisticsClick,
-                onSettingsClick = onSettingsClick
+                onOpenDrawer = onOpenDrawer
             )
         },
         floatingActionButton = {

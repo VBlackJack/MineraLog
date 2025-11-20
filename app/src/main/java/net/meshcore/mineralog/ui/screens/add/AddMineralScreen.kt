@@ -99,6 +99,12 @@ fun AddMineralScreen(
     val currency by viewModel.currency.collectAsState()
     val weightGr by viewModel.weightGr.collectAsState()
 
+    // v3.0.0: Provenance fields
+    val provenanceCountry by viewModel.provenanceCountry.collectAsState()
+    val provenanceLocality by viewModel.provenanceLocality.collectAsState()
+    val provenanceMine by viewModel.provenanceMine.collectAsState()
+    val provenanceDate by viewModel.provenanceDate.collectAsState()
+
     val context = LocalContext.current
     val photosDir = remember {
         File(context.filesDir, "photos").apply {
@@ -813,6 +819,55 @@ fun AddMineralScreen(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                 )
             }
+
+            // v3.0.0: Provenance Section
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(R.string.field_provenance),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            OutlinedTextField(
+                value = provenanceCountry,
+                onValueChange = { viewModel.onProvenanceCountryChange(it) },
+                label = { Text(stringResource(R.string.field_provenance_country)) },
+                placeholder = { Text("Ex: France") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+
+            OutlinedTextField(
+                value = provenanceLocality,
+                onValueChange = { viewModel.onProvenanceLocalityChange(it) },
+                label = { Text(stringResource(R.string.field_provenance_locality)) },
+                placeholder = { Text("Ex: Chamonix, Haute-Savoie") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+
+            OutlinedTextField(
+                value = provenanceMine,
+                onValueChange = { viewModel.onProvenanceMineChange(it) },
+                label = { Text(stringResource(R.string.field_provenance_mine)) },
+                placeholder = { Text("Ex: Mine du Mont-Blanc") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+
+            OutlinedTextField(
+                value = provenanceDate,
+                onValueChange = { viewModel.onProvenanceDateChange(it) },
+                label = { Text(stringResource(R.string.field_provenance_date)) },
+                placeholder = { Text("Ex: 2024-12-15") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
 
             // Photos Section
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

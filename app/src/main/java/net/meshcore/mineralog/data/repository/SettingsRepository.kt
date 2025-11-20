@@ -110,8 +110,14 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun getLanguage(): Flow<String> =
         preferencesFlow.map { it[Keys.LANGUAGE] ?: DEFAULT_LANGUAGE }
 
-    override suspend fun setLanguage(language: String) =
+    override suspend fun setLanguage(language: String) {
         editPreferences { it[Keys.LANGUAGE] = language }
+        // Also sync to SharedPreferences for MainActivity.attachBaseContext()
+        context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+            .edit()
+            .putString("language_sync", language)
+            .apply()
+    }
 
     override fun getTheme(): Flow<String> =
         preferencesFlow.map { (it[Keys.THEME_MODE] ?: DEFAULT_THEME).uppercase(Locale.US) }

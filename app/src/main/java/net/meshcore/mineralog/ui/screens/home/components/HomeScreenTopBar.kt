@@ -12,9 +12,10 @@ import net.meshcore.mineralog.R
  * Top app bar component for HomeScreen.
  *
  * Responsibilities:
- * - Normal mode: Show title and action buttons (library, QR scanner, bulk edit, statistics, settings)
+ * - Normal mode: Show hamburger menu, title, and quick action buttons (QR scanner, bulk edit)
  * - Selection mode: Show selection count and actions (close, select all, more actions)
  *
+ * Note: Main navigation (Library, Identification, Statistics, Settings) moved to Navigation Drawer.
  * Extracted from HomeScreen.kt to follow Single Responsibility Principle.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,12 +27,9 @@ fun HomeScreenTopBar(
     onExitSelectionMode: () -> Unit,
     onSelectAll: () -> Unit,
     onShowBulkActionsSheet: () -> Unit,
-    onLibraryClick: () -> Unit,
-    onIdentificationClick: () -> Unit,
     onQrScanClick: () -> Unit,
     onEnterSelectionMode: () -> Unit,
-    onStatisticsClick: () -> Unit,
-    onSettingsClick: () -> Unit
+    onOpenDrawer: () -> Unit
 ) {
     if (selectionMode) {
         // Selection mode top bar
@@ -59,15 +57,12 @@ fun HomeScreenTopBar(
         // Normal top bar
         TopAppBar(
             title = { Text(stringResource(R.string.home_title)) },
+            navigationIcon = {
+                IconButton(onClick = onOpenDrawer) {
+                    Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.cd_menu))
+                }
+            },
             actions = {
-                // Library button
-                IconButton(onClick = onLibraryClick) {
-                    Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = stringResource(R.string.cd_library))
-                }
-                // Identification button
-                IconButton(onClick = onIdentificationClick) {
-                    Icon(Icons.Default.Search, contentDescription = stringResource(R.string.cd_identification))
-                }
                 // QR Scanner button
                 IconButton(onClick = onQrScanClick) {
                     Icon(Icons.Default.QrCodeScanner, contentDescription = stringResource(R.string.cd_scan_qr))
@@ -75,12 +70,6 @@ fun HomeScreenTopBar(
                 // Bulk edit button
                 IconButton(onClick = onEnterSelectionMode) {
                     Icon(Icons.Default.Ballot, contentDescription = stringResource(R.string.cd_bulk_edit))
-                }
-                IconButton(onClick = onStatisticsClick) {
-                    Icon(Icons.Default.BarChart, contentDescription = stringResource(R.string.cd_statistics))
-                }
-                IconButton(onClick = onSettingsClick) {
-                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.cd_settings))
                 }
             }
         )

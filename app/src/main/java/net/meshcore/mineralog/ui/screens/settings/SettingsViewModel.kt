@@ -80,17 +80,18 @@ class SettingsViewModel(
      * @param lang "system", "en", or "fr"
      */
     fun setLanguage(lang: String) {
+        // Save preference first
         viewModelScope.launch {
-            // Save preference
             settingsRepository.setLanguage(lang)
-
-            // Apply locale using AppCompatDelegate
-            val localeList = when (lang) {
-                "system" -> LocaleListCompat.getEmptyLocaleList()
-                else -> LocaleListCompat.forLanguageTags(lang)
-            }
-            AppCompatDelegate.setApplicationLocales(localeList)
         }
+
+        // Apply locale using AppCompatDelegate immediately (on main thread)
+        // This will automatically recreate the activity with the new locale
+        val localeList = when (lang) {
+            "system" -> LocaleListCompat.getEmptyLocaleList()
+            else -> LocaleListCompat.forLanguageTags(lang)
+        }
+        AppCompatDelegate.setApplicationLocales(localeList)
     }
 
     fun setCopyPhotos(copy: Boolean) {

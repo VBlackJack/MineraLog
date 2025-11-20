@@ -282,7 +282,7 @@ fun SettingsScreen(
             SettingsActionItem(
                 icon = Icons.Default.CloudUpload,
                 title = stringResource(R.string.action_backup),
-                subtitle = "Export all data with encryption",
+                subtitle = stringResource(R.string.settings_export_subtitle),
                 onClick = {
                     val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
                         .format(java.util.Date())
@@ -294,7 +294,7 @@ fun SettingsScreen(
             SettingsActionItem(
                 icon = Icons.Default.Download,
                 title = stringResource(R.string.action_restore),
-                subtitle = "Restore from encrypted backup (ZIP)",
+                subtitle = stringResource(R.string.settings_import_subtitle),
                 onClick = {
                     zipImportLauncher.launch("application/zip")
                 }
@@ -303,8 +303,8 @@ fun SettingsScreen(
             // Import CSV
             SettingsActionItem(
                 icon = Icons.Default.UploadFile,
-                title = "Import CSV",
-                subtitle = "Import minerals from CSV spreadsheet",
+                title = stringResource(R.string.settings_import_csv_title),
+                subtitle = stringResource(R.string.settings_import_csv_subtitle),
                 onClick = {
                     csvImportLauncher.launch("text/*")
                 }
@@ -447,7 +447,7 @@ fun SettingsScreen(
 
             // About - Quick Win #5
             SettingsItem(
-                title = "About",
+                title = stringResource(R.string.settings_about_title),
                 subtitle = "MineraLog v${net.meshcore.mineralog.BuildConfig.VERSION_NAME}"
             ) {
                 showAboutDialog = true

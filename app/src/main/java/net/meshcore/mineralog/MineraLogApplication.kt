@@ -1,12 +1,19 @@
 package net.meshcore.mineralog
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.KeysetHandle
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.local.MineraLogDatabase
 import net.meshcore.mineralog.data.repository.*
 import net.meshcore.mineralog.domain.provider.AndroidResourceProvider
@@ -86,6 +93,9 @@ class MineraLogApplication : Application(), Configuration.Provider {
         keysetHandle.getPrimitive(Aead::class.java)
     }
 
+    // Application-scoped coroutine for async initialization
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setMinimumLoggingLevel(android.util.Log.INFO)
@@ -103,5 +113,26 @@ class MineraLogApplication : Application(), Configuration.Provider {
 
         // Initialize WorkManager
         WorkManager.initialize(this, workManagerConfiguration)
+
+        // Apply saved language preference
+        applicationScope.launch {
+            try {
+                val savedLanguage = settingsRepository.getLanguage().first()
+
+                // Sync to SharedPreferences for MainActivity.attachBaseContext()
+                getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+                    .edit()
+                    .putString("language_sync", savedLanguage)
+                    .apply()
+
+                val localeList = when (savedLanguage) {
+                    "system" -> LocaleListCompat.getEmptyLocaleList() // Use system default
+                    else -> LocaleListCompat.forLanguageTags(savedLanguage)
+                }
+                AppCompatDelegate.setApplicationLocales(localeList)
+            } catch (e: Exception) {
+                AppLogger.e("MineraLogApp", "Failed to apply language preference", e)
+            }
+        }
     }
 }

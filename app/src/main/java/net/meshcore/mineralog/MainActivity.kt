@@ -1,46 +1,45 @@
 package net.meshcore.mineralog
 
-import android.content.Context
-import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
-import android.os.LocaleList
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import net.meshcore.mineralog.data.migration.AutoReferenceCreator
+import net.meshcore.mineralog.ui.navigation.AppNavigationDrawer
 import net.meshcore.mineralog.ui.dialogs.MigrationReportDialog
 import net.meshcore.mineralog.ui.navigation.MineraLogNavHost
 import net.meshcore.mineralog.ui.navigation.Screen
 import net.meshcore.mineralog.ui.screens.main.MigrationViewModel
 import net.meshcore.mineralog.ui.theme.MineraLogTheme
 import net.meshcore.mineralog.util.AppLogger
-import java.util.Locale
 import java.util.UUID
 
 /**
  * Main Activity for MineraLog application.
  * Handles deep links (mineralapp://mineral/{uuid}) and sets up Compose UI.
  */
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Apply saved language preference
-        applyLanguagePreference()
 
         // Enable edge-to-edge display
         enableEdgeToEdge()
@@ -77,29 +76,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun attachBaseContext(newBase: Context) {
-        // Use SharedPreferences for synchronous language access
-        val prefs = newBase.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        val language = prefs.getString("language_sync", "en") ?: "en"
-
-        val locale = Locale(language)
-        val config = Configuration(newBase.resources.configuration)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            config.setLocales(LocaleList(locale))
-        } else {
-            @Suppress("DEPRECATION")
-            config.locale = locale
-        }
-
-        Locale.setDefault(locale)
-        val context = newBase.createConfigurationContext(config)
-        super.attachBaseContext(context)
-    }
-
-    private fun applyLanguagePreference() {
-        // Language is now applied in attachBaseContext
-    }
+    // Note: attachBaseContext() removed - AppCompatDelegate.setApplicationLocales() handles locale management
 }
 
 @Composable
@@ -109,6 +86,12 @@ fun MineraLogApp(
     val context = LocalContext.current
     val application = context.applicationContext as MineraLogApplication
     val navController = rememberNavController() // Hoist controller so global UI (dialogs) can drive navigation safely
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    // Get current route for drawer item highlighting
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
 
     // Create migration ViewModel
     val migrationViewModel = remember {
@@ -133,31 +116,80 @@ fun MineraLogApp(
     val showMigrationDialog by migrationViewModel.showMigrationDialog.collectAsState()
     val migrationReport = migrationViewModel.getMigrationReport()
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) { innerPadding ->
-        MineraLogNavHost(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            navController = navController,
-            deepLinkMineralId = deepLinkMineralId
-        )
-
-        // Show migration report dialog if needed
-        if (showMigrationDialog && migrationReport != null) {
-            MigrationReportDialog(
-                report = migrationReport,
-                onDismiss = { migrationViewModel.dismissMigrationDialog() },
-                onViewLibrary = {
-                    migrationViewModel.dismissMigrationDialog()
-                    // Direct the user to the reference library once migration completes successfully
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            AppNavigationDrawer(
+                currentRoute = currentRoute,
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToLibrary = {
                     navController.navigate(Screen.ReferenceLibrary.route) {
                         launchSingleTop = true
                         restoreState = true
                     }
+                },
+                onNavigateToIdentification = {
+                    navController.navigate(Screen.Identification.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onNavigateToStatistics = {
+                    navController.navigate(Screen.Statistics.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onCloseDrawer = {
+                    scope.launch {
+                        drawerState.close()
+                    }
                 }
             )
+        }
+    ) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize()
+        ) { innerPadding ->
+            MineraLogNavHost(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                navController = navController,
+                deepLinkMineralId = deepLinkMineralId,
+                onOpenDrawer = {
+                    scope.launch {
+                        drawerState.open()
+                    }
+                }
+            )
+
+            // Show migration report dialog if needed
+            if (showMigrationDialog && migrationReport != null) {
+                MigrationReportDialog(
+                    report = migrationReport,
+                    onDismiss = { migrationViewModel.dismissMigrationDialog() },
+                    onViewLibrary = {
+                        migrationViewModel.dismissMigrationDialog()
+                        // Direct the user to the reference library once migration completes successfully
+                        navController.navigate(Screen.ReferenceLibrary.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
         }
     }
 }
