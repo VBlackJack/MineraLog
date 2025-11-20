@@ -647,6 +647,11 @@
     <string name="settings_copy_photos_subtitle">Recommandé pour la sécurité des données</string>
     <string name="settings_encrypt_default_title">Chiffrer les sauvegardes par défaut</string>
     <string name="settings_encrypt_default_subtitle">Protéger toutes les sauvegardes exportées avec chiffrement</string>
+    <string name="settings_section_developer">Développeur</string>
+    <string name="settings_load_sample_data_title">Charger des données d\'exemple</string>
+    <string name="settings_load_sample_data_subtitle">Ajouter 12 minéraux d\'exemple pour les tests</string>
+    <string name="settings_sample_data_success">%d minéraux d\'exemple chargés avec succès</string>
+    <string name="settings_sample_data_error">Erreur lors du chargement des données d\'exemple\u00A0: %s</string>
     <string name="settings_about_title">À propos</string>
     <string name="settings_about_version">MineraLog v3.0.0-alpha</string>
     <string name="settings_about_dialog_title">MineraLog</string>

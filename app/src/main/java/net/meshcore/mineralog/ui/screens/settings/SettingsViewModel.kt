@@ -12,11 +12,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import android.content.Context
 import net.meshcore.mineralog.data.repository.BackupRepository
 import net.meshcore.mineralog.data.repository.CsvImportMode
 import net.meshcore.mineralog.data.repository.ImportMode
 import net.meshcore.mineralog.data.repository.ImportResult
+import net.meshcore.mineralog.data.repository.MineralRepository
 import net.meshcore.mineralog.data.repository.SettingsRepository
+import net.meshcore.mineralog.data.sample.SampleDataGenerator
 
 sealed class BackupExportState {
     data object Idle : BackupExportState()
@@ -40,7 +43,16 @@ sealed class CsvImportState {
     data class Error(val message: String) : CsvImportState()
 }
 
+sealed class SampleDataState {
+    data object Idle : SampleDataState()
+    data object Loading : SampleDataState()
+    data class Success(val count: Int) : SampleDataState()
+    data class Error(val message: String) : SampleDataState()
+}
+
 class SettingsViewModel(
+    private val context: Context,
+    private val mineralRepository: MineralRepository,
     private val settingsRepository: SettingsRepository,
     private val backupRepository: BackupRepository
 ) : ViewModel() {
@@ -53,6 +65,9 @@ class SettingsViewModel(
 
     private val _csvImportState = MutableStateFlow<CsvImportState>(CsvImportState.Idle)
     val csvImportState: StateFlow<CsvImportState> = _csvImportState.asStateFlow()
+
+    private val _sampleDataState = MutableStateFlow<SampleDataState>(SampleDataState.Idle)
+    val sampleDataState: StateFlow<SampleDataState> = _sampleDataState.asStateFlow()
 
     val language: StateFlow<String> = settingsRepository.getLanguage()
         .stateIn(
@@ -198,16 +213,40 @@ class SettingsViewModel(
     fun resetCsvImportState() {
         _csvImportState.value = CsvImportState.Idle
     }
+
+    /**
+     * Load sample mineral data for testing purposes.
+     * Generates 12 common minerals with realistic properties.
+     */
+    fun loadSampleData() {
+        viewModelScope.launch {
+            _sampleDataState.value = SampleDataState.Loading
+
+            try {
+                val generator = SampleDataGenerator(context, mineralRepository)
+                val minerals = generator.generateSampleMinerals()
+                _sampleDataState.value = SampleDataState.Success(minerals.size)
+            } catch (e: Exception) {
+                _sampleDataState.value = SampleDataState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
+
+    fun resetSampleDataState() {
+        _sampleDataState.value = SampleDataState.Idle
+    }
 }
 
 class SettingsViewModelFactory(
+    private val context: Context,
+    private val mineralRepository: MineralRepository,
     private val settingsRepository: SettingsRepository,
     private val backupRepository: BackupRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
-            return SettingsViewModel(settingsRepository, backupRepository) as T
+            return SettingsViewModel(context, mineralRepository, settingsRepository, backupRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

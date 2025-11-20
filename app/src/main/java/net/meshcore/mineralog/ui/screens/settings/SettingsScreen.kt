@@ -36,6 +36,8 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     viewModel: SettingsViewModel = viewModel(
         factory = SettingsViewModelFactory(
+            context = LocalContext.current.applicationContext,
+            mineralRepository = (LocalContext.current.applicationContext as MineraLogApplication).mineralRepository,
             settingsRepository = (LocalContext.current.applicationContext as MineraLogApplication).settingsRepository,
             backupRepository = (LocalContext.current.applicationContext as MineraLogApplication).backupRepository
         )
@@ -48,6 +50,7 @@ fun SettingsScreen(
     val exportState by viewModel.exportState.collectAsState()
     val importState by viewModel.importState.collectAsState()
     val csvImportState by viewModel.csvImportState.collectAsState()
+    val sampleDataState by viewModel.sampleDataState.collectAsState()
 
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -240,6 +243,36 @@ fun SettingsScreen(
                 }
 
                 viewModel.resetImportState()
+            }
+            else -> {}
+        }
+    }
+
+    // Handle sample data loading state
+    LaunchedEffect(sampleDataState) {
+        when (sampleDataState) {
+            is SampleDataState.Loading -> {
+                operationStatusMessage = "Loading sample data..."
+            }
+            is SampleDataState.Success -> {
+                val count = (sampleDataState as SampleDataState.Success).count
+                val message = context.getString(R.string.settings_sample_data_success, count)
+                operationStatusMessage = message
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Short
+                )
+                viewModel.resetSampleDataState()
+            }
+            is SampleDataState.Error -> {
+                val errorMessage = (sampleDataState as SampleDataState.Error).message
+                val message = context.getString(R.string.settings_sample_data_error, errorMessage)
+                operationStatusMessage = message
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetSampleDataState()
             }
             else -> {}
         }
@@ -442,6 +475,18 @@ fun SettingsScreen(
                     }
                 )
             }
+
+            HorizontalDivider()
+
+            // Developer Section
+            SectionHeader(title = stringResource(R.string.settings_section_developer))
+
+            SettingsActionItem(
+                icon = Icons.Default.Dataset,
+                title = stringResource(R.string.settings_load_sample_data_title),
+                subtitle = stringResource(R.string.settings_load_sample_data_subtitle),
+                onClick = { viewModel.loadSampleData() }
+            )
 
             HorizontalDivider()
 

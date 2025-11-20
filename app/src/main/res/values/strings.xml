@@ -647,6 +647,11 @@
     <string name="settings_copy_photos_subtitle">Recommended for data safety</string>
     <string name="settings_encrypt_default_title">Encrypt backups by default</string>
     <string name="settings_encrypt_default_subtitle">Protect all exported backups with encryption</string>
+    <string name="settings_section_developer">Developer</string>
+    <string name="settings_load_sample_data_title">Load Sample Data</string>
+    <string name="settings_load_sample_data_subtitle">Add 12 example minerals for testing</string>
+    <string name="settings_sample_data_success">Successfully loaded %d sample minerals</string>
+    <string name="settings_sample_data_error">Error loading sample data: %s</string>
     <string name="settings_about_title">About</string>
     <string name="settings_about_version">MineraLog v3.0.0-alpha</string>
     <string name="settings_about_dialog_title">MineraLog</string>
